@@ -1,51 +1,89 @@
+import { useEffect } from 'react';
+import { useNavigate } from 'react-router';
 import { UserProfile } from '../components/user-profile';
 import { useAuth } from '../lib/auth-context';
 
 export function Home() {
-	const { user, userProfile } = useAuth();
+	const { user, userProfile, loading } = useAuth();
+	const navigate = useNavigate();
 
-	return (
-		<div>
-			{/* ユーザーがログインしている場合はプロフィールを表示 */}
-			{user && (
-				<div className="mb-8">
-					<UserProfile user={user} userProfile={userProfile} />
+	// 認証状態の読み込みが完了し、未ログインの場合はログインページにリダイレクト
+	useEffect(() => {
+		if (!loading && !user) {
+			navigate('/login');
+		}
+	}, [user, loading, navigate]);
+
+	// ローディング中は何も表示しない
+	if (loading) {
+		return (
+			<div className="flex min-h-screen items-center justify-center bg-gray-100">
+				<div className="text-center">
+					<div className="mb-4 h-8 w-8 animate-spin rounded-full border-4 border-blue-500 border-t-transparent"></div>
+					<p className="text-gray-600">読み込み中...</p>
 				</div>
-			)}
+			</div>
+		);
+	}
 
-			<div className="w-full max-w-[300px] space-y-6 px-4">
-				<nav className="space-y-4 rounded-3xl border border-gray-200 p-6 dark:border-gray-700">
-					<p className="text-center text-gray-700 leading-6 dark:text-gray-200">
-						What&apos;s next?
-					</p>
-					<ul>
-						{/* ダッシュボードへのリンクを認証済みユーザーに表示 */}
-						{user && (
-							<li>
+	// 未認証の場合は何も表示しない（リダイレクト処理中）
+	if (!user) {
+		return null;
+	}
+
+	// ログイン済みユーザーのダッシュボード
+	return (
+		<div className="min-h-screen bg-gray-100 py-8">
+			<div className="mx-auto max-w-4xl px-4">
+				<h1 className="mb-8 font-bold text-3xl text-gray-900">ダッシュボード</h1>
+
+				<div className="grid grid-cols-1 gap-6 md:grid-cols-3">
+					{/* ユーザープロフィールカード */}
+					<div className="space-y-6 md:col-span-1">
+						<UserProfile user={user} userProfile={userProfile} />
+					</div>
+
+					{/* メインコンテンツ */}
+					<div className="space-y-6 md:col-span-2">
+						<div className="rounded-lg bg-white p-6 shadow-md">
+							<h2 className="mb-4 font-semibold text-gray-900 text-xl">
+								ようこそ、{userProfile?.name || user?.displayName || 'ユーザー'}
+								さん！
+							</h2>
+							<p className="text-gray-600">
+								ここからサービスをご利用いただけます。プロフィールの編集や各種設定を行ってください。
+							</p>
+						</div>
+
+						<div className="rounded-lg bg-white p-6 shadow-md">
+							<h3 className="mb-3 font-semibold text-gray-900 text-lg">
+								クイックアクション
+							</h3>
+							<div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
 								<a
-									className="group flex items-center gap-3 self-stretch p-3 text-blue-700 leading-normal hover:underline dark:text-blue-500"
-									href="/dashboard"
+									href="/adjustment"
+									className="flex items-center gap-3 rounded-lg bg-blue-50 p-3 text-blue-600 transition-colors hover:bg-blue-100"
 								>
 									<svg
-										className="mr-2 h-5 w-5"
+										className="h-5 w-5"
 										fill="none"
 										stroke="currentColor"
 										viewBox="0 0 24 24"
 									>
-										<title>ダッシュボード</title>
+										<title>調整</title>
 										<path
 											strokeLinecap="round"
 											strokeLinejoin="round"
 											strokeWidth={2}
-											d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 00-2-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"
+											d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 100 4m0-4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 100 4m0-4v2m0-6V4"
 										/>
 									</svg>
-									ダッシュボード
+									調整画面
 								</a>
-							</li>
-						)}
-					</ul>
-				</nav>
+							</div>
+						</div>
+					</div>
+				</div>
 			</div>
 		</div>
 	);
