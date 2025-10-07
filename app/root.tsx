@@ -45,7 +45,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
 }
 
 function AppGuard() {
-	const { user, loading, sessionExpired } = useAuth();
+	const { user, loading, sessionExpired, needsProfile } = useAuth();
 	const location = useLocation();
 
 	// ローディング中
@@ -72,6 +72,11 @@ function AppGuard() {
 				}}
 			/>
 		);
+	}
+
+	// ログイン済みだがプロファイルが存在しない場合は /create-profile へリダイレクト
+	if (user && needsProfile && location.pathname !== '/create-profile') {
+		return <Navigate to="/create-profile" replace />;
 	}
 
 	return <Outlet />;
