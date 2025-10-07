@@ -1,5 +1,10 @@
 import { useState } from 'react';
-import { signInWithGoogle, registerWithGoogle, registerNewUser, loginExistingUser } from '../lib/firebase';
+import {
+	loginExistingUser,
+	registerNewUser,
+	registerWithGoogle,
+	signInWithGoogle,
+} from '../lib/firebase';
 
 const GoogleIcon = () => (
 	<svg className="mr-2 h-5 w-5" viewBox="0 0 24 24">
@@ -50,25 +55,35 @@ export function LoginPage() {
 			}
 		} catch (error) {
 			console.error('Authentication error:', error);
-			
+
 			// エラーメッセージをより詳細に
 			if (error instanceof Error) {
 				if (error.message.includes('既に登録されています')) {
-					setError('このGoogleアカウントは既に登録されています。ログインタブをお使いください。');
+					setError(
+						'このGoogleアカウントは既に登録されています。ログインタブをお使いください。',
+					);
 				} else if (error.message.includes('登録されていません')) {
-					setError('このGoogleアカウントは登録されていません。新規登録タブをお使いください。');
+					setError(
+						'このGoogleアカウントは登録されていません。新規登録タブをお使いください。',
+					);
 				} else {
-					setError(isRegistration ? '新規登録に失敗しました。もう一度お試しください。' : 'ログインに失敗しました。もう一度お試しください。');
+					setError(
+						isRegistration
+							? '新規登録に失敗しました。もう一度お試しください。'
+							: 'ログインに失敗しました。もう一度お試しください。',
+					);
 				}
 			} else {
-				setError(isRegistration ? '新規登録に失敗しました。もう一度お試しください。' : 'ログインに失敗しました。もう一度お試しください。');
+				setError(
+					isRegistration
+						? '新規登録に失敗しました。もう一度お試しください。'
+						: 'ログインに失敗しました。もう一度お試しください。',
+				);
 			}
 		} finally {
 			setLoading(false);
 		}
 	};
-
-
 
 	return (
 		<div className="flex min-h-screen items-center justify-center bg-gray-50">
@@ -78,10 +93,9 @@ export function LoginPage() {
 						{mode === 'login' ? 'ログイン' : '新規登録'}
 					</h2>
 					<p className="mt-2 text-gray-600 text-sm">
-						{mode === 'login' 
-							? 'Googleアカウントでログインしてください' 
-							: '新しいアカウントを作成してください'
-						}
+						{mode === 'login'
+							? 'Googleアカウントでログインしてください'
+							: '新しいアカウントを作成してください'}
 					</p>
 				</div>
 
