@@ -13,17 +13,15 @@ export default function Login() {
 	const { user, loading } = useAuth();
 	const location = useLocation();
 
-	// ログイン後に戻るための遷移元 (location.state の型が不明なため型ガード)
 	let from = '/adjustment';
-	const state = location.state as unknown;
+	const state = location.state;
 	if (state && typeof state === 'object') {
 		if ('from' in state) {
-			const maybeFrom = (state as { from?: { pathname?: string } }).from;
+			const maybeFrom = state.from;
 			if (maybeFrom?.pathname) {
 				from = maybeFrom.pathname;
 			}
 		}
-		// reason は今後の UI 表示用だが現時点では未使用のため無視
 	}
 
 	// ローディング中

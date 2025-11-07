@@ -64,13 +64,16 @@ export const signInWithGoogle = async () => {
 	try {
 		console.log('Google Sign In 開始...');
 		const result = await signInWithPopup(auth, googleProvider);
-		
+
 		console.log('Google認証完了:', result.user?.email);
-		console.log('認証後のAuth State:', auth.currentUser ? 'Authenticated' : 'Not Authenticated');
-		
+		console.log(
+			'認証後のAuth State:',
+			auth.currentUser ? 'Authenticated' : 'Not Authenticated',
+		);
+
 		// Firebase認証が完了するまで少し待つ
-		await new Promise(resolve => setTimeout(resolve, 100));
-		
+		await new Promise((resolve) => setTimeout(resolve, 100));
+
 		// ユーザーが存在しない場合はエラー
 		if (result.user) {
 			try {
@@ -78,7 +81,9 @@ export const signInWithGoogle = async () => {
 				if (!exists) {
 					console.log('ユーザーが存在しません。ログアウトします。');
 					await auth.signOut();
-					throw new Error('このユーザーは登録されていません。新規登録を行ってください。');
+					throw new Error(
+						'このユーザーは登録されていません。新規登録を行ってください。',
+					);
 				}
 			} catch (error) {
 				console.error('User existence check error:', error);
@@ -86,18 +91,20 @@ export const signInWithGoogle = async () => {
 				throw error;
 			}
 		}
-		
+
 		return result;
 	} catch (error) {
 		console.error('Google Sign In error:', error);
-		
+
 		// 特定のエラーハンドリング
 		if (error instanceof Error) {
 			if (error.message.includes('auth/unauthorized-domain')) {
-				throw new Error('認証ドメインが許可されていません。Firebase Console で localhost:5175 を認証済みドメインに追加してください。');
+				throw new Error(
+					'認証ドメインが許可されていません。Firebase Console で localhost:5175 を認証済みドメインに追加してください。',
+				);
 			}
 		}
-		
+
 		throw error;
 	}
 };
@@ -110,37 +117,44 @@ export const registerWithGoogle = async () => {
 	try {
 		console.log('Google Register 開始...');
 		const result = await signInWithPopup(auth, googleProvider);
-		
+
 		console.log('Google認証完了:', result.user?.email);
-		console.log('認証後のAuth State:', auth.currentUser ? 'Authenticated' : 'Not Authenticated');
-		
-		await new Promise(resolve => setTimeout(resolve, 100));
-		
+		console.log(
+			'認証後のAuth State:',
+			auth.currentUser ? 'Authenticated' : 'Not Authenticated',
+		);
+
+		await new Promise((resolve) => setTimeout(resolve, 100));
+
 		if (result.user) {
 			try {
 				const exists = await checkUserExists(result.user.uid);
 				if (exists) {
 					console.log('ユーザーが既に存在します。ログアウトします。');
 					await auth.signOut();
-					throw new Error('このユーザーは既に登録されています。ログインを行ってください。');
+					throw new Error(
+						'このユーザーは既に登録されています。ログインを行ってください。',
+					);
 				}
 			} catch (error) {
 				console.error('User existence check error:', error);
 				console.log('存在チェックエラーのため新規登録として続行');
 			}
 		}
-		
+
 		return result;
 	} catch (error) {
 		console.error('Google Register error:', error);
-		
+
 		// 特定のエラーハンドリング
 		if (error instanceof Error) {
 			if (error.message.includes('auth/unauthorized-domain')) {
-				throw new Error('認証ドメインが許可されていません。Firebase Console で localhost:5175 を認証済みドメインに追加してください。');
+				throw new Error(
+					'認証ドメインが許可されていません。Firebase Console で localhost:5175 を認証済みドメインに追加してください。',
+				);
 			}
 		}
-		
+
 		throw error;
 	}
 };
@@ -156,13 +170,16 @@ export const onAuthStateChange = (callback: (user: User | null) => void) =>
 // Firestore functions
 export const checkUserExists = async (uid: string): Promise<boolean> => {
 	console.log('ユーザー存在チェック:', uid);
-	console.log('Current Auth State:', auth.currentUser ? 'Authenticated' : 'Not Authenticated');
-	
+	console.log(
+		'Current Auth State:',
+		auth.currentUser ? 'Authenticated' : 'Not Authenticated',
+	);
+
 	try {
 		const userDocRef = doc(db, 'users', uid);
 		const userDoc = await getDoc(userDocRef);
 		const exists = userDoc.exists();
-		
+
 		console.log('ユーザー存在結果:', exists);
 		return exists;
 	} catch (error) {
@@ -177,11 +194,14 @@ export const registerNewUser = async (user: User): Promise<void> => {
 	}
 
 	console.log(`新規ユーザー登録中: ${user.email} (UID: ${user.uid})`);
-	console.log('Firebase Auth State:', auth.currentUser ? 'Authenticated' : 'Not Authenticated');
+	console.log(
+		'Firebase Auth State:',
+		auth.currentUser ? 'Authenticated' : 'Not Authenticated',
+	);
 	console.log('User UID:', user.uid);
 
 	const userDocRef = doc(db, 'users', user.uid);
-	
+
 	try {
 		const userDoc = await getDoc(userDocRef);
 
@@ -191,7 +211,7 @@ export const registerNewUser = async (user: User): Promise<void> => {
 	} catch (error) {
 		console.error('Error checking user existence:', error);
 	}
-	
+
 	const userData: Omit<UserProfile, 'uid'> = {
 		gmail: user.email,
 		name: user.displayName || user.email?.split('@')[0] || 'Unknown User',
@@ -211,7 +231,9 @@ export const registerNewUser = async (user: User): Promise<void> => {
 		console.log(`新規ユーザー登録完了: ${user.email}`);
 	} catch (error) {
 		console.error('Firestore write error:', error);
-		throw new Error(`Firestoreへの書き込みに失敗しました: ${error instanceof Error ? error.message : 'Unknown error'}`);
+		throw new Error(
+			`Firestoreへの書き込みに失敗しました: ${error instanceof Error ? error.message : 'Unknown error'}`,
+		);
 	}
 };
 
@@ -221,27 +243,34 @@ export const loginExistingUser = async (user: User): Promise<void> => {
 	}
 
 	console.log(`既存ユーザーログイン: ${user.email} (UID: ${user.uid})`);
-	console.log('Firebase Auth State:', auth.currentUser ? 'Authenticated' : 'Not Authenticated');
+	console.log(
+		'Firebase Auth State:',
+		auth.currentUser ? 'Authenticated' : 'Not Authenticated',
+	);
 	console.log('User UID:', user.uid);
 
 	const userDocRef = doc(db, 'users', user.uid);
-	
+
 	try {
 		const userDoc = await getDoc(userDocRef);
 
 		if (!userDoc.exists()) {
-			throw new Error('このユーザーは登録されていません。新規登録を行ってください。');
+			throw new Error(
+				'このユーザーは登録されていません。新規登録を行ってください。',
+			);
 		}
 
 		await updateDoc(userDocRef, {
 			lastLoginAt: serverTimestamp(),
 			updatedAt: serverTimestamp(),
 		});
-		
+
 		console.log(`ログイン時刻更新完了: ${user.email}`);
 	} catch (error) {
 		console.error('Firestore operation error:', error);
-		throw new Error(`Firestoreの操作に失敗しました: ${error instanceof Error ? error.message : 'Unknown error'}`);
+		throw new Error(
+			`Firestoreの操作に失敗しました: ${error instanceof Error ? error.message : 'Unknown error'}`,
+		);
 	}
 };
 
@@ -249,7 +278,7 @@ export const createUserProfile = async (user: User): Promise<void> => {
 	if (!user.email) return;
 
 	const userExists = await checkUserExists(user.uid);
-	
+
 	if (!userExists) {
 		await registerNewUser(user);
 	} else {

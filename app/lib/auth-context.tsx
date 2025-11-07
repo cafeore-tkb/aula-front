@@ -16,17 +16,20 @@ interface AuthContextType {
 	user: User | null;
 	userProfile: UserProfile | null;
 	loading: boolean;
+	sessionExpired: boolean; // ★追加
+	needsProfile: boolean;
 	refreshProfile: () => Promise<void>;
-	// セッション期限切れなどで再ログインが必要になったか
-	sessionExpired: boolean;
+	signOut: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType>({
 	user: null,
 	userProfile: null,
 	loading: true,
-	refreshProfile: async () => {},
 	sessionExpired: false,
+	needsProfile: false,
+	refreshProfile: async () => {},
+	signOut: async () => {},
 });
 
 export const useAuth = () => {
@@ -45,7 +48,8 @@ export function AuthProvider({ children }: AuthProviderProps) {
 	const [user, setUser] = useState<User | null>(null);
 	const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
 	const [loading, setLoading] = useState(true);
-	const [sessionExpired, setSessionExpired] = useState(false);
+	const [sessionExpired, setSessionExpired] = useState(false); // ★追加
+	const [needsProfile, setNeedsProfile] = useState(false);
 
 	const refreshProfile = async () => {
 		if (user) {
@@ -56,6 +60,12 @@ export function AuthProvider({ children }: AuthProviderProps) {
 				console.error('Error fetching user profile:', error);
 			}
 		}
+	};
+
+	const signOut = async () => {
+		await clearAuthSession();
+		setUser(null);
+		setUserProfile(null);
 	};
 
 	// 初期化時にCookieからセッション復元を試行
@@ -100,10 +110,12 @@ export function AuthProvider({ children }: AuthProviderProps) {
 					// ユーザープロファイルを取得（存在しない場合は後で処理）
 					const profile = await getUserProfile(user.uid);
 					setUserProfile(profile);
+					setNeedsProfile(false);
 				} catch (error) {
 					console.error('Error handling user profile:', error);
 					// プロファイルが見つからない場合はnullのままにする
 					setUserProfile(null);
+					setNeedsProfile(true);
 				}
 			} else {
 				// ユーザーがログアウトまたはセッション期限切れ場合
@@ -121,8 +133,10 @@ export function AuthProvider({ children }: AuthProviderProps) {
 		user,
 		userProfile,
 		loading,
+		sessionExpired, // ★追加
+		needsProfile,
 		refreshProfile,
-		sessionExpired,
+		signOut,
 	};
 
 	return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

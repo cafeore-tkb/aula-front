@@ -20,16 +20,16 @@ export function UserProfile({ user, userProfile }: UserProfileProps) {
 	);
 	const nameId = useId();
 	const yearId = useId();
-	let cafeoreStatus = "";
+	let cafeoreStatus = '';
 	if (userProfile?.isFirstYear) {
-		cafeoreStatus += "1年目";
+		cafeoreStatus += '1年目';
 	} else {
-		cafeoreStatus += "2年目";
+		cafeoreStatus += '2年目';
 	}
 	if (userProfile?.isExaminer) {
-		cafeoreStatus += "試験官";
+		cafeoreStatus += '試験官';
 	} else {
-		cafeoreStatus += "練習生";
+		cafeoreStatus += '練習生';
 	}
 
 	const handleSave = async () => {
@@ -80,7 +80,7 @@ export function UserProfile({ user, userProfile }: UserProfileProps) {
 					<h4 className="border-b pb-1 font-medium text-gray-700 text-sm">
 						プロフィール編集
 					</h4>
-					
+
 					<div>
 						<label
 							htmlFor={nameId}
@@ -149,7 +149,7 @@ export function UserProfile({ user, userProfile }: UserProfileProps) {
 							編集
 						</button>
 					</div>
-					
+
 					<div className="space-y-2 text-gray-600 text-sm">
 						<div className="flex justify-between">
 							<span>名前:</span>
@@ -157,7 +157,9 @@ export function UserProfile({ user, userProfile }: UserProfileProps) {
 						</div>
 						<div>
 							<span className="block">Gmail:</span>
-							<span className="block break-all text-right text-gray-900">{userProfile.gmail}</span>
+							<span className="block break-all text-right text-gray-900">
+								{userProfile.gmail}
+							</span>
 						</div>
 						<div className="flex justify-between">
 							<span>入学年度:</span>
@@ -165,15 +167,11 @@ export function UserProfile({ user, userProfile }: UserProfileProps) {
 						</div>
 						<div className="flex justify-between">
 							<span>管理者:</span>
-							<span							>
-								{userProfile.isAdmin ? '管理者' : '一般構成員'}
-							</span>
+							<span>{userProfile.isAdmin ? '管理者' : '一般構成員'}</span>
 						</div>
 						<div className="flex justify-between">
 							<span>珈琲・俺 ステータス:</span>
-							<span							>
-								{cafeoreStatus}
-							</span>
+							<span>{cafeoreStatus}</span>
 						</div>
 					</div>
 				</div>
