@@ -25,6 +25,7 @@ export interface UserProfile {
 	name: string;
 	isAdmin: boolean;
 	isExaminer: boolean;
+	isFirstYear: boolean;
 	isGraduated: boolean;
 	year: number;
 	photoURL?: string;
@@ -196,6 +197,7 @@ export const registerNewUser = async (user: User): Promise<void> => {
 		name: user.displayName || user.email?.split('@')[0] || 'Unknown User',
 		isAdmin: false,
 		isExaminer: false,
+		isFirstYear: true,
 		isGraduated: false,
 		year: new Date().getFullYear(),
 		photoURL: user.photoURL || '',
