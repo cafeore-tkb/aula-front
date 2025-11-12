@@ -44,7 +44,7 @@ export default function Adjustment() {
 			.map(() => Array(day.length).fill(false)),
 	);
 
-	// 授業頻度を管理するstate
+	// 練習頻度を管理するstate
 	const [frequency, setFrequency] = useState<string>('週1回');
 
 	// コメント欄のstate
@@ -143,8 +143,8 @@ export default function Adjustment() {
 	const examId = useId();
 
 	return (
-		<div className="min-h-screen bg-slate-50 p-1 sm:p-2 lg:h-screen lg:p-2 xl:p-3">
-			<div className="flex h-full flex-col gap-1 lg:flex-row lg:gap-3 xl:gap-4">
+		<div className="min-h-screen bg-slate-50 p-4 lg:h-screen lg:p-10">
+			<div className="flex h-full flex-col gap-1 lg:flex-row lg:gap-4 xl:gap-8">
 				{/* 左側：時間割表 (3/4の幅) */}
 				<div className="h-full flex-1 overflow-hidden lg:w-3/4">
 					<div className="flex h-full flex-col">
@@ -198,11 +198,10 @@ export default function Adjustment() {
 											<Button
 												key={`${period}-${dayName}`}
 												variant={isSelected ? 'default' : 'ghost'}
-												className={`h-full w-full rounded-lg border font-semibold shadow-sm transition-all duration-300 hover:shadow-md lg:text-sm xl:text-base ${
-													isSelected
+												className={`h-full w-full rounded-lg border font-semibold shadow-sm transition-all duration-300 hover:shadow-md lg:text-sm xl:text-base ${isSelected
 														? 'bg-emerald-500 text-white shadow-lg hover:bg-emerald-600'
 														: 'text-slate-600 hover:bg-gray-200 hover:text-slate-800'
-												}`}
+													}`}
 												onClick={() => toggleCell(periodIndex, dayIndex)}
 											>
 												{isSelected ? '〇' : '×'}
@@ -217,7 +216,7 @@ export default function Adjustment() {
 
 				{/* 右側：入力欄 (1/4の幅) */}
 				<div className="mt-2 lg:mt-0 lg:w-1/4">
-					<div className="flex flex-col space-y-2 lg:space-y-2 xl:space-y-2">
+					<div className="flex flex-col space-y-2 lg:space-y-4 xl:space-y-8">
 						{/* タイトル */}
 						<div className="text-center lg:text-left">
 							<h2 className="mb-1 font-bold text-blue-600 text-lg sm:text-xl lg:text-xl xl:text-2xl">
