@@ -68,7 +68,7 @@ export default function Home() {
 							</h3>
 							<div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
 								<Link
-									to="/shift-list"
+									to="/shiftList"
 									className="flex items-center gap-3 rounded-lg bg-blue-50 p-3 text-blue-600 transition-colors hover:bg-blue-100"
 								>
 									<svg

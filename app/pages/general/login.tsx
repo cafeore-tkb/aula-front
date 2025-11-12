@@ -13,7 +13,7 @@ export default function Login() {
 	const { user, loading } = useAuth();
 	const location = useLocation();
 
-	let from = '/adjustment';
+	let from = '/dashboard';
 	const state = location.state;
 	if (state && typeof state === 'object') {
 		if ('from' in state) {

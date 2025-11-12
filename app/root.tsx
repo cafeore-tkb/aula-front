@@ -74,9 +74,9 @@ function AppGuard() {
 		);
 	}
 
-	// ログイン済みだがプロファイルが存在しない場合は /create-profile へリダイレクト
-	if (user && needsProfile && location.pathname !== '/create-profile') {
-		return <Navigate to="/create-profile" replace />;
+	// ログイン済みだがプロファイルが存在しない場合は /createProfile へリダイレクト
+	if (user && needsProfile && location.pathname !== '/createProfile') {
+		return <Navigate to="/createProfile" replace />;
 	}
 
 	return <Outlet />;
