@@ -86,7 +86,7 @@ export function UserProfile({ user, userProfile }: UserProfileProps) {
 							htmlFor={nameId}
 							className="mb-1 block font-medium text-gray-700 text-sm"
 						>
-							名前
+							表示名
 						</label>
 						<input
 							type="text"
@@ -152,7 +152,7 @@ export function UserProfile({ user, userProfile }: UserProfileProps) {
 
 					<div className="space-y-2 text-gray-600 text-sm">
 						<div className="flex justify-between">
-							<span>名前:</span>
+							<span>表示名:</span>
 							<span>{userProfile.name || '未設定'}</span>
 						</div>
 						<div>
