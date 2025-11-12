@@ -7,12 +7,12 @@ export default [
 
 	// 認証関連
 	route('login', 'pages/general/login.tsx'),
-	route('create-profile', 'pages/general/create-profile.tsx'),
+	route('createProfile', 'pages/general/create-profile.tsx'),
 
 	// 一般機能
 	route('dashboard', 'pages/general/dashboard.tsx'),
 	route('adjustment', 'pages/general/adjustment.tsx'),
-	route('shift-list', 'pages/general/shift-list.tsx'),
+	route('shiftList', 'pages/general/shift-list.tsx'),
 
 	// 管理機能
 	route('admin', 'pages/admin/admin.tsx'),
