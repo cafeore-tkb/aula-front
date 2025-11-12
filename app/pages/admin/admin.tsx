@@ -101,13 +101,43 @@ export default function Admin() {
 							<h2 className="font-semibold text-gray-900 text-xl">ユーザー管理</h2>
 						</div>
 						<p className="mb-4 text-gray-600 text-sm">
-							ユーザーの権限管理や情報の編集を行います。
+							ユーザーの権限管理やメンバーの編集を行います。
 						</p>
 						<button
 							type="button"
 							className="w-full rounded-lg bg-blue-600 px-4 py-2 text-white transition-colors hover:bg-blue-700"
 						>
 							ユーザー一覧
+						</button>
+					</div>
+
+					{/* データ管理 */}
+					<div className="rounded-lg bg-white p-6 shadow-md">
+						<div className="mb-4 flex items-center">
+							<svg
+								className="mr-3 h-8 w-8 text-purple-600"
+								fill="none"
+								stroke="currentColor"
+								viewBox="0 0 24 24"
+							>
+								<title>シフト管理</title>
+								<path
+									strokeLinecap="round"
+									strokeLinejoin="round"
+									strokeWidth={2}
+									d="M4 7v10c0 2.21 3.582 4 8 4s8-1.79 8-4V7M4 7c0 2.21 3.582 4 8 4s8-1.79 8-4M4 7c0-2.21 3.582-4 8-4s8 1.79 8 4m0 5c0 2.21-3.582 4-8 4s-8-1.79-8-4"
+								/>
+							</svg>
+							<h2 className="font-semibold text-gray-900 text-xl">シフト管理</h2>
+						</div>
+						<p className="mb-4 text-gray-600 text-sm">
+							シフトの確認・管理を行います。
+						</p>
+						<button
+							type="button"
+							className="w-full rounded-lg bg-purple-600 px-4 py-2 text-white transition-colors hover:bg-purple-700"
+						>
+							シフト一覧
 						</button>
 					</div>
 
@@ -144,36 +174,6 @@ export default function Admin() {
 							className="w-full rounded-lg bg-green-600 px-4 py-2 text-white transition-colors hover:bg-green-700"
 						>
 							設定管理
-						</button>
-					</div>
-
-					{/* データ管理 */}
-					<div className="rounded-lg bg-white p-6 shadow-md">
-						<div className="mb-4 flex items-center">
-							<svg
-								className="mr-3 h-8 w-8 text-purple-600"
-								fill="none"
-								stroke="currentColor"
-								viewBox="0 0 24 24"
-							>
-								<title>データ管理</title>
-								<path
-									strokeLinecap="round"
-									strokeLinejoin="round"
-									strokeWidth={2}
-									d="M4 7v10c0 2.21 3.582 4 8 4s8-1.79 8-4V7M4 7c0 2.21 3.582 4 8 4s8-1.79 8-4M4 7c0-2.21 3.582-4 8-4s8 1.79 8 4m0 5c0 2.21-3.582 4-8 4s-8-1.79-8-4"
-								/>
-							</svg>
-							<h2 className="font-semibold text-gray-900 text-xl">データ管理</h2>
-						</div>
-						<p className="mb-4 text-gray-600 text-sm">
-							スケジュールデータやログの確認・管理を行います。
-						</p>
-						<button
-							type="button"
-							className="w-full rounded-lg bg-purple-600 px-4 py-2 text-white transition-colors hover:bg-purple-700"
-						>
-							データ一覧
 						</button>
 					</div>
 				</div>
