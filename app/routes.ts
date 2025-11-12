@@ -1,5 +1,5 @@
-import type { RouteConfig } from '@react-router/dev/routes';
 import { route, index } from '@react-router/dev/routes';
+import type { RouteConfig } from '@react-router/dev/routes';
 
 export default [
 	// ホームページ
@@ -12,6 +12,7 @@ export default [
 	// 一般機能
 	route('dashboard', 'pages/general/dashboard.tsx'),
 	route('adjustment', 'pages/general/adjustment.tsx'),
+	route('shift-list', 'pages/general/shift-list.tsx'),
 
 	// 管理機能
 	route('admin', 'pages/admin/admin.tsx'),
