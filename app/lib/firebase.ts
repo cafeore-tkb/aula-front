@@ -286,6 +286,49 @@ export const createUserProfile = async (user: User): Promise<void> => {
 	}
 };
 
+export const createUserProfileWithData = async (
+	user: User,
+	profileData: {
+		displayName: string;
+		year: number;
+		status: string;
+	},
+): Promise<void> => {
+	if (!user.email) {
+		throw new Error('ユーザーのメールアドレスが取得できませんでした');
+	}
+
+	console.log(`新規ユーザー登録中: ${user.email} (UID: ${user.uid})`);
+
+	const userDocRef = doc(db, 'users', user.uid);
+
+	// ステータスから各フラグを判定
+	const isFirstYear = profileData.status.includes('first');
+	const isExaminer = profileData.status.includes('examiner');
+
+	const userData: Omit<UserProfile, 'uid'> = {
+		gmail: user.email,
+		name: profileData.displayName,
+		isAdmin: false,
+		isExaminer: isExaminer,
+		isFirstYear: isFirstYear,
+		isGraduated: false,
+		year: profileData.year,
+		photoURL: user.photoURL || '',
+		createdAt: serverTimestamp() as Timestamp,
+		updatedAt: serverTimestamp() as Timestamp,
+		lastLoginAt: serverTimestamp() as Timestamp,
+	};
+
+	try {
+		await setDoc(userDocRef, userData);
+		console.log('ユーザープロフィールが正常に作成されました');
+	} catch (error) {
+		console.error('Error creating user profile:', error);
+		throw new Error('プロフィールの作成に失敗しました');
+	}
+};
+
 export const getUserProfile = async (
 	uid: string,
 ): Promise<UserProfile | null> => {
