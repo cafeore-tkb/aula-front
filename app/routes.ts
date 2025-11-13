@@ -16,7 +16,7 @@ export default [
 
 	// 管理機能
 	route('admin', 'pages/admin/admin.tsx'),
-	route('admin/users', 'pages/admin/member.tsx'),
+	route('admin/member', 'pages/admin/member.tsx'),
 	route('admin/settings', 'pages/admin/settings.tsx'),
 	route('admin/manageAdjustment', 'pages/admin/manage-adjustment.tsx'),
 ] satisfies RouteConfig;
