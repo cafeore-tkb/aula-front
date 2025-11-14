@@ -34,6 +34,15 @@ export interface UserProfile {
 	lastLoginAt: Timestamp;
 }
 
+export interface ShiftUsual {
+	uid: string;
+	year: number;
+	semester: "spring" | "autumn";
+	module: "A" | "B" | "C";
+	isOpen: boolean;
+	isTwice: boolean;
+}
+
 // Firebase configuration
 const firebaseConfig = {
 	apiKey: import.meta.env.VITE_FIREBASE_API_KEY || 'your-api-key',
