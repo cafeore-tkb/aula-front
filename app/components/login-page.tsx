@@ -1,7 +1,6 @@
-import { useState } from 'react';
+import { useState, useId } from 'react';
 import {
 	loginExistingUser,
-	registerNewUser,
 	registerWithGoogle,
 	signInWithGoogle,
 } from '../lib/firebase';
@@ -32,6 +31,8 @@ const GoogleIcon = () => (
 export function LoginPage() {
 	const [loading, setLoading] = useState(false);
 	const [error, setError] = useState<string | null>(null);
+	const [registrationPassword, setRegistrationPassword] = useState('');
+	const passwordInputId = useId();
 
 	const handleGoogleAuth = async (isRegistration = false) => {
 		try {
@@ -39,11 +40,26 @@ export function LoginPage() {
 			setError(null);
 
 			if (isRegistration) {
-				// 新規登録処理
+				// 新規登録時は秘密のパスワードを確認
+				const envPassword = import.meta.env.VITE_REGISTRATION_PASSWORD;
+				
+				if (!envPassword) {
+					setError('新規登録は現在無効になっています。管理者にお問い合わせください。');
+					setLoading(false);
+					return;
+				}
+
+				if (registrationPassword !== envPassword) {
+					setError('秘密のパスワードが正しくありません。');
+					setLoading(false);
+					return;
+				}
+
+				// 新規登録処理（Google認証のみ、Firestoreへの書き込みはcreate-profileページで行う）
 				const result = await registerWithGoogle();
 				if (result?.user) {
-					// Firestoreにユーザーを登録
-					await registerNewUser(result.user);
+					console.log('Google認証完了、プロフィール作成画面へリダイレクト');
+					// auth-contextが自動的にcreate-profileにリダイレクトする
 				}
 			} else {
 				// ログイン処理
@@ -143,24 +159,47 @@ export function LoginPage() {
 							</div>
 						)}
 
-						<button
-							type="button"
-							onClick={() => handleGoogleAuth(true)}
-							disabled={loading}
-							className="group relative flex w-full justify-center rounded-md border border-transparent bg-green-600 px-4 py-3 font-medium text-sm text-white hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-						>
-							{loading ? (
-								<div className="flex items-center">
-									<div className="-ml-1 mr-3 h-5 w-5 animate-spin rounded-full border-2 border-white border-t-transparent" />
-									登録中...
-								</div>
-							) : (
-								<div className="flex items-center">
-									<GoogleIcon />
-									Googleで新規登録
-								</div>
-							)}
-						</button>
+						<div className="space-y-4">
+							<div>
+								<label
+									htmlFor={passwordInputId}
+									className="block font-medium text-gray-700 text-sm"
+								>
+									秘密のパスワード
+								</label>
+								<input
+									id={passwordInputId}
+									type="password"
+									value={registrationPassword}
+									onChange={(e) => setRegistrationPassword(e.target.value)}
+									placeholder="新規登録用の秘密のパスワードを入力"
+									className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-green-500 focus:outline-none focus:ring-1 focus:ring-green-500"
+									disabled={loading}
+								/>
+								<p className="mt-1 text-gray-500 text-xs">
+									新規登録には管理者から提供された秘密のパスワードが必要です
+								</p>
+							</div>
+
+							<button
+								type="button"
+								onClick={() => handleGoogleAuth(true)}
+								disabled={loading || !registrationPassword.trim()}
+								className="group relative flex w-full justify-center rounded-md border border-transparent bg-green-600 px-4 py-3 font-medium text-sm text-white hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+							>
+								{loading ? (
+									<div className="flex items-center">
+										<div className="-ml-1 mr-3 h-5 w-5 animate-spin rounded-full border-2 border-white border-t-transparent" />
+										登録中...
+									</div>
+								) : (
+									<div className="flex items-center">
+										<GoogleIcon />
+										Googleで新規登録
+									</div>
+								)}
+							</button>
+						</div>
 
 						<div className="text-center text-gray-500 text-xs">
 							<p>
