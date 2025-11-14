@@ -2,13 +2,7 @@ import { useEffect, useId, useState } from 'react';
 import { useMediaQuery } from 'react-responsive';
 import { useNavigate } from 'react-router';
 import { Input } from '~/components/ui/input';
-import {
-	Select,
-	SelectContent,
-	SelectItem,
-	SelectTrigger,
-	SelectValue,
-} from '~/components/ui/select';
+import { StatusSelecter } from '../../components/status-selecter';
 import { useAuth } from '../../lib/auth-context';
 import { createUserProfileWithData } from '../../lib/firebase';
 export function meta() {
@@ -222,33 +216,11 @@ export default function CreateProfile() {
 								>
 									珈琲・俺ステータス <span className="text-red-500">*</span>
 								</label>
-								<Select value={status} onValueChange={setStatus}>
-									<SelectTrigger id={statusId} className="w-full">
-										<SelectValue placeholder="ステータスを選択してください" />
-									</SelectTrigger>
-									<SelectContent>
-										<SelectItem value="first-trainee">
-											<div className="flex flex-col items-start">
-												<span className="font-medium">1年目練習生</span>
-											</div>
-										</SelectItem>
-										<SelectItem value="second-trainee">
-											<div className="flex flex-col items-start">
-												<span className="font-medium">2年目練習生</span>
-											</div>
-										</SelectItem>
-										<SelectItem value="first-examiner">
-											<div className="flex flex-col items-start">
-												<span className="font-medium">1年目試験官</span>
-											</div>
-										</SelectItem>
-										<SelectItem value="second-examiner">
-											<div className="flex flex-col items-start">
-												<span className="font-medium">2年目試験官</span>
-											</div>
-										</SelectItem>
-									</SelectContent>
-								</Select>
+								<StatusSelecter
+									status={status}
+									setStatus={setStatus}
+									statusId={statusId}
+								/>
 								<p className="mt-1 text-gray-500 text-xs">
 									現在の珈琲・俺での役割を選択してください
 								</p>
@@ -285,9 +257,21 @@ export default function CreateProfile() {
 					<div className="mt-4 text-center">
 						<button
 							type="button"
-							onClick={() => {
-								// ログアウト処理（Firebase Auth）
-								import('../../lib/firebase').then(({ logOut }) => logOut());
+							onClick={async () => {
+								try {
+									// Cookieセッションの削除
+									const { clearAuthSession } = await import('../../lib/cookie-utils');
+									clearAuthSession();
+
+									// ログアウト処理（Firebase Auth）
+									const { logOut } = await import('../../lib/firebase');
+									await logOut();
+
+									navigate('/login');
+								} catch (error) {
+									console.error('ログアウトエラー:', error);
+									navigate('/login');
+								}
 							}}
 							className="text-gray-500 text-sm hover:text-gray-700"
 						>
