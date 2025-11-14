@@ -10,20 +10,30 @@ export function meta() {
 }
 
 export default function Home() {
-	const { user, loading } = useAuth();
+	const { user, loading, needsProfile } = useAuth();
 	const navigate = useNavigate();
 
 	useEffect(() => {
 		if (!loading) {
+			console.log('Home: user=', !!user, 'needsProfile=', needsProfile);
+			
 			if (user) {
-				// ログイン済みの場合はダッシュボードへ
-				navigate('/dashboard');
+				// プロフィールが必要な場合はプロフィール作成ページへ
+				if (needsProfile) {
+					console.log('Home: リダイレクト -> /create-profile');
+					navigate('/create-profile');
+				} else {
+					// ログイン済みの場合はダッシュボードへ
+					console.log('Home: リダイレクト -> /dashboard');
+					navigate('/dashboard');
+				}
 			} else {
 				// 未ログインの場合はログインページへ
+				console.log('Home: リダイレクト -> /login');
 				navigate('/login');
 			}
 		}
-	}, [user, loading, navigate]);
+	}, [user, loading, needsProfile, navigate]);
 
 	// リダイレクト中の表示
 	return (
