@@ -1,5 +1,6 @@
 import { addDoc, collection, serverTimestamp } from 'firebase/firestore';
 import React, { useId, useState } from 'react';
+import { useLocation } from 'react-router';
 import { HomeButton } from '../../components/home-button';
 import { Button } from '../../components/ui/button';
 import { Card, CardContent } from '../../components/ui/card';
@@ -15,6 +16,14 @@ export function meta() {
 }
 
 export default function Adjustment() {
+	const location = useLocation();
+	const shiftInfo = location.state as {
+		year?: number;
+		semester?: string;
+		module?: string;
+		isTwice?: boolean;
+	} | null;
+
 	const day = ['月', '火', '水', '木', '金', '土', '日'];
 	const periods = ['1', '2', '3', '4', '5', '6', '7', '8'];
 	const startTimes = [
@@ -57,6 +66,9 @@ export default function Adjustment() {
 	// 保存中かどうかの状態
 	const [isSaving, setIsSaving] = useState<boolean>(false);
 
+	// 編集モード/閲覧モードの状態
+	const [isEditMode, setIsEditMode] = useState<boolean>(false);
+
 	// Firestoreに保存する関数
 	const handleSave = async () => {
 		if (!user) {
@@ -86,11 +98,19 @@ export default function Adjustment() {
 				scheduleData,
 				frequency,
 				comment,
+				// シフト情報を追加
+				...(shiftInfo && {
+					year: shiftInfo.year,
+					semester: shiftInfo.semester,
+					module: shiftInfo.module,
+					isTwice: shiftInfo.isTwice,
+				}),
 				createdAt: serverTimestamp(),
 				updatedAt: serverTimestamp(),
 			});
 
 			alert('保存しました！');
+			setIsEditMode(false); // 保存後に閲覧モードに戻る
 		} catch (error) {
 			console.error('保存エラー:', error);
 			alert('保存に失敗しました');
@@ -159,8 +179,10 @@ export default function Adjustment() {
 							{day.map((dayName, index) => (
 								<Card
 									key={dayName}
-									className="cursor-pointer rounded-lg bg-blue-500 text-white shadow-sm transition-colors hover:bg-blue-600"
-									onClick={() => toggleColumnAll(index)}
+									className={`rounded-lg bg-blue-500 text-white shadow-sm transition-colors hover:bg-blue-600 ${
+										isEditMode ? 'cursor-pointer' : 'cursor-default opacity-75'
+									}`}
+									onClick={() => isEditMode && toggleColumnAll(index)}
 								>
 									<CardContent className="p-1 text-center font-semibold text-xs sm:p-1.5 lg:p-2 lg:text-sm">
 										<span className="hidden md:inline">{dayName}曜日</span>
@@ -174,8 +196,10 @@ export default function Adjustment() {
 								<React.Fragment key={period}>
 									{/* 時限・時間表示 */}
 									<Card
-										className="cursor-pointer rounded-lg border border-slate-200 bg-slate-100 shadow-sm transition-colors hover:bg-slate-200"
-										onClick={() => toggleRowAll(periodIndex)}
+										className={`rounded-lg border border-slate-200 bg-slate-100 shadow-sm transition-colors hover:bg-slate-200 ${
+											isEditMode ? 'cursor-pointer' : 'cursor-default opacity-75'
+										}`}
+										onClick={() => isEditMode && toggleRowAll(periodIndex)}
 									>
 										<CardContent className="p-1 text-center font-medium sm:p-1.5 lg:p-2 xl:p-2.5">
 											<div className="text-xs lg:text-sm">
@@ -203,8 +227,9 @@ export default function Adjustment() {
 													isSelected
 														? 'bg-emerald-500 text-white shadow-lg hover:bg-emerald-600'
 														: 'text-slate-600 hover:bg-gray-200 hover:text-slate-800'
-												}`}
-												onClick={() => toggleCell(periodIndex, dayIndex)}
+												} ${!isEditMode && 'cursor-default opacity-75'}`}
+												onClick={() => isEditMode && toggleCell(periodIndex, dayIndex)}
+												disabled={!isEditMode}
 											>
 												{isSelected ? '〇' : '×'}
 											</Button>
@@ -218,28 +243,38 @@ export default function Adjustment() {
 
 				{/* 右側：入力欄 (1/4の幅) */}
 				<div className="mt-2 flex flex-col lg:mt-0 lg:h-full lg:w-1/4">
-					<div className="flex flex-col space-y-2 lg:h-full lg:space-y-2 xl:space-y-3">
-						{/* タイトル */}
-						<div className="text-center lg:text-left">
-							<h2 className="mb-1 font-bold text-base text-blue-600 sm:text-xl lg:text-lg xl:text-xl">
-								秋Aシフト調査
-							</h2>
-							<p className="text-slate-600 text-xs">希望する時限を選択してください</p>
-						</div>
+					<div className="flex flex-col space-y-3 lg:h-full lg:space-y-3">
+						{/* シフト情報表示 */}
+						{shiftInfo && (
+							<Card className="border-violet-200 bg-violet-50 shadow-md">
+								<CardContent className="p-4">
+									<div className="flex items-center space-x-2">
+										<span className="text-2xl">📋</span>
+										<div>
+											<p className="text-violet-600 text-xs">シフト情報</p>
+											<h2 className="font-bold text-sm text-violet-900 lg:text-base">
+												{shiftInfo.year}年度 {shiftInfo.semester === 'spring' ? '春' : '秋'}
+												学期 {shiftInfo.module}モジュール
+											</h2>
+										</div>
+									</div>
+								</CardContent>
+							</Card>
+						)}
 
 						{/* ユーザー名表示 */}
 						{user && (
-							<Card className="border-indigo-200 bg-indigo-50 shadow-sm">
-								<CardContent className="p-2 lg:p-3">
+							<Card className="border-sky-200 bg-sky-50 shadow-md">
+								<CardContent className="p-3">
 									<div className="flex items-center space-x-2">
-										<div className="flex h-6 w-6 items-center justify-center rounded-full bg-indigo-500">
-											<span className="font-semibold text-white text-xs">
+										<div className="flex h-8 w-8 items-center justify-center rounded-full bg-sky-500 shadow-sm">
+											<span className="font-bold text-sm text-white">
 												{(user.displayName || user.email || 'U').charAt(0).toUpperCase()}
 											</span>
 										</div>
 										<div>
-											<p className="text-slate-500 text-xs">ログイン中</p>
-											<p className="font-medium text-slate-800 text-sm">
+											<p className="text-sky-600 text-xs">ログイン中</p>
+											<p className="font-semibold text-sky-900 text-sm">
 												{user.displayName || user.email || 'ユーザー'}
 											</p>
 										</div>
@@ -247,108 +282,125 @@ export default function Adjustment() {
 								</CardContent>
 							</Card>
 						)}
-						<Card className="rounded-xl border border-slate-200 bg-white shadow-sm lg:flex-1 lg:overflow-auto">
-							<CardContent className="p-3 lg:p-3">
+
+						{/* コメント欄 */}
+						<Card className="rounded-xl border-slate-200 bg-white shadow-md">
+							<CardContent className="p-4">
 								<label
 									htmlFor={subjectNameId}
-									className="mb-2 block font-semibold text-slate-700 text-sm"
+									className="mb-2 flex items-center font-semibold text-slate-700 text-sm"
 								>
-									💬 コメント
+									<span className="mr-2 text-lg">💬</span>
+									コメント
 								</label>
 								<textarea
 									id={subjectNameId}
 									value={comment}
 									onChange={(e) => setComment(e.target.value)}
-									rows={2}
-									className="w-full resize-none rounded-lg border border-slate-300 p-2 text-sm transition-all duration-200 focus:border-transparent focus:outline-none focus:ring-2 focus:ring-indigo-500"
+									rows={3}
+									className="w-full resize-none rounded-lg border border-slate-300 p-3 text-sm transition-all duration-200 focus:border-transparent focus:outline-none focus:ring-2 focus:ring-teal-400 focus:ring-offset-1"
 									placeholder="ご要望やコメントがあればお書きください..."
+									disabled={!isEditMode}
 								/>
 							</CardContent>
 						</Card>
 
-						<Card className="rounded-xl border border-slate-200 bg-white shadow-sm">
-							<CardContent className="p-3 lg:p-3">
-								<h3 className="mb-2 font-semibold text-slate-700 text-sm">
-									📊 希望頻度
-								</h3>
-								<RadioGroup
-									value={frequency}
-									onValueChange={setFrequency}
-									className="space-y-1"
+						{/* 希望頻度 */}
+						{shiftInfo?.isTwice && (
+							<Card className="rounded-xl border-slate-200 bg-white shadow-md">
+								<CardContent className="p-4">
+									<h3 className="mb-3 flex items-center font-semibold text-slate-700 text-sm">
+										<span className="mr-2 text-lg">📊</span>
+										希望頻度
+									</h3>
+									<RadioGroup
+										value={frequency}
+										onValueChange={setFrequency}
+										className="space-y-2"
+										disabled={!isEditMode}
+									>
+										<div
+											className={`flex items-center space-x-3 rounded-lg border border-slate-200 bg-slate-50 p-3 transition-all hover:border-teal-300 hover:bg-teal-50 ${!isEditMode && 'opacity-60'}`}
+										>
+											<RadioGroupItem
+												value="週1回"
+												id={weekly1Id}
+												className="text-teal-600"
+												disabled={!isEditMode}
+											/>
+											<label
+												htmlFor={weekly1Id}
+												className={`flex-1 font-medium text-slate-800 text-sm ${isEditMode ? 'cursor-pointer' : 'cursor-default'}`}
+											>
+												週1回
+											</label>
+										</div>
+										<div
+											className={`flex items-center space-x-3 rounded-lg border border-slate-200 bg-slate-50 p-3 transition-all hover:border-teal-300 hover:bg-teal-50 ${!isEditMode && 'opacity-60'}`}
+										>
+											<RadioGroupItem
+												value="週2回"
+												id={weekly2Id}
+												className="text-teal-600"
+												disabled={!isEditMode}
+											/>
+											<label
+												htmlFor={weekly2Id}
+												className={`flex-1 font-medium text-slate-800 text-sm ${isEditMode ? 'cursor-pointer' : 'cursor-default'}`}
+											>
+												週2回
+											</label>
+										</div>
+										<div
+											className={`flex items-center space-x-3 rounded-lg border border-slate-200 bg-slate-50 p-3 transition-all hover:border-teal-300 hover:bg-teal-50 ${!isEditMode && 'opacity-60'}`}
+										>
+											<RadioGroupItem
+												value="試験官"
+												id={examId}
+												className="text-teal-600"
+												disabled={!isEditMode}
+											/>
+											<label
+												htmlFor={examId}
+												className={`flex-1 font-medium text-slate-800 text-sm ${isEditMode ? 'cursor-pointer' : 'cursor-default'}`}
+											>
+												試験官
+											</label>
+										</div>
+									</RadioGroup>
+								</CardContent>
+							</Card>
+						)}
+
+						{/* ボタン */}
+						<div className="flex gap-3">
+							{!isEditMode ? (
+								<Button
+									className="flex-1 transform rounded-lg bg-amber-500 py-3 font-bold text-white shadow-lg transition-all duration-300 hover:scale-105 hover:bg-amber-600 hover:shadow-xl"
+									onClick={() => setIsEditMode(true)}
 								>
-									<div className="flex items-center space-x-2 rounded-lg p-2 transition-colors hover:bg-slate-50">
-										<RadioGroupItem
-											value="週1回"
-											id={weekly1Id}
-											className="text-indigo-600"
-										/>
-										<label
-											htmlFor={weekly1Id}
-											className="flex-1 cursor-pointer font-medium text-sm"
-										>
-											週1回
-										</label>
-									</div>
-									<div className="flex items-center space-x-2 rounded-lg p-2 transition-colors hover:bg-slate-50">
-										<RadioGroupItem
-											value="週2回"
-											id={weekly2Id}
-											className="text-indigo-600"
-										/>
-										<label
-											htmlFor={weekly2Id}
-											className="flex-1 cursor-pointer font-medium text-sm"
-										>
-											週2回
-										</label>
-									</div>
-									<div className="flex items-center space-x-2 rounded-lg p-2 transition-colors hover:bg-slate-50">
-										<RadioGroupItem
-											value="試験官"
-											id={examId}
-											className="text-indigo-600"
-										/>
-										<label
-											htmlFor={examId}
-											className="flex-1 cursor-pointer font-medium text-sm"
-										>
-											試験官
-										</label>
-									</div>
-								</RadioGroup>
-							</CardContent>
-						</Card>
-						<div className="flex gap-2">
-							<Button
-								className="flex-1 transform rounded-lg bg-indigo-500 py-2 font-semibold text-white shadow-lg transition-all duration-300 hover:scale-105 hover:bg-indigo-600 hover:shadow-xl lg:py-1.5"
-								onClick={handleSave}
-								disabled={isSaving}
-							>
-								{isSaving ? (
-									<span className="flex items-center justify-center text-sm">
-										保存中...
+									<span className="flex items-center justify-center gap-2 text-sm">
+										📝 編集する
 									</span>
-								) : (
-									<span className="flex items-center justify-center text-sm">
-										💾 保存
-									</span>
-								)}
-							</Button>
-							<Button
-								variant="outline"
-								className="flex-1 rounded-lg border-slate-300 py-2 font-semibold text-slate-600 shadow-sm transition-all duration-300 hover:bg-slate-50 hover:shadow-md lg:py-1.5"
-								onClick={() => {
-									setSchedule(
-										Array(periods.length)
-											.fill(null)
-											.map(() => Array(day.length).fill(false)),
-									);
-									setFrequency('週1回');
-									setComment('');
-								}}
-							>
-								<span className="text-sm">🗑️ クリア</span>
-							</Button>
+								</Button>
+							) : (
+								<Button
+									className="flex-1 transform rounded-lg bg-teal-600 py-3 font-bold text-white shadow-lg transition-all duration-300 hover:scale-105 hover:bg-teal-700 hover:shadow-xl disabled:opacity-50 disabled:hover:scale-100"
+									onClick={handleSave}
+									disabled={isSaving}
+								>
+									{isSaving ? (
+										<span className="flex items-center justify-center gap-2 text-sm">
+											<div className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent" />
+											保存中...
+										</span>
+									) : (
+										<span className="flex items-center justify-center gap-2 text-sm">
+											💾 保存する
+										</span>
+									)}
+								</Button>
+							)}
 						</div>
 
 						{/* ホームに戻るボタン */}
