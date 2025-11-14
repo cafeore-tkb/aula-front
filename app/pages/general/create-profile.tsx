@@ -16,6 +16,7 @@ export default function CreateProfile() {
 	const { user, userProfile, loading, refreshProfile } = useAuth();
 	const navigate = useNavigate();
 	const [isCreating, setIsCreating] = useState(false);
+	const [profileCreated, setProfileCreated] = useState(false);
 	const [error, setError] = useState<string | null>(null);
 	const displayNameId = useId();
 	const yearId = useId();
@@ -34,19 +35,25 @@ export default function CreateProfile() {
 	// 認証状態をチェック
 	useEffect(() => {
 		if (!loading) {
+			console.log('CreateProfile: user=', !!user, 'userProfile=', !!userProfile, 'profileCreated=', profileCreated);
+			
 			// 未ログインの場合はログインページにリダイレクト
 			if (!user) {
+				console.log('CreateProfile: リダイレクト -> /login (未認証)');
 				navigate('/login');
 				return;
 			}
 
-			// すでにプロフィールが存在する場合はホームにリダイレクト
+			// すでにプロフィールが存在する場合、またはプロフィールを作成した場合はホームにリダイレクト
 			if (userProfile) {
+				console.log('CreateProfile: リダイレクト -> /dashboard (プロフィール作成済み)');
 				navigate('/dashboard');
 				return;
 			}
+			
+			console.log('CreateProfile: 表示OK');
 		}
-	}, [user, userProfile, loading, navigate]);
+	}, [user, userProfile, loading, profileCreated, navigate]);
 
 	const handleCreateProfile = async () => {
 		if (!user) return;
@@ -69,6 +76,8 @@ export default function CreateProfile() {
 			setIsCreating(true);
 			setError(null);
 
+			console.log('CreateProfile: プロフィール作成開始');
+			
 			// Firebase関数を使用してプロフィールを作成
 			await createUserProfileWithData(user, {
 				displayName: displayName.trim(),
@@ -76,11 +85,19 @@ export default function CreateProfile() {
 				status: status,
 			});
 
+			console.log('CreateProfile: Firestoreへの書き込み完了');
+
 			// プロフィールを再読み込み
 			await refreshProfile();
+			
+			console.log('CreateProfile: プロフィール再読み込み完了');
 
-			// ホームページにリダイレクト
-			navigate('/dashboard');
+			// プロフィール作成完了フラグを立てる
+			setProfileCreated(true);
+			
+			console.log('CreateProfile: プロフィール作成完了、useEffectがリダイレクトを実行します');
+			
+			// useEffectでuserProfileが更新されたことを検知してリダイレクト
 		} catch (error) {
 			console.error('Error creating profile:', error);
 			setError('プロフィールの作成に失敗しました。もう一度お試しください。');
@@ -108,7 +125,7 @@ export default function CreateProfile() {
 
 	// すでにプロフィールが存在する場合（リダイレクト処理中）
 	if (userProfile) {
-		navigate('/dashboard');
+		return null;
 	}
 
 	return (
