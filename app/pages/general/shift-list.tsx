@@ -19,10 +19,6 @@ export function meta() {
 	];
 }
 
-export async function loader() {
-	return null;
-}
-
 export default function ShiftList() {
 	const { user, userProfile, loading } = useAuth();
 	const navigate = useNavigate();

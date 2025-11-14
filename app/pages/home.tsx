@@ -9,10 +9,6 @@ export function meta() {
 	];
 }
 
-export async function loader() {
-	return null;
-}
-
 export default function Home() {
 	const { user, loading } = useAuth();
 	const navigate = useNavigate();
