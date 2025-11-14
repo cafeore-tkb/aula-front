@@ -1,5 +1,6 @@
 import { useEffect } from 'react';
 import { useNavigate } from 'react-router';
+import { HomeButton } from '../../components/home-button';
 import { useAuth } from '../../lib/auth-context';
 
 export function meta() {
@@ -24,7 +25,7 @@ export default function Admin() {
 
 			// ログイン済みでもadminフラグがない場合はホームページにリダイレクト
 			if (userProfile && !userProfile.isAdmin) {
-				navigate('/');
+				navigate('/dashboard');
 				return;
 			}
 		}
@@ -78,6 +79,11 @@ export default function Admin() {
 							{userProfile.name || user.displayName || 'ユーザー'}
 						</span>
 					</div>
+				</div>
+
+				{/* ホームに戻るボタン */}
+				<div className="mt-8">
+					<HomeButton />
 				</div>
 			</div>
 		</div>
