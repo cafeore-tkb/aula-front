@@ -1,5 +1,6 @@
 import { addDoc, collection, serverTimestamp } from 'firebase/firestore';
 import React, { useId, useState } from 'react';
+import { HomeButton } from '../../components/home-button';
 import { Button } from '../../components/ui/button';
 import { Card, CardContent } from '../../components/ui/card';
 import { RadioGroup, RadioGroupItem } from '../../components/ui/radio-group';
@@ -143,8 +144,8 @@ export default function Adjustment() {
 	const examId = useId();
 
 	return (
-		<div className="min-h-screen bg-slate-50 p-4 lg:h-screen lg:p-10">
-			<div className="flex h-full flex-col gap-1 lg:flex-row lg:gap-4 xl:gap-8">
+		<div className="bg-slate-50 p-4 lg:h-screen lg:overflow-hidden lg:p-6">
+			<div className="flex h-full flex-col gap-1 lg:flex-row lg:gap-3 xl:gap-6">
 				{/* 左側：時間割表 (3/4の幅) */}
 				<div className="h-full flex-1 overflow-hidden lg:w-3/4">
 					<div className="flex h-full flex-col">
@@ -198,10 +199,11 @@ export default function Adjustment() {
 											<Button
 												key={`${period}-${dayName}`}
 												variant={isSelected ? 'default' : 'ghost'}
-												className={`h-full w-full rounded-lg border font-semibold shadow-sm transition-all duration-300 hover:shadow-md lg:text-sm xl:text-base ${isSelected
+												className={`h-full w-full rounded-lg border font-semibold shadow-sm transition-all duration-300 hover:shadow-md lg:text-sm xl:text-base ${
+													isSelected
 														? 'bg-emerald-500 text-white shadow-lg hover:bg-emerald-600'
 														: 'text-slate-600 hover:bg-gray-200 hover:text-slate-800'
-													}`}
+												}`}
 												onClick={() => toggleCell(periodIndex, dayIndex)}
 											>
 												{isSelected ? '〇' : '×'}
@@ -215,16 +217,14 @@ export default function Adjustment() {
 				</div>
 
 				{/* 右側：入力欄 (1/4の幅) */}
-				<div className="mt-2 lg:mt-0 lg:w-1/4">
-					<div className="flex flex-col space-y-2 lg:space-y-4 xl:space-y-8">
+				<div className="mt-2 flex flex-col lg:mt-0 lg:h-full lg:w-1/4">
+					<div className="flex flex-col space-y-2 lg:h-full lg:space-y-2 xl:space-y-3">
 						{/* タイトル */}
 						<div className="text-center lg:text-left">
-							<h2 className="mb-1 font-bold text-blue-600 text-lg sm:text-xl lg:text-xl xl:text-2xl">
+							<h2 className="mb-1 font-bold text-base text-blue-600 sm:text-xl lg:text-lg xl:text-xl">
 								秋Aシフト調査
 							</h2>
-							<p className="text-slate-600 text-xs lg:text-sm">
-								希望する時限を選択してください
-							</p>
+							<p className="text-slate-600 text-xs">希望する時限を選択してください</p>
 						</div>
 
 						{/* ユーザー名表示 */}
@@ -247,8 +247,8 @@ export default function Adjustment() {
 								</CardContent>
 							</Card>
 						)}
-						<Card className="rounded-xl border border-slate-200 bg-white shadow-sm">
-							<CardContent className="p-3 lg:p-4">
+						<Card className="rounded-xl border border-slate-200 bg-white shadow-sm lg:flex-1 lg:overflow-auto">
+							<CardContent className="p-3 lg:p-3">
 								<label
 									htmlFor={subjectNameId}
 									className="mb-2 block font-semibold text-slate-700 text-sm"
@@ -267,7 +267,7 @@ export default function Adjustment() {
 						</Card>
 
 						<Card className="rounded-xl border border-slate-200 bg-white shadow-sm">
-							<CardContent className="p-3 lg:p-4">
+							<CardContent className="p-3 lg:p-3">
 								<h3 className="mb-2 font-semibold text-slate-700 text-sm">
 									📊 希望頻度
 								</h3>
@@ -320,19 +320,23 @@ export default function Adjustment() {
 						</Card>
 						<div className="flex gap-2">
 							<Button
-								className="flex-1 transform rounded-lg bg-indigo-500 py-2 font-semibold text-white shadow-lg transition-all duration-300 hover:scale-105 hover:bg-indigo-600 hover:shadow-xl"
+								className="flex-1 transform rounded-lg bg-indigo-500 py-2 font-semibold text-white shadow-lg transition-all duration-300 hover:scale-105 hover:bg-indigo-600 hover:shadow-xl lg:py-1.5"
 								onClick={handleSave}
 								disabled={isSaving}
 							>
 								{isSaving ? (
-									<span className="flex items-center justify-center">保存中...</span>
+									<span className="flex items-center justify-center text-sm">
+										保存中...
+									</span>
 								) : (
-									<span className="flex items-center justify-center">💾 保存</span>
+									<span className="flex items-center justify-center text-sm">
+										💾 保存
+									</span>
 								)}
 							</Button>
 							<Button
 								variant="outline"
-								className="flex-1 rounded-lg border-slate-300 py-2 font-semibold text-slate-600 shadow-sm transition-all duration-300 hover:bg-slate-50 hover:shadow-md"
+								className="flex-1 rounded-lg border-slate-300 py-2 font-semibold text-slate-600 shadow-sm transition-all duration-300 hover:bg-slate-50 hover:shadow-md lg:py-1.5"
 								onClick={() => {
 									setSchedule(
 										Array(periods.length)
@@ -343,9 +347,12 @@ export default function Adjustment() {
 									setComment('');
 								}}
 							>
-								🗑️ クリア
+								<span className="text-sm">🗑️ クリア</span>
 							</Button>
 						</div>
+
+						{/* ホームに戻るボタン */}
+						<HomeButton />
 					</div>
 				</div>
 			</div>
