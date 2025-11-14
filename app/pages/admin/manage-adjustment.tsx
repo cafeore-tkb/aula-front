@@ -177,6 +177,9 @@ export default function ManageAdjustment() {
 			const db = getFirestore();
 			const shiftUsualCollection = collection(db, 'shiftUsual');
 
+			// シフト専用のコレクション名を生成
+			const scheduleCollectionId = `schedules_${newYear}_${newSemester}_${newModule}`;
+
 			// 新しいシフトを追加
 			const docRef = await addDoc(shiftUsualCollection, {
 				year: Number.parseInt(newYear, 10),
@@ -184,6 +187,7 @@ export default function ManageAdjustment() {
 				module: newModule,
 				isTwice: newIsTwice === 'true',
 				isOpen: false,
+				scheduleCollectionId, // コレクション名を保存
 			});
 
 			// ローカルの状態を更新
