@@ -54,8 +54,11 @@ export function AuthProvider({ children }: AuthProviderProps) {
 	const refreshProfile = async () => {
 		if (user) {
 			try {
+				console.log('AuthContext: refreshProfile 開始');
 				const profile = await getUserProfile(user.uid);
+				console.log('AuthContext: refreshProfile 取得結果=', profile ? 'exists' : 'null');
 				setUserProfile(profile);
+				setNeedsProfile(!profile);
 			} catch (error) {
 				console.error('Error fetching user profile:', error);
 			}
@@ -93,6 +96,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
 
 	useEffect(() => {
 		const unsubscribe = onAuthStateChange(async (user) => {
+			console.log('AuthContext: onAuthStateChange fired, user=', user?.email || 'null');
 			setUser(user);
 
 			if (user) {
@@ -107,10 +111,20 @@ export function AuthProvider({ children }: AuthProviderProps) {
 						photoURL: user.photoURL,
 					});
 
-					// ユーザープロファイルを取得（存在しない場合は後で処理）
+					// ユーザープロファイルを取得
 					const profile = await getUserProfile(user.uid);
-					setUserProfile(profile);
-					setNeedsProfile(false);
+					console.log('AuthContext: profile=', profile ? 'exists' : 'null');
+					
+					// プロファイルが見つからない場合（新規登録直後）
+					if (!profile) {
+						console.log('AuthContext: プロファイルが存在しません。プロフィール作成が必要です。');
+						setUserProfile(null);
+						setNeedsProfile(true);
+					} else {
+						console.log('AuthContext: プロファイルを設定しました。');
+						setUserProfile(profile);
+						setNeedsProfile(false);
+					}
 				} catch (error) {
 					console.error('Error handling user profile:', error);
 					// プロファイルが見つからない場合はnullのままにする
@@ -119,8 +133,10 @@ export function AuthProvider({ children }: AuthProviderProps) {
 				}
 			} else {
 				// ユーザーがログアウトまたはセッション期限切れ場合
+				console.log('AuthContext: ユーザーなし、クリーンアップ');
 				clearAuthSession();
 				setUserProfile(null);
+				setNeedsProfile(false);
 			}
 
 			setLoading(false);
