@@ -101,7 +101,6 @@ export function saveAuthSession(user: {
 
 	// 30分 = 30 * 60 秒
 	const thirtyMinutes = 30 * 60;
-	// const thirtyMinutes = 30;
 
 	setCookie('auth_session', JSON.stringify(sessionData), {
 		maxAge: thirtyMinutes,
