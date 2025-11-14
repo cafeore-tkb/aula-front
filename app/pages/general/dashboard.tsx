@@ -12,7 +12,7 @@ export function meta() {
 }
 
 export default function Home() {
-	const { user, userProfile, loading } = useAuth();
+	const { user, userProfile, loading, needsProfile } = useAuth();
 	const navigate = useNavigate();
 
 	// レスポンシブ対応
@@ -22,13 +22,24 @@ export default function Home() {
 
 	// 認証状態の読み込みが完了し、未ログインの場合はログインページにリダイレクト
 	useEffect(() => {
-		if (!loading && !user) {
-			navigate('/login');
+		if (!loading) {
+			console.log('Dashboard: user=', !!user, 'userProfile=', !!userProfile, 'needsProfile=', needsProfile);
+			
+			if (!user) {
+				console.log('Dashboard: リダイレクト -> /login (未認証)');
+				navigate('/login');
+			} else if (needsProfile && !userProfile) {
+				// プロフィールが必要な場合はプロフィール作成ページにリダイレクト
+				console.log('Dashboard: リダイレクト -> /create-profile (プロフィール未作成)');
+				navigate('/create-profile');
+			} else {
+				console.log('Dashboard: 表示OK');
+			}
 		}
-	}, [user, loading, navigate]);
+	}, [user, loading, needsProfile, userProfile, navigate]);
 
-	// ローディング中は何も表示しない
-	if (loading) {
+	// ローディング中またはプロファイル読み込み中
+	if (loading || (user && !userProfile)) {
 		return (
 			<div className="flex min-h-screen items-center justify-center bg-gray-100">
 				<div className="text-center">
