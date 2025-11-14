@@ -9,6 +9,7 @@ import {
 	where,
 } from 'firebase/firestore';
 import React, { useEffect, useId, useState } from 'react';
+import { useMediaQuery } from 'react-responsive';
 import { useLocation } from 'react-router';
 import { HomeButton } from '../../components/home-button';
 import { Button } from '../../components/ui/button';
@@ -267,6 +268,11 @@ export default function Adjustment() {
 	const weekly2Id = useId();
 	const examId = useId();
 
+	// レスポンシブ対応
+	const isDesktop = useMediaQuery({ minWidth: 1024 }); // lg以上
+	const isTablet = useMediaQuery({ minWidth: 768, maxWidth: 1023 }); // md-lg
+	const isMobile = useMediaQuery({ maxWidth: 767 }); // md未満
+
 	// ローディング中の表示
 	if (isLoading) {
 		return (
@@ -280,15 +286,54 @@ export default function Adjustment() {
 	}
 
 	return (
-		<div className="bg-slate-50 p-4 lg:h-screen lg:overflow-hidden lg:p-6">
-			<div className="flex h-full flex-col gap-1 lg:flex-row lg:gap-3 xl:gap-6">
-				{/* 左側：時間割表 (3/4の幅) */}
-				<div className="h-full flex-1 overflow-hidden lg:w-3/4">
-					<div className="flex h-full flex-col">
-						<div className="grid flex-1 grid-cols-8 gap-1 rounded-xl border border-slate-200 bg-white p-2 shadow-lg sm:gap-2 sm:p-3 lg:gap-2 lg:p-3 xl:gap-3 xl:p-4">
+		<div
+			className={`bg-slate-50 ${isMobile ? 'min-h-screen p-4' : 'p-4 lg:h-screen lg:overflow-hidden lg:p-6'}`}
+		>
+			<div
+				className={`flex ${isMobile ? 'min-h-full flex-col gap-4' : isTablet ? 'h-full flex-col gap-4' : 'h-full flex-row gap-3 xl:gap-6'}`}
+			>
+				{/* モバイル時：シフト情報を一番上に表示 */}
+				{isMobile && shiftInfo && (
+					<Card className="border-violet-200 bg-violet-50 shadow-md">
+						<CardContent className="p-3">
+							<div className="flex items-center space-x-2">
+								<span className="text-xl">📋</span>
+								<div>
+									<h2 className="font-bold text-violet-900 text-xs">
+										{shiftInfo.year}年度 {shiftInfo.semester === 'spring' ? '春' : '秋'}
+										学期 {shiftInfo.module}モジュール
+									</h2>
+								</div>
+							</div>
+						</CardContent>
+					</Card>
+				)}
+
+				{/* 左側：時間割表 */}
+				<div
+					className={`${isDesktop ? 'h-full w-3/4 flex-1 overflow-hidden' : 'w-full'}`}
+				>
+					<div className={`flex ${isMobile ? 'flex-col' : 'h-full flex-col'}`}>
+						<div
+							className={`grid ${isMobile ? 'grid-cols-8' : 'flex-1 grid-cols-8'} rounded-xl border border-slate-200 bg-white shadow-lg ${
+								isMobile
+									? 'gap-0.5 p-1'
+									: isTablet
+										? 'gap-1 p-2'
+										: 'gap-2 p-3 xl:gap-3 xl:p-4'
+							}`}
+						>
 							{/* ヘッダー行 */}
 							<Card className="rounded-lg bg-blue-500 text-white shadow-sm">
-								<CardContent className="p-1 text-center font-semibold text-xs sm:p-1.5 lg:p-2 lg:text-sm">
+								<CardContent
+									className={`text-center font-semibold ${
+										isMobile
+											? 'p-0.5 text-xs'
+											: isTablet
+												? 'p-1 text-xs'
+												: 'p-1 text-xs sm:p-1.5 lg:p-2 lg:text-sm'
+									}`}
+								>
 									時限
 								</CardContent>
 							</Card>
@@ -300,9 +345,16 @@ export default function Adjustment() {
 									}`}
 									onClick={() => isEditMode && toggleColumnAll(index)}
 								>
-									<CardContent className="p-1 text-center font-semibold text-xs sm:p-1.5 lg:p-2 lg:text-sm">
-										<span className="hidden md:inline">{dayName}曜日</span>
-										<span className="md:hidden">{dayName}</span>
+									<CardContent
+										className={`text-center font-semibold ${
+											isMobile
+												? 'p-0.5 text-xs'
+												: isTablet
+													? 'p-1 text-xs'
+													: 'p-1 text-xs sm:p-1.5 lg:p-2 lg:text-sm'
+										}`}
+									>
+										{isMobile ? dayName : `${dayName}曜日`}
 									</CardContent>
 								</Card>
 							))}
@@ -317,17 +369,30 @@ export default function Adjustment() {
 										}`}
 										onClick={() => isEditMode && toggleRowAll(periodIndex)}
 									>
-										<CardContent className="p-1 text-center font-medium sm:p-1.5 lg:p-2 xl:p-2.5">
-											<div className="text-xs lg:text-sm">
+										<CardContent
+											className={`text-center font-medium ${
+												isMobile
+													? 'p-0.5'
+													: isTablet
+														? 'p-1'
+														: 'p-1 sm:p-1.5 lg:p-2 xl:p-2.5'
+											}`}
+										>
+											<div className={isMobile ? 'text-xs' : 'text-xs lg:text-sm'}>
 												<div className="font-semibold text-slate-700">{period}限</div>
-												<div className="whitespace-nowrap text-slate-500 text-xs">
-													<span className="hidden lg:inline">
-														{startTimes[periodIndex]}-{endTimes[periodIndex]}
-													</span>
-													<span className="hidden sm:inline lg:hidden">
-														{startTimes[periodIndex]}
-													</span>
-												</div>
+												{!isMobile && (
+													<div className="whitespace-nowrap text-slate-500 text-xs">
+														{isDesktop ? (
+															`${startTimes[periodIndex]}-${endTimes[periodIndex]}`
+														) : isTablet ? (
+															startTimes[periodIndex]
+														) : (
+															<span className="hidden sm:inline lg:hidden">
+																{startTimes[periodIndex]}
+															</span>
+														)}
+													</div>
+												)}
 											</div>
 										</CardContent>
 									</Card>
@@ -339,7 +404,13 @@ export default function Adjustment() {
 											<Button
 												key={`${period}-${dayName}`}
 												variant={isSelected ? 'default' : 'ghost'}
-												className={`h-full w-full rounded-lg border font-semibold shadow-sm transition-all duration-300 hover:shadow-md lg:text-sm xl:text-base ${
+												className={`h-full w-full rounded-lg border font-semibold shadow-sm transition-all duration-300 hover:shadow-md ${
+													isMobile
+														? 'text-xs'
+														: isTablet
+															? 'text-sm'
+															: 'lg:text-sm xl:text-base'
+												} ${
 													isSelected
 														? 'bg-emerald-500 text-white shadow-lg hover:bg-emerald-600'
 														: 'text-slate-600 hover:bg-gray-200 hover:text-slate-800'
@@ -358,16 +429,28 @@ export default function Adjustment() {
 				</div>
 
 				{/* 右側：入力欄 (1/4の幅) */}
-				<div className="mt-2 flex flex-col lg:mt-0 lg:h-full lg:w-1/4">
-					<div className="flex flex-col space-y-3 lg:h-full lg:space-y-3">
-						{/* シフト情報表示 */}
-						{shiftInfo && (
+				<div
+					className={`${isMobile ? 'mt-4 w-full' : isTablet ? 'mt-4 w-full' : 'mt-0 h-full w-1/4'} flex flex-col`}
+				>
+					<div
+						className={`flex flex-col ${isMobile ? 'space-y-2' : isTablet ? 'space-y-3' : 'h-full space-y-3'}`}
+					>
+						{/* シフト情報表示（タブレット・デスクトップのみ） */}
+						{!isMobile && shiftInfo && (
 							<Card className="border-violet-200 bg-violet-50 shadow-md">
-								<CardContent className="p-4">
+								<CardContent className={isMobile ? 'p-3' : 'p-4'}>
 									<div className="flex items-center space-x-2">
-										<span className="text-2xl">📋</span>
+										<span className={isMobile ? 'text-xl' : 'text-2xl'}>📋</span>
 										<div>
-											<h2 className="font-bold text-sm text-violet-900 lg:text-base">
+											<h2
+												className={`font-bold text-violet-900 ${
+													isMobile
+														? 'text-xs'
+														: isTablet
+															? 'text-sm'
+															: 'text-sm lg:text-base'
+												}`}
+											>
 												{shiftInfo.year}年度 {shiftInfo.semester === 'spring' ? '春' : '秋'}
 												学期 {shiftInfo.module}モジュール
 											</h2>
@@ -380,16 +463,26 @@ export default function Adjustment() {
 						{/* ユーザー名表示 */}
 						{user && (
 							<Card className="border-sky-200 bg-sky-50 shadow-md">
-								<CardContent className="p-3">
+								<CardContent className={isMobile ? 'p-2' : 'p-3'}>
 									<div className="flex items-center space-x-2">
-										<div className="flex h-8 w-8 items-center justify-center rounded-full bg-sky-500 shadow-sm">
-											<span className="font-bold text-sm text-white">
+										<div
+											className={`flex items-center justify-center rounded-full bg-sky-500 shadow-sm ${
+												isMobile ? 'h-6 w-6' : 'h-8 w-8'
+											}`}
+										>
+											<span
+												className={`font-bold text-white ${isMobile ? 'text-xs' : 'text-sm'}`}
+											>
 												{(user.displayName || user.email || 'U').charAt(0).toUpperCase()}
 											</span>
 										</div>
 										<div>
-											<p className="text-sky-600 text-xs">ログイン中</p>
-											<p className="font-semibold text-sky-900 text-sm">
+											<p className={`text-sky-600 ${isMobile ? 'text-xs' : 'text-xs'}`}>
+												ログイン中
+											</p>
+											<p
+												className={`font-semibold text-sky-900 ${isMobile ? 'text-xs' : 'text-sm'}`}
+											>
 												{user.displayName || user.email || 'ユーザー'}
 											</p>
 										</div>
@@ -400,20 +493,26 @@ export default function Adjustment() {
 
 						{/* コメント欄 */}
 						<Card className="rounded-xl border-slate-200 bg-white shadow-md">
-							<CardContent className="p-4">
+							<CardContent className={isMobile ? 'p-3' : 'p-4'}>
 								<label
 									htmlFor={subjectNameId}
-									className="mb-2 flex items-center font-semibold text-slate-700 text-sm"
+									className={`mb-2 flex items-center font-semibold text-slate-700 ${
+										isMobile ? 'text-xs' : 'text-sm'
+									}`}
 								>
-									<span className="mr-2 text-lg">💬</span>
+									<span className={`mr-2 ${isMobile ? 'text-base' : 'text-lg'}`}>
+										💬
+									</span>
 									コメント
 								</label>
 								<textarea
 									id={subjectNameId}
 									value={comment}
 									onChange={(e) => setComment(e.target.value)}
-									rows={3}
-									className="w-full resize-none rounded-lg border border-slate-300 p-3 text-sm transition-all duration-200 focus:border-transparent focus:outline-none focus:ring-2 focus:ring-teal-400 focus:ring-offset-1"
+									rows={isMobile ? 2 : 3}
+									className={`w-full resize-none rounded-lg border border-slate-300 transition-all duration-200 focus:border-transparent focus:outline-none focus:ring-2 focus:ring-teal-400 focus:ring-offset-1 ${
+										isMobile ? 'p-2 text-xs' : 'p-3 text-sm'
+									}`}
 									placeholder="ご要望やコメントがあればお書きください..."
 									disabled={!isEditMode}
 								/>
@@ -423,19 +522,27 @@ export default function Adjustment() {
 						{/* 希望頻度 */}
 						{shiftInfo?.isTwice && (
 							<Card className="rounded-xl border-slate-200 bg-white shadow-md">
-								<CardContent className="p-4">
-									<h3 className="mb-3 flex items-center font-semibold text-slate-700 text-sm">
-										<span className="mr-2 text-lg">📊</span>
+								<CardContent className={isMobile ? 'p-3' : 'p-4'}>
+									<h3
+										className={`mb-3 flex items-center font-semibold text-slate-700 ${
+											isMobile ? 'text-xs' : 'text-sm'
+										}`}
+									>
+										<span className={`mr-2 ${isMobile ? 'text-base' : 'text-lg'}`}>
+											📊
+										</span>
 										希望頻度
 									</h3>
 									<RadioGroup
 										value={frequency}
 										onValueChange={setFrequency}
-										className="space-y-2"
+										className={isMobile ? 'space-y-1.5' : 'space-y-2'}
 										disabled={!isEditMode}
 									>
 										<div
-											className={`flex items-center space-x-3 rounded-lg border border-slate-200 bg-slate-50 p-3 transition-all hover:border-teal-300 hover:bg-teal-50 ${!isEditMode && 'opacity-60'}`}
+											className={`flex items-center space-x-3 rounded-lg border border-slate-200 bg-slate-50 transition-all hover:border-teal-300 hover:bg-teal-50 ${
+												isMobile ? 'p-2' : 'p-3'
+											} ${!isEditMode && 'opacity-60'}`}
 										>
 											<RadioGroupItem
 												value="週1回"
@@ -445,13 +552,17 @@ export default function Adjustment() {
 											/>
 											<label
 												htmlFor={weekly1Id}
-												className={`flex-1 font-medium text-slate-800 text-sm ${isEditMode ? 'cursor-pointer' : 'cursor-default'}`}
+												className={`flex-1 font-medium text-slate-800 ${
+													isMobile ? 'text-xs' : 'text-sm'
+												} ${isEditMode ? 'cursor-pointer' : 'cursor-default'}`}
 											>
 												週1回
 											</label>
 										</div>
 										<div
-											className={`flex items-center space-x-3 rounded-lg border border-slate-200 bg-slate-50 p-3 transition-all hover:border-teal-300 hover:bg-teal-50 ${!isEditMode && 'opacity-60'}`}
+											className={`flex items-center space-x-3 rounded-lg border border-slate-200 bg-slate-50 transition-all hover:border-teal-300 hover:bg-teal-50 ${
+												isMobile ? 'p-2' : 'p-3'
+											} ${!isEditMode && 'opacity-60'}`}
 										>
 											<RadioGroupItem
 												value="週2回"
@@ -461,13 +572,17 @@ export default function Adjustment() {
 											/>
 											<label
 												htmlFor={weekly2Id}
-												className={`flex-1 font-medium text-slate-800 text-sm ${isEditMode ? 'cursor-pointer' : 'cursor-default'}`}
+												className={`flex-1 font-medium text-slate-800 ${
+													isMobile ? 'text-xs' : 'text-sm'
+												} ${isEditMode ? 'cursor-pointer' : 'cursor-default'}`}
 											>
 												週2回
 											</label>
 										</div>
 										<div
-											className={`flex items-center space-x-3 rounded-lg border border-slate-200 bg-slate-50 p-3 transition-all hover:border-teal-300 hover:bg-teal-50 ${!isEditMode && 'opacity-60'}`}
+											className={`flex items-center space-x-3 rounded-lg border border-slate-200 bg-slate-50 transition-all hover:border-teal-300 hover:bg-teal-50 ${
+												isMobile ? 'p-2' : 'p-3'
+											} ${!isEditMode && 'opacity-60'}`}
 										>
 											<RadioGroupItem
 												value="試験官"
@@ -477,7 +592,9 @@ export default function Adjustment() {
 											/>
 											<label
 												htmlFor={examId}
-												className={`flex-1 font-medium text-slate-800 text-sm ${isEditMode ? 'cursor-pointer' : 'cursor-default'}`}
+												className={`flex-1 font-medium text-slate-800 ${
+													isMobile ? 'text-xs' : 'text-sm'
+												} ${isEditMode ? 'cursor-pointer' : 'cursor-default'}`}
 											>
 												試験官
 											</label>
@@ -491,26 +608,46 @@ export default function Adjustment() {
 						<div className="flex gap-3">
 							{!isEditMode ? (
 								<Button
-									className="flex-1 transform rounded-lg bg-amber-500 py-3 font-bold text-white shadow-lg transition-all duration-300 hover:scale-105 hover:bg-amber-600 hover:shadow-xl"
+									className={`flex-1 transform rounded-lg bg-amber-500 font-bold text-white shadow-lg transition-all duration-300 hover:scale-105 hover:bg-amber-600 hover:shadow-xl ${
+										isMobile ? 'py-2' : 'py-3'
+									}`}
 									onClick={() => setIsEditMode(true)}
 								>
-									<span className="flex items-center justify-center gap-2 text-sm">
+									<span
+										className={`flex items-center justify-center gap-2 ${
+											isMobile ? 'text-xs' : 'text-sm'
+										}`}
+									>
 										📝 編集する
 									</span>
 								</Button>
 							) : (
 								<Button
-									className="flex-1 transform rounded-lg bg-teal-600 py-3 font-bold text-white shadow-lg transition-all duration-300 hover:scale-105 hover:bg-teal-700 hover:shadow-xl disabled:opacity-50 disabled:hover:scale-100"
+									className={`flex-1 transform rounded-lg bg-teal-600 font-bold text-white shadow-lg transition-all duration-300 hover:scale-105 hover:bg-teal-700 hover:shadow-xl disabled:opacity-50 disabled:hover:scale-100 ${
+										isMobile ? 'py-2' : 'py-3'
+									}`}
 									onClick={handleSave}
 									disabled={isSaving}
 								>
 									{isSaving ? (
-										<span className="flex items-center justify-center gap-2 text-sm">
-											<div className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent" />
+										<span
+											className={`flex items-center justify-center gap-2 ${
+												isMobile ? 'text-xs' : 'text-sm'
+											}`}
+										>
+											<div
+												className={`animate-spin rounded-full border-2 border-white border-t-transparent ${
+													isMobile ? 'h-3 w-3' : 'h-4 w-4'
+												}`}
+											/>
 											保存中...
 										</span>
 									) : (
-										<span className="flex items-center justify-center gap-2 text-sm">
+										<span
+											className={`flex items-center justify-center gap-2 ${
+												isMobile ? 'text-xs' : 'text-sm'
+											}`}
+										>
 											💾 保存する
 										</span>
 									)}
