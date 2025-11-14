@@ -42,7 +42,7 @@ export default function Home() {
 	return (
 		<div className="min-h-screen bg-gray-100 py-8">
 			<div className="mx-auto max-w-4xl px-4">
-				<h1 className="mb-8 font-bold text-3xl text-gray-900">ダッシュボード</h1>
+				<h1 className="mb-8 font-bold text-3xl text-gray-900">ホーム</h1>
 
 				<div className="grid grid-cols-1 gap-6 md:grid-cols-3">
 					{/* ユーザープロフィールカード */}
@@ -52,16 +52,6 @@ export default function Home() {
 
 					{/* メインコンテンツ */}
 					<div className="space-y-6 md:col-span-2">
-						<div className="rounded-lg bg-white p-6 shadow-md">
-							<h2 className="mb-4 font-semibold text-gray-900 text-xl">
-								ようこそ、{userProfile?.name || user?.displayName || 'ユーザー'}
-								さん！
-							</h2>
-							<p className="text-gray-600">
-								ここからサービスをご利用いただけます。プロフィールの編集や各種設定を行ってください。
-							</p>
-						</div>
-
 						<div className="rounded-lg bg-white p-6 shadow-md">
 							<h3 className="mb-3 font-semibold text-gray-900 text-lg">
 								クイックアクション
