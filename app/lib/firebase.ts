@@ -37,10 +37,11 @@ export interface UserProfile {
 export interface ShiftUsual {
 	uid: string;
 	year: number;
-	semester: "spring" | "autumn";
-	module: "A" | "B" | "C";
+	semester: 'spring' | 'autumn';
+	module: 'A' | 'B' | 'C';
 	isOpen: boolean;
 	isTwice: boolean;
+	scheduleCollectionId?: string; // シフト専用のコレクション名
 }
 
 // Firebase configuration
