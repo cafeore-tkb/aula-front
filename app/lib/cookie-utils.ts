@@ -51,6 +51,7 @@ export function setCookie(
 		cookieString += `; samesite=${options.sameSite}`;
 	}
 
+	// biome-ignore lint: Cookie設定のための標準的なブラウザAPI
 	document.cookie = cookieString;
 }
 
@@ -100,6 +101,7 @@ export function saveAuthSession(user: {
 
 	// 30分 = 30 * 60 秒
 	const thirtyMinutes = 30 * 60;
+	// const thirtyMinutes = 30;
 
 	setCookie('auth_session', JSON.stringify(sessionData), {
 		maxAge: thirtyMinutes,
