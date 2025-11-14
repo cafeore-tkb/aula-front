@@ -170,7 +170,7 @@ export function UserProfile({ user, userProfile }: UserProfileProps) {
 							<span>{userProfile.isAdmin ? '管理者' : '一般構成員'}</span>
 						</div>
 						<div className="flex justify-between">
-							<span>珈琲・俺 ステータス:</span>
+							<span>ステータス:</span>
 							<span>{cafeoreStatus}</span>
 						</div>
 					</div>
