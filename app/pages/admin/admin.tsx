@@ -1,5 +1,6 @@
 import { useEffect } from 'react';
 import { useNavigate } from 'react-router';
+import { HomeButton } from '../../components/home-button';
 import { useAuth } from '../../lib/auth-context';
 
 export function meta() {
@@ -24,7 +25,7 @@ export default function Admin() {
 
 			// ログイン済みでもadminフラグがない場合はホームページにリダイレクト
 			if (userProfile && !userProfile.isAdmin) {
-				navigate('/');
+				navigate('/dashboard');
 				return;
 			}
 		}
@@ -105,6 +106,7 @@ export default function Admin() {
 						</p>
 						<button
 							type="button"
+							onClick={() => navigate('/admin/member')}
 							className="w-full rounded-lg bg-blue-600 px-4 py-2 text-white transition-colors hover:bg-blue-700"
 						>
 							ユーザー一覧
@@ -135,6 +137,7 @@ export default function Admin() {
 						</p>
 						<button
 							type="button"
+							onClick={() => navigate('/admin/manageAdjustment')}
 							className="w-full rounded-lg bg-purple-600 px-4 py-2 text-white transition-colors hover:bg-purple-700"
 						>
 							シフト一覧
@@ -171,6 +174,7 @@ export default function Admin() {
 						</p>
 						<button
 							type="button"
+							onClick={() => navigate('/admin/settings')}
 							className="w-full rounded-lg bg-green-600 px-4 py-2 text-white transition-colors hover:bg-green-700"
 						>
 							設定管理
@@ -180,27 +184,7 @@ export default function Admin() {
 
 				{/* ホームに戻るボタン */}
 				<div className="mt-8">
-					<button
-						type="button"
-						onClick={() => navigate('/')}
-						className="flex items-center space-x-2 rounded-lg border border-gray-300 bg-white px-4 py-2 text-gray-700 transition-colors hover:bg-gray-50"
-					>
-						<svg
-							className="h-5 w-5"
-							fill="none"
-							stroke="currentColor"
-							viewBox="0 0 24 24"
-						>
-							<title>戻る</title>
-							<path
-								strokeLinecap="round"
-								strokeLinejoin="round"
-								strokeWidth={2}
-								d="M10 19l-7-7m0 0l7-7m-7 7h18"
-							/>
-						</svg>
-						<span>ホームに戻る</span>
-					</button>
+					<HomeButton />
 				</div>
 			</div>
 		</div>
