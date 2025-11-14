@@ -1,5 +1,14 @@
-import { addDoc, collection, serverTimestamp } from 'firebase/firestore';
-import React, { useId, useState } from 'react';
+import {
+	addDoc,
+	collection,
+	doc,
+	getDocs,
+	query,
+	serverTimestamp,
+	setDoc,
+	where,
+} from 'firebase/firestore';
+import React, { useEffect, useId, useState } from 'react';
 import { useLocation } from 'react-router';
 import { HomeButton } from '../../components/home-button';
 import { Button } from '../../components/ui/button';
@@ -22,6 +31,7 @@ export default function Adjustment() {
 		semester?: string;
 		module?: string;
 		isTwice?: boolean;
+		scheduleCollectionId?: string;
 	} | null;
 
 	const day = ['月', '火', '水', '木', '金', '土', '日'];
@@ -69,6 +79,84 @@ export default function Adjustment() {
 	// 編集モード/閲覧モードの状態
 	const [isEditMode, setIsEditMode] = useState<boolean>(false);
 
+	// ローディング状態
+	const [isLoading, setIsLoading] = useState<boolean>(true);
+
+	// 既存のドキュメントIDを保持
+	const [existingDocId, setExistingDocId] = useState<string | null>(null);
+
+	// 登録済みデータを読み込む
+	useEffect(() => {
+		const loadExistingSchedule = async () => {
+			if (!user || !shiftInfo) {
+				setIsLoading(false);
+				return;
+			}
+
+			try {
+				// シフト専用のコレクション名（なければデフォルト名を生成）
+				const collectionName =
+					shiftInfo.scheduleCollectionId ||
+					`schedules_${shiftInfo.year}_${shiftInfo.semester}_${shiftInfo.module}`;
+
+				// 同じシフト情報で登録済みのデータを検索
+				const schedulesRef = collection(db, collectionName);
+				const q = query(schedulesRef, where('userId', '==', user.uid));
+
+				const querySnapshot = await getDocs(q);
+
+				if (!querySnapshot.empty) {
+					// 最新のデータを取得（最初のドキュメント）
+					const docSnapshot = querySnapshot.docs[0];
+					const docData = docSnapshot.data();
+
+					// ドキュメントIDを保存
+					setExistingDocId(docSnapshot.id);
+
+					// スケジュールデータを復元
+					if (docData.scheduleData) {
+						const newSchedule = Array(periods.length)
+							.fill(null)
+							.map(() => Array(day.length).fill(false));
+
+						docData.scheduleData.forEach(
+							(cell: { period: string; day: string; isSelected: boolean }) => {
+								const periodIndex = periods.indexOf(cell.period);
+								const dayIndex = day.indexOf(cell.day);
+								if (periodIndex !== -1 && dayIndex !== -1 && cell.isSelected) {
+									newSchedule[periodIndex][dayIndex] = true;
+								}
+							},
+						);
+
+						setSchedule(newSchedule);
+					}
+
+					// 頻度とコメントを復元
+					if (docData.frequency) {
+						setFrequency(docData.frequency);
+					}
+					if (docData.comment) {
+						setComment(docData.comment);
+					}
+
+					// データがある場合は閲覧モードで開始
+					setIsEditMode(false);
+				} else {
+					// データがない場合は編集モードで開始
+					setIsEditMode(true);
+				}
+			} catch (error) {
+				console.error('データ読み込みエラー:', error);
+			} finally {
+				setIsLoading(false);
+			}
+		};
+
+		loadExistingSchedule();
+		// eslint-disable-next-line react-hooks/exhaustive-deps
+	}, [user, shiftInfo]);
+
 	// Firestoreに保存する関数
 	const handleSave = async () => {
 		if (!user) {
@@ -90,8 +178,7 @@ export default function Adjustment() {
 				})),
 			);
 
-			// Firestoreに保存
-			await addDoc(collection(db, 'schedules'), {
+			const dataToSave = {
 				userId: user.uid,
 				userEmail: user.email,
 				userName: user.displayName || user.email || 'ユーザー',
@@ -105,9 +192,26 @@ export default function Adjustment() {
 					module: shiftInfo.module,
 					isTwice: shiftInfo.isTwice,
 				}),
-				createdAt: serverTimestamp(),
 				updatedAt: serverTimestamp(),
-			});
+			};
+
+			// シフト専用のコレクション名（なければデフォルト名を生成）
+			const collectionName =
+				shiftInfo?.scheduleCollectionId ||
+				`schedules_${shiftInfo?.year}_${shiftInfo?.semester}_${shiftInfo?.module}`;
+
+			// 既存のドキュメントがある場合は更新、ない場合は新規作成
+			if (existingDocId) {
+				// 既存のドキュメントを更新
+				await setDoc(doc(db, collectionName, existingDocId), dataToSave);
+			} else {
+				// 新規作成
+				const docRef = await addDoc(collection(db, collectionName), {
+					...dataToSave,
+					createdAt: serverTimestamp(),
+				});
+				setExistingDocId(docRef.id);
+			}
 
 			alert('保存しました！');
 			setIsEditMode(false); // 保存後に閲覧モードに戻る
@@ -162,6 +266,18 @@ export default function Adjustment() {
 	const weekly1Id = useId();
 	const weekly2Id = useId();
 	const examId = useId();
+
+	// ローディング中の表示
+	if (isLoading) {
+		return (
+			<div className="flex min-h-screen items-center justify-center bg-slate-50">
+				<div className="text-center">
+					<div className="mx-auto mb-4 h-8 w-8 animate-spin rounded-full border-4 border-teal-400 border-t-transparent" />
+					<p className="text-slate-600">データを読み込み中...</p>
+				</div>
+			</div>
+		);
+	}
 
 	return (
 		<div className="bg-slate-50 p-4 lg:h-screen lg:overflow-hidden lg:p-6">
@@ -251,7 +367,6 @@ export default function Adjustment() {
 									<div className="flex items-center space-x-2">
 										<span className="text-2xl">📋</span>
 										<div>
-											<p className="text-violet-600 text-xs">シフト情報</p>
 											<h2 className="font-bold text-sm text-violet-900 lg:text-base">
 												{shiftInfo.year}年度 {shiftInfo.semester === 'spring' ? '春' : '秋'}
 												学期 {shiftInfo.module}モジュール
