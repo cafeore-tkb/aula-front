@@ -137,19 +137,16 @@ export const registerWithGoogle = async () => {
 		await new Promise((resolve) => setTimeout(resolve, 100));
 
 		if (result.user) {
-			try {
-				const exists = await checkUserExists(result.user.uid);
-				if (exists) {
-					console.log('ユーザーが既に存在します。ログアウトします。');
-					await auth.signOut();
-					throw new Error(
-						'このユーザーは既に登録されています。ログインを行ってください。',
-					);
-				}
-			} catch (error) {
-				console.error('User existence check error:', error);
-				console.log('存在チェックエラーのため新規登録として続行');
+			// ユーザーが既に存在するかチェック
+			const exists = await checkUserExists(result.user.uid);
+			if (exists) {
+				console.log('ユーザーが既に存在します。ログアウトします。');
+				await auth.signOut();
+				throw new Error(
+					'このユーザーは既に登録されています。ログインを行ってください。',
+				);
 			}
+			console.log('新規ユーザーです。プロフィール作成画面へ進みます。');
 		}
 
 		return result;
