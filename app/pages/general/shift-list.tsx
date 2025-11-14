@@ -71,34 +71,34 @@ export default function ShiftList() {
 	// ローディング中
 	if (loading || !userProfile) {
 		return (
-			<div className="flex min-h-screen items-center justify-center bg-gray-100">
+			<div className="flex min-h-screen items-center justify-center bg-slate-50">
 				<div className="text-center">
-					<div className="mx-auto mb-4 h-8 w-8 animate-spin rounded-full border-4 border-purple-500 border-t-transparent" />
-					<p className="text-gray-600">読み込み中...</p>
+					<div className="mx-auto mb-4 h-8 w-8 animate-spin rounded-full border-4 border-teal-400 border-t-transparent" />
+					<p className="text-slate-600">読み込み中...</p>
 				</div>
 			</div>
 		);
 	}
 
 	return (
-		<div className="min-h-screen bg-gray-100 py-8">
+		<div className="min-h-screen bg-slate-50 py-8">
 			<div className="mx-auto max-w-4xl px-4">
 				{/* ヘッダー */}
 				<div className="mb-8">
-					<h1 className="mb-2 font-bold text-3xl text-gray-900">シフト一覧</h1>
-					<p className="text-gray-600">公開されているシフトの募集一覧です</p>
+					<h1 className="mb-2 font-bold text-3xl text-slate-800">シフト一覧</h1>
+					<p className="text-slate-600">公開されているシフトの募集一覧です</p>
 				</div>
 
 				{/* シフト一覧 */}
 				{loadingShifts ? (
 					<div className="text-center">
-						<div className="mx-auto mb-4 h-8 w-8 animate-spin rounded-full border-4 border-purple-500 border-t-transparent" />
-						<p className="text-gray-600">シフトを読み込み中...</p>
+						<div className="mx-auto mb-4 h-8 w-8 animate-spin rounded-full border-4 border-teal-400 border-t-transparent" />
+						<p className="text-slate-600">シフトを読み込み中...</p>
 					</div>
 				) : shifts.length === 0 ? (
 					<Card>
 						<CardContent className="py-12 text-center">
-							<p className="text-gray-500">現在公開されているシフトはありません</p>
+							<p className="text-slate-500">現在公開されているシフトはありません</p>
 						</CardContent>
 					</Card>
 				) : (
@@ -112,30 +112,25 @@ export default function ShiftList() {
 										? '秋'
 										: shift.semester;
 
+							// シフト専用のコレクション名（なければデフォルト名を生成）
+							const scheduleCollectionId =
+								shift.scheduleCollectionId ||
+								`schedules_${shift.year}_${shift.semester}_${shift.module}`;
+
 							return (
-								<Card key={shift.uid} className="transition-shadow hover:shadow-md">
+								<Card
+									key={shift.uid}
+									className="border-teal-200 bg-teal-50 transition-shadow hover:shadow-md"
+								>
 									<CardHeader>
 										<CardTitle className="flex items-center justify-between">
 											<span>
-												{shift.year}年度 {semesterJa}学期 モジュール{shift.module}
-											</span>
-											<span className="rounded-full bg-green-100 px-3 py-1 font-medium text-green-700 text-sm">
-												公開中
+												{shift.year}年度 {semesterJa}学期 {shift.module}モジュール
 											</span>
 										</CardTitle>
 									</CardHeader>
 									<CardContent>
 										<div className="space-y-3">
-											{/* 頻度 */}
-											<div>
-												<span className="font-medium text-gray-700 text-sm">
-													シフト頻度:
-												</span>
-												<span className="ml-2 text-gray-600 text-sm">
-													{shift.isTwice ? '週2回' : '週1回'}
-												</span>
-											</div>
-
 											{/* ボタン */}
 											<div className="flex gap-2 pt-2">
 												<Button
@@ -146,10 +141,11 @@ export default function ShiftList() {
 																semester: shift.semester,
 																module: shift.module,
 																isTwice: shift.isTwice,
+																scheduleCollectionId,
 															},
 														})
 													}
-													className="bg-purple-600 hover:bg-purple-700"
+													className="bg-teal-500 hover:bg-teal-600 hover:text-white"
 												>
 													シフトを回答する
 												</Button>
