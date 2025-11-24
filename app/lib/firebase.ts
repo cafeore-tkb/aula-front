@@ -41,7 +41,16 @@ export interface ShiftUsual {
 	module: 'A' | 'B' | 'C';
 	isOpen: boolean;
 	isTwice: boolean;
+	isScheduled: boolean;
 	scheduleCollectionId?: string; // シフト専用のコレクション名
+}
+
+export interface ShiftListItem {
+	uid: string;
+	year: number;
+	semester: string;
+	module: string;
+	isScheduled: boolean;
 }
 
 // Firebase configuration
