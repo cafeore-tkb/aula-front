@@ -6,6 +6,7 @@ import {
 	query,
 	serverTimestamp,
 	setDoc,
+	Timestamp,
 	where,
 } from 'firebase/firestore';
 import React, { useEffect, useId, useState } from 'react';
@@ -17,6 +18,7 @@ import { Card, CardContent } from '../../components/ui/card';
 import { RadioGroup, RadioGroupItem } from '../../components/ui/radio-group';
 import { useAuth } from '../../lib/auth-context';
 import { db } from '../../lib/firebase';
+import { List } from 'lucide-react';
 
 export function meta() {
 	return [
@@ -24,6 +26,21 @@ export function meta() {
 		{ name: 'description', content: 'シフト調整画面' },
 	];
 }
+
+export interface shiftData {
+	id: number;
+	year: number;
+	semester: string;
+	module: string;
+	userId: string;
+	userName: string;
+	userEmail: string;
+	scheduleData: {day:string; period:string; isSelected:boolean; startTime:string; endTime:string}[];
+	isTwice: boolean;
+	comment: string;
+	frequency: string;
+	updatedAt: Timestamp;
+	};
 
 export default function Adjustment() {
 	const location = useLocation();
@@ -43,7 +60,7 @@ export default function Adjustment() {
 		'12:15',
 		'13:45',
 		'15:15',
-		'18:00',
+		'16:45',
 		'18:15',
 		'19:45',
 	];
@@ -52,7 +69,7 @@ export default function Adjustment() {
 		'11:25',
 		'13:30',
 		'15:00',
-		'16:45',
+		'16:30',
 		'18:00',
 		'19:30',
 		'21:00',
