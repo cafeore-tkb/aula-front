@@ -19,4 +19,6 @@ export default [
 	route('admin/member', 'pages/admin/member.tsx'),
 	route('admin/settings', 'pages/admin/settings.tsx'),
 	route('admin/manageAdjustment', 'pages/admin/manage-adjustment.tsx'),
+	route('admin/scheduleShift', 'pages/admin/schedule-shift.tsx'),
+
 ] satisfies RouteConfig;
