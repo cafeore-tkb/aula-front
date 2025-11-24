@@ -180,30 +180,29 @@ export default function ManageAdjustment() {
 			// シフト専用のコレクション名を生成
 			const scheduleCollectionId = `schedules_${newYear}_${newSemester}_${newModule}`;
 
-			// 新しいシフトを追加
-			const docRef = await addDoc(shiftUsualCollection, {
+		// 新しいシフトを追加
+		const docRef = await addDoc(shiftUsualCollection, {
+			year: Number.parseInt(newYear, 10),
+			semester: newSemester,
+			module: newModule,
+			isTwice: newIsTwice === 'true',
+			isOpen: false,
+			isScheduled: false,
+			scheduleCollectionId, // コレクション名を保存
+		});		// ローカルの状態を更新
+		setShiftUsual((prev) => [
+			...prev,
+			{
+				uid: docRef.id,
 				year: Number.parseInt(newYear, 10),
-				semester: newSemester,
-				module: newModule,
-				isTwice: newIsTwice === 'true',
+				semester: newSemester as 'spring' | 'autumn',
+				module: newModule as 'A' | 'B' | 'C',
 				isOpen: false,
-				scheduleCollectionId, // コレクション名を保存
-			});
-
-			// ローカルの状態を更新
-			setShiftUsual((prev) => [
-				...prev,
-				{
-					uid: docRef.id,
-					year: Number.parseInt(newYear, 10),
-					semester: newSemester as 'spring' | 'autumn',
-					module: newModule as 'A' | 'B' | 'C',
-					isOpen: false,
-					isTwice: newIsTwice === 'true',
-				},
-			]);
-
-			// フォームをリセット
+				isTwice: newIsTwice === 'true',
+				isScheduled: false,
+				scheduleCollectionId,
+			},
+		]);			// フォームをリセット
 			setNewYear('');
 			setNewSemester('');
 			setNewModule('');
@@ -344,6 +343,7 @@ export default function ManageAdjustment() {
 										<TableHead className="text-xl">モジュール</TableHead>
 										<TableHead className="text-xl">頻度</TableHead>
 										<TableHead className="text-xl">公開設定</TableHead>
+										<TableHead className="text-xl">シフト作成</TableHead>
 									</TableRow>
 								</TableHeader>
 								<TableBody>
@@ -403,6 +403,14 @@ export default function ManageAdjustment() {
 															<SelectItem value="isClosed">非公開</SelectItem>
 														</SelectContent>
 													</Select>
+												</TableCell>
+												<TableCell>
+													<Button
+														onClick={() => navigate('/admin/scheduleShift', { state: { shiftUid: su.uid } })}
+														className="bg-blue-600 hover:bg-blue-700"
+													>
+														シフトを組む
+													</Button>
 												</TableCell>
 											</TableRow>
 										);
