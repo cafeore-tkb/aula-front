@@ -3,6 +3,7 @@ import {
 	collection,
 	doc,
 	getDocs,
+	getFirestore,
 	query,
 	serverTimestamp,
 	setDoc,
@@ -102,6 +103,40 @@ export default function Adjustment() {
 
 	// 既存のドキュメントIDを保持
 	const [existingDocId, setExistingDocId] = useState<string | null>(null);
+
+	useEffect(() => {
+			const fn = async () => {
+			console.log("データ緊急吐き出し用コード")
+			const db = getFirestore();
+			const colRef = collection(db, 'schedules_2025_autumn_B');
+			const userRef = collection(db, 'users');
+			const userSnaps = await getDocs(userRef);
+			const usersData = userSnaps.docs.map((doc) => doc.data());
+			const docsSnaps = await getDocs(colRef);
+			const data = docsSnaps.docs.map((doc) => doc.data());
+			console.log("ユーザーデータ！！！", usersData);
+			const mergedData = data.map((schedule) => {
+				const userData = usersData.find((user) => user.gmail === schedule.userEmail);
+				return {
+					...schedule,
+					userName: userData ? userData.name : '不明なユーザー',
+				};
+			});
+			console.log("データ！！！", mergedData);
+	
+			// データをJSONファイルとしてダウンロード
+			const blob = new Blob([JSON.stringify(mergedData, null, 2)], { type: 'application/json' });
+			const url = URL.createObjectURL(blob);
+			const a = document.createElement('a');
+			a.href = url;
+			a.download = 'schedules_2025_autumn_B.json';
+			document.body.appendChild(a);
+			a.click();
+			document.body.removeChild(a);
+			URL.revokeObjectURL(url);
+			}
+			fn();
+		}, []);
 
 	// 登録済みデータを読み込む
 	useEffect(() => {
