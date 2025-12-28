@@ -52,6 +52,138 @@ export default function ManageAdjustment() {
 	const [newModule, setNewModule] = useState('');
 	const [newIsTwice, setNewIsTwice] = useState('');
 	const [isAdding, setIsAdding] = useState(false);
+	const [exportingShiftUid, setExportingShiftUid] = useState<string | null>(null);
+
+	// CSVエクスポート関数（シフト回答内容を出力）
+	const exportToCSV = async (shift: ShiftUsual) => {
+		try {
+			setExportingShiftUid(shift.uid);
+			const db = getFirestore();
+
+			// schedules コレクション名を構築
+			const collectionName = `schedules_${shift.year}_${shift.semester}_${shift.module}`;
+
+			// スケジュールデータを取得
+			const schedulesRef = collection(db, collectionName);
+			const schedulesSnapshot = await getDocs(schedulesRef);
+
+			// ユーザー情報を取得
+			const usersRef = collection(db, 'users');
+			const usersSnapshot = await getDocs(usersRef);
+			const usersDict: Record<string, { name: string; isExaminer: boolean }> = {};
+
+			for (const userDoc of usersSnapshot.docs) {
+				const userData = userDoc.data();
+				usersDict[userDoc.id] = {
+					name: userData.name || '名前未設定',
+					isExaminer: userData.isExaminer || false,
+				};
+			}
+
+			// ユーザーごとのシフト回答を整理
+			const userResponses: Array<{
+				userId: string;
+				name: string;
+				isExaminer: boolean;
+				responses: Record<string, boolean>; // "period-day" => canBeAssigned
+			}> = [];
+
+			// スケジュールデータを処理
+			for (const scheduleDoc of schedulesSnapshot.docs) {
+				const scheduleData = scheduleDoc.data();
+				const userId = scheduleData.userId;
+				const scheduleItems = scheduleData.scheduleData || [];
+
+				if (!userId || !usersDict[userId]) continue;
+
+				const userInfo = usersDict[userId];
+				const responses: Record<string, boolean> = {};
+
+				// 各時間帯の回答を記録
+				for (const item of scheduleItems) {
+					// periodは文字列'1'~'8'で保存されているので、数値に変換して0-7にする
+					const period = typeof item.period === 'string' ? parseInt(item.period, 10) - 1 : item.period;
+					const dayName = item.day;
+					// isSelectedとcanBeAssignedの両方に対応
+					const canBeAssigned = item.canBeAssigned === true || item.isSelected === true;
+
+					if (period !== undefined && dayName !== undefined) {
+						const key = `${period}-${dayName}`;
+						responses[key] = canBeAssigned;
+					}
+				}
+
+				userResponses.push({
+					userId,
+					name: userInfo.name,
+					isExaminer: userInfo.isExaminer,
+					responses,
+				});
+			}
+
+			// ユーザーを名前でソート
+			userResponses.sort((a, b) => a.name.localeCompare(b.name, 'ja'));
+
+			// CSVデータを構築
+			const dayNames = ['月', '火', '水', '木', '金', '土', '日'];
+			let csvContent = '\uFEFF'; // BOM for UTF-8
+
+			// ヘッダー情報
+			csvContent += `${shift.year}年度 ${shift.semester} モジュール${shift.module} シフト回答一覧\n`;
+			csvContent += `出力日時: ${new Date().toLocaleString('ja-JP')}\n\n`;
+
+			// テーブルヘッダー（名前、役割、各時限×曜日）
+			const header = ['名前', '役割'];
+			for (let period = 0; period < 8; period++) {
+				for (const dayName of dayNames) {
+					header.push(`${period + 1}限${dayName}`);
+				}
+			}
+			csvContent += header.join(',') + '\n';
+
+			// 各ユーザーの回答データ
+			for (const user of userResponses) {
+				const row = [
+					`"${user.name}"`,
+					user.isExaminer ? '試験官' : '練習生',
+				];
+
+				// 各時限×曜日の回答
+				for (let period = 0; period < 8; period++) {
+					for (const dayName of dayNames) {
+						const key = `${period}-${dayName}`;
+						const canBeAssigned = user.responses[key];
+						row.push(canBeAssigned ? '○' : '×');
+					}
+				}
+
+				csvContent += row.join(',') + '\n';
+			}
+
+			// 集計情報
+			csvContent += '\n集計情報\n';
+			csvContent += `回答者数,${userResponses.length}\n`;
+			csvContent += `練習生,${userResponses.filter(u => !u.isExaminer).length}\n`;
+			csvContent += `試験官,${userResponses.filter(u => u.isExaminer).length}\n`;
+
+			// ダウンロード
+			const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+			const link = document.createElement('a');
+			const url = URL.createObjectURL(blob);
+			link.setAttribute('href', url);
+			link.setAttribute('download', `shift_responses_${shift.year}_${shift.semester}_${shift.module}.csv`);
+			link.style.visibility = 'hidden';
+			document.body.appendChild(link);
+			link.click();
+			document.body.removeChild(link);
+
+		} catch (error) {
+			console.error('CSV export error:', error);
+			alert('CSVのエクスポートに失敗しました');
+		} finally {
+			setExportingShiftUid(null);
+		}
+	};
 
 	// 認証状態とadminフラグをチェック
 	useEffect(() => {
@@ -180,29 +312,29 @@ export default function ManageAdjustment() {
 			// シフト専用のコレクション名を生成
 			const scheduleCollectionId = `schedules_${newYear}_${newSemester}_${newModule}`;
 
-		// 新しいシフトを追加
-		const docRef = await addDoc(shiftUsualCollection, {
-			year: Number.parseInt(newYear, 10),
-			semester: newSemester,
-			module: newModule,
-			isTwice: newIsTwice === 'true',
-			isOpen: false,
-			isScheduled: false,
-			scheduleCollectionId, // コレクション名を保存
-		});		// ローカルの状態を更新
-		setShiftUsual((prev) => [
-			...prev,
-			{
-				uid: docRef.id,
+			// 新しいシフトを追加
+			const docRef = await addDoc(shiftUsualCollection, {
 				year: Number.parseInt(newYear, 10),
-				semester: newSemester as 'spring' | 'autumn',
-				module: newModule as 'A' | 'B' | 'C',
-				isOpen: false,
+				semester: newSemester,
+				module: newModule,
 				isTwice: newIsTwice === 'true',
+				isOpen: false,
 				isScheduled: false,
-				scheduleCollectionId,
-			},
-		]);			// フォームをリセット
+				scheduleCollectionId, // コレクション名を保存
+			});		// ローカルの状態を更新
+			setShiftUsual((prev) => [
+				...prev,
+				{
+					uid: docRef.id,
+					year: Number.parseInt(newYear, 10),
+					semester: newSemester as 'spring' | 'autumn',
+					module: newModule as 'A' | 'B' | 'C',
+					isOpen: false,
+					isTwice: newIsTwice === 'true',
+					isScheduled: false,
+					scheduleCollectionId,
+				},
+			]);			// フォームをリセット
 			setNewYear('');
 			setNewSemester('');
 			setNewModule('');
@@ -370,11 +502,10 @@ export default function ManageAdjustment() {
 														onValueChange={(value) => handleFrequencyChange(su.uid, value)}
 													>
 														<SelectTrigger
-															className={`w-[120px] bg-transparent ${
-																su.isTwice
-																	? 'border-green-300 text-green-700 hover:bg-green-100/50'
-																	: 'border-gray-300 text-gray-700 hover:bg-gray-100/50'
-															}`}
+															className={`w-[120px] bg-transparent ${su.isTwice
+																? 'border-green-300 text-green-700 hover:bg-green-100/50'
+																: 'border-gray-300 text-gray-700 hover:bg-gray-100/50'
+																}`}
 														>
 															<SelectValue />
 														</SelectTrigger>
@@ -390,11 +521,10 @@ export default function ManageAdjustment() {
 														onValueChange={(value) => handleStatusChange(su.uid, value)}
 													>
 														<SelectTrigger
-															className={`w-[120px] bg-transparent ${
-																su.isOpen
-																	? 'border-green-300 text-green-700 hover:bg-green-100/50'
-																	: 'border-gray-300 text-gray-700 hover:bg-gray-100/50'
-															}`}
+															className={`w-[120px] bg-transparent ${su.isOpen
+																? 'border-green-300 text-green-700 hover:bg-green-100/50'
+																: 'border-gray-300 text-gray-700 hover:bg-gray-100/50'
+																}`}
 														>
 															<SelectValue />
 														</SelectTrigger>
@@ -405,12 +535,22 @@ export default function ManageAdjustment() {
 													</Select>
 												</TableCell>
 												<TableCell>
-													<Button
-														onClick={() => navigate('/admin/scheduleShift', { state: { shiftUid: su.uid } })}
-														className="bg-blue-600 hover:bg-blue-700"
-													>
-														シフトを組む
-													</Button>
+													<div className="flex gap-2">
+														<Button
+															onClick={() => navigate('/admin/scheduleShift', { state: { shiftUid: su.uid } })}
+															className="bg-blue-600 hover:bg-blue-700"
+														>
+															シフトを組む
+														</Button>
+														<Button
+															onClick={() => exportToCSV(su)}
+															disabled={exportingShiftUid === su.uid}
+															variant="outline"
+															className="border-green-600 text-green-600 hover:bg-green-50"
+														>
+															{exportingShiftUid === su.uid ? '出力中...' : 'CSV出力'}
+														</Button>
+													</div>
 												</TableCell>
 											</TableRow>
 										);
