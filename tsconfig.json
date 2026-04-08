@@ -7,10 +7,10 @@
 	],
 	"compilerOptions": {
 		"lib": ["DOM", "DOM.Iterable", "ES2022"],
-		"types": ["node", "vite/client", "vitest/globals"],
+		// "types": ["node", "react","react/jsx-runtime", "vite/client", "vitest/globals"],
 		"target": "ES2022",
 		"module": "ES2022",
-		"moduleResolution": "bundler",
+		"moduleResolution": "node",
 		"jsx": "react-jsx",
 		"rootDirs": [".", "./.react-router/types"],
 		"baseUrl": ".",
