@@ -7,19 +7,29 @@ import { Card, CardContent } from '../../components/ui/card';
 import { useAuth } from '../../lib/auth-context';
 import type { ShiftListItem, UserProfile } from '../../lib/firebase';
 
+/**
+ * スタッフメンバーの情報を表すインターフェース
+ */
 interface StaffMember {
-    userId: string;
-    name: string;
-    isExaminer: boolean;
-    scheduleData: { period: number; day: string; canBeAssigned: boolean }[];
+    userId: string; // ユーザーID
+    name: string; // 名前
+    isExaminer: boolean; // 試験官フラグ
+    scheduleData: { period: number; day: string; canBeAssigned: boolean }[]; // スケジュールデータ
 }
 
+/**
+ * 時間割の各セルを表すインターフェース
+ */
 interface TimeSlot {
-    trainee: StaffMember | null;
-    examiners: StaffMember[];
+    trainees: StaffMember[]; // 割り当てられた練習生（複数名）
+    examiners: StaffMember[]; // 割り当てられた試験官（複数名）
     vacantUserIds: string[]; // この時間に入れる練習生と試験官のuserIdリスト
 }
 
+/**
+ * ページメタデータを定義する関数
+ * タイトルと説明を設定
+ */
 export function meta() {
     return [
         { title: 'シフト作成 - Aula' },
@@ -27,6 +37,10 @@ export function meta() {
     ];
 }
 
+/**
+ * シフト作成ページのメインコンポーネント
+ * 管理者がシフトを組むためのインターフェースを提供
+ */
 export default function ScheduleShift() {
     const { user, userProfile, loading } = useAuth();
     const navigate = useNavigate();
@@ -43,11 +57,16 @@ export default function ScheduleShift() {
     const day = ['月', '火', '水', '木', '金', '土', '日'];
     const periods = [1, 2, 3, 4, 5, 6, 7, 8];
 
-    // ローカルストレージのキーを生成するヘルパー関数
+    /**
+     * ローカルストレージのキーを生成するヘルパー関数
+     * シフトごとに一意のキーを生成
+     */
     const getStorageKey = useCallback((shiftUid: string) => `schedule_shift_${shiftUid}`, []);
 
-    // 時間割の状態管理（8時限 × 7曜日）
-    // 各セルに練習生1人と試験官2名以上を割り当て
+    /**
+     * 時間割の状態管理（8時限 × 7曜日）
+     * 各セルに練習生1人以上と試験官2名以上を割り当てる
+     */
     const [schedule, setSchedule] = useState<TimeSlot[][]>(() => {
         // 初期状態は空のスケジュール
         return Array(8)
@@ -56,22 +75,25 @@ export default function ScheduleShift() {
                 Array(7)
                     .fill(null)
                     .map(() => ({
-                        trainee: null,
+                        trainees: [],
                         examiners: [],
                         vacantUserIds: [], // 初期状態では空
                     })),
             );
     });
 
-    // 選択中のスタッフとセル
-    const [selectedStaff, setSelectedStaff] = useState<StaffMember | null>(null);
+    // 選択中のスタッフとセルの状態管理
+    const [selectedStaff, setSelectedStaff] = useState<StaffMember | null>(null); // 選択中のスタッフ
     const [selectedCell, setSelectedCell] = useState<{
-        period: number;
-        day: number;
-    } | null>(null);
-    const [staffType, setStaffType] = useState<'trainee' | 'examiner'>('trainee'); // トグル用の状態
+        period: number; // 時限
+        day: number; // 曜日
+    } | null>(null); // 選択中のセル
+    const [staffType, setStaffType] = useState<'trainee' | 'examiner'>('trainee'); // トグル用の状態（練習生/試験官）
 
-    // Escapeキーでセル選択を解除
+    /**
+     * Escapeキーでセル選択を解除するイベントリスナー
+     * コンポーネントマウント時に登録、アンマウント時に削除
+     */
     useEffect(() => {
         const handleKeyDown = (e: KeyboardEvent) => {
             if (e.key === 'Escape') {
@@ -82,14 +104,17 @@ export default function ScheduleShift() {
         window.addEventListener('keydown', handleKeyDown);
         return () => window.removeEventListener('keydown', handleKeyDown);
     }, []);
-    // scheduleが変更されたらローカルストレージに保存
+    /**
+     * scheduleが変更されたらローカルストレージに保存
+     * ユーザーが作業中のデータを失わないように自動保存
+     */
     useEffect(() => {
         if (shiftData && trainees.length > 0 && examiners.length > 0) {
             const storageKey = getStorageKey(shiftData.uid);
-            // シリアライズ可能な形式に変換
+            // シリアライズ可能な形式に変換（userIdのみを保存）
             const serializable = schedule.map((row) =>
                 row.map((slot) => ({
-                    traineeUserId: slot.trainee?.userId || null,
+                    traineeUserIds: slot.trainees.map((t) => t.userId),
                     examinerUserIds: slot.examiners.map((e) => e.userId),
                 })),
             );
@@ -97,7 +122,10 @@ export default function ScheduleShift() {
             console.log('Saved schedule to localStorage');
         }
     }, [schedule, shiftData, trainees, examiners, getStorageKey]);
-    // 認証状態とadminフラグをチェック
+    /**
+     * 認証状態とadminフラグをチェック
+     * 未ログインまたは非管理者の場合は適切なページにリダイレクト
+     */
     useEffect(() => {
         if (!loading) {
             // 未ログインの場合はログインページにリダイレクト
@@ -106,7 +134,7 @@ export default function ScheduleShift() {
                 return;
             }
 
-            // ログイン済みでもadminフラグがない場合はホームページにリダイレクト
+            // ログイン済みでもadminフラグがない場合はダッシュボードにリダイレクト
             if (userProfile && !userProfile.isAdmin) {
                 navigate('/dashboard');
                 return;
@@ -114,9 +142,13 @@ export default function ScheduleShift() {
         }
     }, [user, userProfile, loading, navigate]);
 
-    // URL パラメータから shiftUid を取得してシフトデータを取得
+    /**
+     * URLパラメータからshiftUidを取得してシフトデータを取得
+     * シフト回答データとユーザー情報を読み込み、スタッフリストを構築
+     */
     useEffect(() => {
         const fetchShiftData = async () => {
+            // location.stateからshiftUidを取得
             const state = location.state as { shiftUid?: string } | null;
             if (!state?.shiftUid || !userProfile?.isAdmin) {
                 navigate('/admin/manageAdjustment');
@@ -127,7 +159,7 @@ export default function ScheduleShift() {
                 setLoadingUsers(true);
                 const db = getFirestore();
 
-                // shiftUsual と shiftUnusual から該当するシフトを検索
+                // shiftUsualコレクションから該当するシフトを検索
                 const usualShiftsCollection = collection(db, 'shiftUsual');
                 const usualShiftsSnapshot = await getDocs(usualShiftsCollection);
                 let foundShift = usualShiftsSnapshot.docs
@@ -143,6 +175,7 @@ export default function ScheduleShift() {
                     )
                     .find((shift) => shift.uid === state.shiftUid);
 
+                // shiftUsualで見つからない場合はshiftUnusualから検索
                 if (!foundShift) {
                     const unusualShiftsCollection = collection(db, 'shiftUnusual');
                     const unusualShiftsSnapshot = await getDocs(unusualShiftsCollection);
@@ -160,6 +193,7 @@ export default function ScheduleShift() {
                         .find((shift) => shift.uid === state.shiftUid);
                 }
 
+                // シフトが見つからない場合はエラー
                 if (!foundShift) {
                     console.error('Shift not found');
                     navigate('/admin/manageAdjustment');
@@ -169,12 +203,12 @@ export default function ScheduleShift() {
                 setShiftData(foundShift);
                 console.log('Loaded shift:', foundShift);
 
-                // シフト回答データを取得して、回答したユーザーのみを抽出
+                // シフト回答データを取得（コレクション名を動的に生成）
                 const collectionName = `schedules_${foundShift.year}_${foundShift.semester}_${foundShift.module}`;
                 console.log('Fetching shift responses from:', collectionName);
 
                 try {
-                    // まずシフト回答データを取得
+                    // シフト回答データを取得
                     const shiftResponsesCollection = collection(db, collectionName);
                     const shiftResponsesSnapshot = await getDocs(shiftResponsesCollection);
 
@@ -182,32 +216,33 @@ export default function ScheduleShift() {
                         `Fetched ${shiftResponsesSnapshot.docs.length} shift responses`,
                     );
 
-                    // リストで管理
+                    // 練習生と試験官のリストを初期化
                     const traineeList: StaffMember[] = [];
                     const examinerList: StaffMember[] = [];
 
-                    // scheduleを初期化（8時限 × 7曜日）
+                    // スケジュールを初期化（8時限 × 7曜日の空の配列）
                     const newSchedule: TimeSlot[][] = Array(8)
                         .fill(null)
                         .map(() =>
                             Array(7)
                                 .fill(null)
                                 .map(() => ({
-                                    trainee: null,
+                                    trainees: [],
                                     examiners: [],
                                     vacantUserIds: [],
                                 })),
                         );
 
-                    // userコレクションを一度だけ取得
+                    // パフォーマンス向上のため、userコレクションを一度だけ取得
                     const usersCollection = collection(db, 'users');
                     const usersSnapshot = await getDocs(usersCollection);
 
-                    // 各シフト回答を処理
+                    // 各シフト回答を処理してスタッフリストを構築
                     for (const shiftDoc of shiftResponsesSnapshot.docs) {
                         const shiftResponseData = shiftDoc.data();
                         const userId = shiftResponseData.userId;
 
+                        // userIdが存在しない場合はスキップ
                         if (!userId) {
                             console.log('No userId in shift response:', shiftDoc.id);
                             continue;
@@ -215,9 +250,10 @@ export default function ScheduleShift() {
 
                         console.log('Processing shift response for userId:', userId);
 
-                        // userコレクションから該当ユーザーのドキュメントを取得
+                        // userコレクションから該当ユーザーの情報を取得
                         const userDoc = usersSnapshot.docs.find((doc) => doc.id === userId);
 
+                        // ユーザーが見つからない場合はスキップ
                         if (!userDoc) {
                             console.log('User not found:', userId);
                             continue;
@@ -230,10 +266,10 @@ export default function ScheduleShift() {
                             isExaminer: userData.isExaminer,
                         });
 
-                        // scheduleDataの構造を確認
+                        // デバッグ用：スケジュールデータの構造を確認
                         console.log('Schedule data for user:', userId, shiftResponseData.scheduleData);
 
-                        // StaffMemberオブジェクトを作成
+                        // StaffMemberオブジェクトを作成（ユーザー情報とスケジュールデータを統合）
                         const staffMember: StaffMember = {
                             userId: userId,
                             name: userData.name || '名前未設定',
@@ -245,18 +281,19 @@ export default function ScheduleShift() {
                             })),
                         };
 
-                        // scheduleDataからvacantUserIdsに追加
+                        // scheduleDataからvacantUserIdsに追加（空き時間情報を記録）
                         if (shiftResponseData.scheduleData && Array.isArray(shiftResponseData.scheduleData)) {
                             for (const slot of shiftResponseData.scheduleData) {
                                 const period = slot.period;
                                 const day = slot.day;
+                                // 時限と曜日が有効な範囲内の場合のみ追加
                                 if (period >= 0 && period < 8 && day >= 0 && day < 7) {
                                     newSchedule[period][day].vacantUserIds.push(userId);
                                 }
                             }
                         }
 
-                        // isExaminer フラグで試験官を判定
+                        // isExaminerフラグに基づいて試験官または練習生リストに追加
                         if (userData.isExaminer === true) {
                             examinerList.push(staffMember);
                         } else {
@@ -264,18 +301,19 @@ export default function ScheduleShift() {
                         }
                     }
 
-                    // 状態を更新
+                    // スタッフリストの状態を更新
                     setTrainees(traineeList);
                     setExaminers(examinerList);
 
-                    // ローカルストレージから保存されたスケジュールを復元
+                    // ローカルストレージから保存されたスケジュールを復元（作業の継続）
                     const storageKey = getStorageKey(foundShift.uid);
                     const savedScheduleJson = localStorage.getItem(storageKey);
                     
+                    // 保存されたデータがある場合は復元
                     if (savedScheduleJson) {
                         try {
                             const savedSchedule = JSON.parse(savedScheduleJson);
-                            // 保存されたデータを使用して復元
+                            // 保存されたデータを使用してスケジュールを復元（8時限 × 7曜日）
                             const restoredSchedule: TimeSlot[][] = Array(8)
                                 .fill(null)
                                 .map((_, p) =>
@@ -283,26 +321,27 @@ export default function ScheduleShift() {
                                         .fill(null)
                                         .map((_, d) => {
                                             const saved = savedSchedule[p]?.[d];
+                                            // 保存されたデータがない場合は空のセル
                                             if (!saved) {
                                                 return {
-                                                    trainee: null,
+                                                    trainees: [],
                                                     examiners: [],
                                                     vacantUserIds: newSchedule[p][d].vacantUserIds,
                                                 };
                                             }
 
-                                            // traineeを復元（userIdから該当するStaffMemberを検索）
-                                            const trainee = saved.traineeUserId
-                                                ? traineeList.find((t) => t.userId === saved.traineeUserId) || null
-                                                : null;
+                                            // 保存されたuserIdリストから練習生リストを復元
+                                            const trainees = (saved.traineeUserIds || []).map(
+                                                (userId: string) => traineeList.find((t) => t.userId === userId),
+                                            ).filter(Boolean) as StaffMember[];
 
-                                            // examinersを復元（userIdリストから該当するStaffMemberを検索）
+                                            // 保存されたuserIdリストから試験官リストを復元
                                             const examiners = (saved.examinerUserIds || []).map(
                                                 (userId: string) => examinerList.find((e) => e.userId === userId),
                                             ).filter(Boolean) as StaffMember[];
 
                                             return {
-                                                trainee,
+                                                trainees,
                                                 examiners,
                                                 vacantUserIds: newSchedule[p][d].vacantUserIds,
                                             };
@@ -333,14 +372,18 @@ export default function ScheduleShift() {
         fetchShiftData();
     }, [location.state, userProfile, navigate, getStorageKey]);
 
-    // ===== return前のロジック処理 =====
+    // ===== レンダリング前の計算処理 =====
     
-    // 各練習生の割り当てコマ数を計算
+    /**
+     * 各練習生の割り当てコマ数を計算
+     * スタッフリストに割り当て数を表示するために使用
+     */
     const traineeAssignments = trainees.map((trainee) => {
         let count = 0;
+        // 全てのセルをチェックして割り当て数をカウント
         for (let p = 0; p < 8; p++) {
             for (let d = 0; d < 7; d++) {
-                if (schedule[p][d].trainee?.userId === trainee.userId) {
+                if (schedule[p][d].trainees.find(t => t.userId === trainee.userId)) {
                     count++;
                 }
             }
@@ -348,9 +391,13 @@ export default function ScheduleShift() {
         return { trainee, count };
     });
 
-    // 各試験官の割り当てコマ数を計算
+    /**
+     * 各試験官の割り当てコマ数を計算
+     * スタッフリストに割り当て数を表示するために使用
+     */
     const examinerAssignments = examiners.map((examiner) => {
         let count = 0;
+        // 全てのセルをチェックして割り当て数をカウント
         for (let p = 0; p < 8; p++) {
             for (let d = 0; d < 7; d++) {
                 if (schedule[p][d].examiners.find(e => e.userId === examiner.userId)) {
@@ -361,19 +408,22 @@ export default function ScheduleShift() {
         return { examiner, count };
     });
 
-    // 各セルの状態を事前計算
+    /**
+     * 各セルの状態を事前計算
+     * レンダリング時の条件判定を簡潔にするため
+     */
     const cellStates = schedule.map((row, periodIndex) =>
         row.map((timeSlot, dayIndex) => {
-            const hasTrainee = timeSlot.trainee !== null;
-            const examinerCount = timeSlot.examiners.length;
-            const isComplete = hasTrainee && examinerCount >= 2;
-            const isPartial = hasTrainee || examinerCount > 0;
-            const isSelectedNow = selectedCell?.period === periodIndex && selectedCell?.day === dayIndex;
-            const canAssignTrainee = selectedStaff !== null && selectedStaff.isExaminer === false;
+            const traineeCount = timeSlot.trainees.length; // 練習生の人数
+            const examinerCount = timeSlot.examiners.length; // 試験官の人数
+            const isComplete = traineeCount > 0 && examinerCount >= 2; // 完了状態（練習生1人以上＋試験官2人以上）
+            const isPartial = traineeCount > 0 || examinerCount > 0; // 部分的に割り当てあり
+            const isSelectedNow = selectedCell?.period === periodIndex && selectedCell?.day === dayIndex; // 現在選択中
+            const canAssignTrainee = selectedStaff !== null && selectedStaff.isExaminer === false; // 練習生を割り当て可能
             
             return {
                 timeSlot,
-                hasTrainee,
+                traineeCount,
                 examinerCount,
                 isComplete,
                 isPartial,
@@ -383,10 +433,15 @@ export default function ScheduleShift() {
         })
     );
 
-    // イベントハンドラー関数群
+    // ===== イベントハンドラー関数群 =====
+    
+    /**
+     * セルクリック時の処理
+     * 練習生が選択されている場合は割り当て、それ以外は詳細表示
+     */
     const handleCellClick = (periodIndex: number, dayIndex: number) => {
         if (selectedStaff !== null && selectedStaff.isExaminer === false) {
-            // 練習生が選択されている場合 - 空き時間に関わらずどこにでも割り当て可能
+            // 練習生が選択されている場合：クリックしたセルに割り当て
             console.log('Assigning trainee:', {
                 trainee: selectedStaff.name,
                 period: periodIndex,
@@ -394,48 +449,66 @@ export default function ScheduleShift() {
             });
 
             const newSchedule = [...schedule];
-            newSchedule[periodIndex][dayIndex].trainee = selectedStaff;
+            const cell = newSchedule[periodIndex][dayIndex];
+            // 重複チェック：既に追加されていない場合のみ追加
+            if (!cell.trainees.find((t) => t.userId === selectedStaff.userId)) {
+                cell.trainees = [...cell.trainees, selectedStaff];
+            }
             setSchedule(newSchedule);
-            setSelectedStaff(null);
+            setSelectedStaff(null); // 選択状態を解除
             console.log('Trainee assigned successfully');
         } else {
-            // それ以外の場合はセルを選択（詳細表示用）
+            // それ以外の場合：セルを選択（詳細表示用）
             setSelectedCell({ period: periodIndex, day: dayIndex });
         }
     };
 
+    /**
+     * 練習生クリック時の処理
+     * 選択/選択解除をトグル
+     */
     const handleTraineeClick = (trainee: StaffMember) => {
         const isSelected = selectedStaff?.userId === trainee.userId && !selectedStaff.isExaminer;
         if (isSelected) {
+            // 既に選択されている場合は選択解除
             setSelectedStaff(null);
             console.log('Trainee deselected');
         } else {
+            // 新しく選択
             console.log('Trainee selected:', trainee.name, 'userId:', trainee.userId);
             setSelectedStaff(trainee);
-            setSelectedCell(null);
+            setSelectedCell(null); // セル選択を解除
         }
     };
 
+    /**
+     * 試験官クリック時の処理
+     * セルが選択されている場合は追加、それ以外は選択
+     */
     const handleExaminerClick = (examiner: StaffMember) => {
         if (selectedCell) {
-            // 選択中のセルに試験官を追加
+            // セルが選択されている場合：そのセルに試験官を追加
             const newSchedule = [...schedule];
             const cell = newSchedule[selectedCell.period][selectedCell.day];
-            // 既に追加されていない場合のみ追加
+            // 重複チェック：既に追加されていない場合のみ追加
             if (!cell.examiners.find((e) => e.userId === examiner.userId)) {
                 cell.examiners = [...cell.examiners, examiner];
             }
             setSchedule(newSchedule);
-            setSelectedStaff(null);
+            setSelectedStaff(null); // 選択状態を解除
         } else {
-            // 試験官を選択
+            // セルが選択されていない場合：試験官を選択状態にする
             setSelectedStaff(examiner);
         }
     };
 
+    /**
+     * スタッフタイプ切り替え時の処理
+     * 練習生/試験官のトグルボタン
+     */
     const handleStaffTypeChange = (type: 'trainee' | 'examiner') => {
         setStaffType(type);
-        setSelectedStaff(null);
+        setSelectedStaff(null); // スタッフ選択を解除
     };
 
     return (
@@ -560,8 +633,18 @@ export default function ScheduleShift() {
                                                     onClick={() => handleCellClick(periodIndex, dayIndex)}
                                                 >
                                                     <div className="flex flex-col items-center justify-center gap-0.5">
-                                                        <div className="max-w-full truncate font-semibold text-xs">
-                                                            練習生: {timeSlot.trainee?.name}
+                                                        <div className="max-w-full text-xs">
+                                                            {timeSlot.trainees.length > 0 ? (
+                                                                <div className="flex flex-col gap-0.5">
+                                                                    {timeSlot.trainees.map((trainee, idx) => (
+                                                                        <div key={trainee.userId} className="truncate font-semibold">
+                                                                            練{idx + 1}: {trainee.name}
+                                                                        </div>
+                                                                    ))}
+                                                                </div>
+                                                            ) : (
+                                                                <div className="font-semibold">練習生: 0名</div>
+                                                            )}
                                                         </div>
                                                         <div className="max-w-full text-xs">
                                                             {examinerCount > 0 ? (
@@ -615,24 +698,34 @@ export default function ScheduleShift() {
 
                                     {/* 練習生 */}
                                     <div className="mb-3">
-                                        <h4 className="mb-1 font-semibold text-slate-700 text-sm">練習生</h4>
-                                        {schedule[selectedCell.period][selectedCell.day].trainee ? (
-                                            <div className="flex items-center justify-between rounded bg-white p-2">
-                                                <span className="text-sm">
-                                                    {schedule[selectedCell.period][selectedCell.day].trainee?.name}
-                                                </span>
-                                                <Button
-                                                    variant="ghost"
-                                                    size="sm"
-                                                    className="text-red-600 hover:bg-red-50 hover:text-red-700"
-                                                    onClick={() => {
-                                                        const newSchedule = [...schedule];
-                                                        newSchedule[selectedCell.period][selectedCell.day].trainee = null;
-                                                        setSchedule(newSchedule);
-                                                    }}
-                                                >
-                                                    削除
-                                                </Button>
+                                        <h4 className="mb-1 font-semibold text-slate-700 text-sm">
+                                            練習生 ({schedule[selectedCell.period][selectedCell.day].trainees.length}名)
+                                        </h4>
+                                        {schedule[selectedCell.period][selectedCell.day].trainees.length > 0 ? (
+                                            <div className="space-y-1">
+                                                {schedule[selectedCell.period][selectedCell.day].trainees.map((trainee) => (
+                                                    <div
+                                                        key={trainee.userId}
+                                                        className="flex items-center justify-between rounded bg-white p-2"
+                                                    >
+                                                        <span className="text-sm">{trainee.name}</span>
+                                                        <Button
+                                                            variant="ghost"
+                                                            size="sm"
+                                                            className="text-red-600 hover:bg-red-50 hover:text-red-700"
+                                                            onClick={() => {
+                                                                const newSchedule = [...schedule];
+                                                                newSchedule[selectedCell.period][selectedCell.day].trainees =
+                                                                    newSchedule[selectedCell.period][selectedCell.day].trainees.filter(
+                                                                        (t) => t.userId !== trainee.userId
+                                                                    );
+                                                                setSchedule(newSchedule);
+                                                            }}
+                                                        >
+                                                            削除
+                                                        </Button>
+                                                    </div>
+                                                ))}
                                             </div>
                                         ) : (
                                             <p className="text-slate-500 text-sm">未割り当て</p>
@@ -716,7 +809,7 @@ export default function ScheduleShift() {
                                             📍 {periods[selectedCell.period]}限・{day[selectedCell.day]}曜日
                                         </div>
                                         <div className="text-slate-600 text-xs">
-                                            練習生: {schedule[selectedCell.period][selectedCell.day].trainee?.name || '未割り当て'}
+                                            練習生: {schedule[selectedCell.period][selectedCell.day].trainees.length}名
                                         </div>
                                         <div className="text-slate-600 text-xs">
                                             試験官: {schedule[selectedCell.period][selectedCell.day].examiners.length}名
