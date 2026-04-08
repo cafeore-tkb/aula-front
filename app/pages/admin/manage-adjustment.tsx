@@ -359,7 +359,7 @@ export default function ManageAdjustment() {
 	return (
 		<div className="min-h-screen bg-gray-100 py-8">
 			<div className="mx-auto max-w-6xl px-4">
-				<div className="mb-8 flex items-center justify-between">
+				<div className="mb-6 flex items-center justify-between">
 					<h1 className="font-bold text-3xl text-gray-900">管理者ページ</h1>
 					<div className="flex items-center space-x-2">
 						<span className="rounded-full bg-red-100 px-3 py-1 font-medium text-red-600 text-sm">

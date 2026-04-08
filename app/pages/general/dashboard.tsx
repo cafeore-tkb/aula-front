@@ -57,21 +57,15 @@ export default function Home() {
 
 	// ログイン済みユーザーのダッシュボード
 	return (
-		<div className={`min-h-screen bg-gray-100 ${isMobile ? 'py-4' : 'py-8'}`}>
-			<div
-				className={`mx-auto ${isMobile ? 'max-w-full px-3' : 'max-w-4xl px-4'}`}
-			>
-				<h1
-					className={`mb-4 font-bold text-gray-900 ${isMobile ? 'pt-2 pl-3 text-2xl' : 'text-3xl'}`}
-				>
+		<div className="min-h-screen bg-gray-100 py-8">
+			<div className="mx-auto max-w-6xl px-4">
+				<h1 className={`mb-6 font-bold text-gray-900 ${isMobile ? 'text-2xl' : 'text-3xl'}`}>
 					ホーム
 				</h1>
 
-				<div
-					className={`grid ${isMobile ? 'grid-cols-1 gap-4' : 'grid-cols-1 gap-6 md:grid-cols-3'}`}
-				>
+				<div className={`grid ${isMobile ? 'grid-cols-1 gap-6' : 'grid-cols-1 gap-6 md:grid-cols-3'}`}>
 					{/* ユーザープロフィールカード */}
-					<div className={`${isMobile ? 'space-y-4' : 'space-y-6 md:col-span-1'}`}>
+					<div className={`${isMobile ? 'space-y-6' : 'space-y-6 md:col-span-1'}`}>
 						<UserProfile user={user} userProfile={userProfile} />
 					</div>
 

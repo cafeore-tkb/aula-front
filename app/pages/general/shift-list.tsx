@@ -78,9 +78,9 @@ export default function ShiftList() {
 
 	return (
 		<div className="min-h-screen bg-slate-50 py-8">
-			<div className="mx-auto max-w-4xl px-4">
+			<div className="mx-auto max-w-6xl px-4">
 				{/* ヘッダー */}
-				<div className="mb-8">
+				<div className="mb-6">
 					<h1 className="mb-2 font-bold text-3xl text-slate-800">シフト一覧</h1>
 					<p className="text-slate-600">公開されているシフトの募集一覧です</p>
 				</div>
@@ -98,7 +98,7 @@ export default function ShiftList() {
 						</CardContent>
 					</Card>
 				) : (
-					<div className="space-y-4">
+					<div className="space-y-6">
 						{shifts.map((shift) => {
 							// 学期の日本語変換
 							const semesterJa =

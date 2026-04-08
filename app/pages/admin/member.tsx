@@ -5,6 +5,7 @@ import {
 	getFirestore,
 	updateDoc,
 } from 'firebase/firestore';
+import { Eye, Edit2 } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router';
 import {
@@ -150,7 +151,7 @@ export default function Admin() {
 	return (
 		<div className="min-h-screen bg-gray-100 py-8">
 			<div className="mx-auto max-w-6xl px-4">
-				<div className="mb-8 flex items-center justify-between">
+				<div className="mb-6 flex items-center justify-between">
 					<h1 className="font-bold text-3xl text-gray-900">
 						管理者ページ-メンバー管理
 					</h1>
@@ -170,89 +171,129 @@ export default function Admin() {
 					</div>
 				) : (
 					<Tabs defaultValue="view" className="w-full">
-						<TabsList className="grid w-full max-w-md grid-cols-2">
-							<TabsTrigger value="view">閲覧モード</TabsTrigger>
-							<TabsTrigger value="edit">編集モード</TabsTrigger>
+						<TabsList className="mb-6 inline-grid max-w-lg grid-cols-2 gap-1 rounded-lg bg-gray-200 p-0.5">
+							<TabsTrigger
+								value="view"
+								className="flex items-center justify-center gap-1 rounded py-2 text-xs data-[state=active]:bg-white data-[state=active]:text-gray-900 data-[state=active]:shadow-sm"
+							>
+								<Eye className="h-4 w-4" />
+								<span>閲覧モード</span>
+							</TabsTrigger>
+							<TabsTrigger
+								value="edit"
+								className="flex items-center justify-center gap-1 rounded py-2 text-xs data-[state=active]:bg-white data-[state=active]:text-gray-900 data-[state=active]:shadow-sm"
+							>
+								<Edit2 className="h-4 w-4" />
+								<span>編集モード</span>
+							</TabsTrigger>
 						</TabsList>
 
 						<TabsContent value="view" className="mt-6">
-							<div className="rounded-lg bg-white shadow-md">
-								<Table>
-									<TableHeader>
-										<TableRow>
-											<TableHead>表示名</TableHead>
-											<TableHead>入学年度</TableHead>
-											<TableHead>珈琲・俺ステータス</TableHead>
-										</TableRow>
-									</TableHeader>
-									<TableBody>
-										{users.map((u) => {
-											// ステータスの判定
-											let status = '';
-											if (u.isExaminer) {
-												status = u.isFirstYear ? '1年目試験官' : '2年目試験官';
-											} else {
-												status = u.isFirstYear ? '1年目練習生' : '2年目練習生';
-											}
+							<div className="overflow-hidden rounded-lg border border-gray-200 shadow-sm">
+								<div className="max-h-[500px] overflow-y-auto">
+									<Table className="[&_*]:border-collapse">
+										<TableHeader className="bg-gray-100 sticky top-0 z-20">
+											<TableRow className="border-b border-gray-200">
+												<TableHead className="px-6 py-3 font-semibold text-gray-700">
+													表示名
+												</TableHead>
+												<TableHead className="px-6 py-3 font-semibold text-gray-700">
+													入学年度
+												</TableHead>
+												<TableHead className="px-6 py-3 font-semibold text-gray-700">
+													珈琲・俺ステータス
+												</TableHead>
+											</TableRow>
+										</TableHeader>
+										<TableBody>
+											{users.map((u, index) => {
+												// ステータスの判定
+												let status = '';
+												if (u.isExaminer) {
+													status = u.isFirstYear ? '1年目試験官' : '2年目試験官';
+												} else {
+													status = u.isFirstYear ? '1年目練習生' : '2年目練習生';
+												}
 
-											return (
-												<TableRow key={u.uid}>
-													<TableCell className="font-medium">{u.name}</TableCell>
-													<TableCell>{`${u.year.toString().slice(2)}生`}</TableCell>
-													<TableCell>{status}</TableCell>
-												</TableRow>
-											);
-										})}
-									</TableBody>
-								</Table>
+												return (
+													<TableRow
+														key={u.uid}
+														className={`border-b border-gray-100 hover:bg-gray-50 transition-colors ${index % 2 === 0 ? 'bg-white' : 'bg-gray-50'}`}
+													>
+														<TableCell className="px-6 py-3 font-medium text-gray-900">
+															{u.name}
+														</TableCell>
+														<TableCell className="px-6 py-3 text-gray-700">{`${u.year.toString().slice(2)}生`}</TableCell>
+														<TableCell className="px-6 py-3 text-gray-700">
+															{status}
+														</TableCell>
+													</TableRow>
+												);
+											})}
+										</TableBody>
+									</Table>
+								</div>
 							</div>
 						</TabsContent>
 
 						<TabsContent value="edit" className="mt-6">
-							<div className="rounded-lg bg-white shadow-md">
-								<Table>
-									<TableHeader>
-										<TableRow>
-											<TableHead>表示名</TableHead>
-											<TableHead>入学年度</TableHead>
-											<TableHead>珈琲・俺ステータス</TableHead>
-										</TableRow>
-									</TableHeader>
-									<TableBody>
-										{users.map((u) => {
-											// ステータスの判定
-											let statusValue = '';
-											if (u.isExaminer) {
-												statusValue = u.isFirstYear ? 'first-examiner' : 'second-examiner';
-											} else {
-												statusValue = u.isFirstYear ? 'first-trainee' : 'second-trainee';
-											}
+							<div className="overflow-hidden rounded-lg border border-gray-200 shadow-sm">
+								<div className="max-h-[400px] overflow-y-auto">
+									<Table className="[&_*]:border-collapse">
+										<TableHeader className="bg-gray-100 sticky top-0 z-20">
+											<TableRow className="border-b border-gray-200">
+												<TableHead className="px-6 py-3 font-semibold text-gray-700">
+													表示名
+												</TableHead>
+												<TableHead className="px-6 py-3 font-semibold text-gray-700">
+													入学年度
+												</TableHead>
+												<TableHead className="px-6 py-3 font-semibold text-gray-700">
+													珈琲・俺ステータス
+												</TableHead>
+											</TableRow>
+										</TableHeader>
+										<TableBody>
+											{users.map((u, index) => {
+												// ステータスの判定
+												let statusValue = '';
+												if (u.isExaminer) {
+													statusValue = u.isFirstYear ? 'first-examiner' : 'second-examiner';
+												} else {
+													statusValue = u.isFirstYear ? 'first-trainee' : 'second-trainee';
+												}
 
-											return (
-												<TableRow key={u.uid}>
-													<TableCell className="font-medium">{u.name}</TableCell>
-													<TableCell>{`${u.year.toString().slice(2)}生`}</TableCell>
-													<TableCell>
-														<Select
-															value={statusValue}
-															onValueChange={(value) => handleStatusChange(u.uid, value)}
-														>
-															<SelectTrigger className="w-[180px]">
-																<SelectValue />
-															</SelectTrigger>
-															<SelectContent>
-																<SelectItem value="first-trainee">1年目練習生</SelectItem>
-																<SelectItem value="second-trainee">2年目練習生</SelectItem>
-																<SelectItem value="first-examiner">1年目試験官</SelectItem>
-																<SelectItem value="second-examiner">2年目試験官</SelectItem>
-															</SelectContent>
-														</Select>
-													</TableCell>
-												</TableRow>
-											);
-										})}
-									</TableBody>
-								</Table>
+												return (
+													<TableRow
+														key={u.uid}
+														className={`border-b border-gray-100 hover:bg-gray-50 transition-colors ${index % 2 === 0 ? 'bg-white' : 'bg-gray-50'}`}
+													>
+														<TableCell className="px-6 py-3 font-medium text-gray-900">
+															{u.name}
+														</TableCell>
+														<TableCell className="px-6 py-3 text-gray-700">{`${u.year.toString().slice(2)}生`}</TableCell>
+														<TableCell className="px-6 py-3">
+															<Select
+																value={statusValue}
+																onValueChange={(value) => handleStatusChange(u.uid, value)}
+															>
+																<SelectTrigger className="w-[180px]">
+																	<SelectValue />
+																</SelectTrigger>
+																<SelectContent>
+																	<SelectItem value="first-trainee">1年目練習生</SelectItem>
+																	<SelectItem value="second-trainee">2年目練習生</SelectItem>
+																	<SelectItem value="first-examiner">1年目試験官</SelectItem>
+																	<SelectItem value="second-examiner">2年目試験官</SelectItem>
+																</SelectContent>
+															</Select>
+														</TableCell>
+													</TableRow>
+												);
+											})}
+										</TableBody>
+									</Table>
+								</div>
 							</div>
 						</TabsContent>
 					</Tabs>
