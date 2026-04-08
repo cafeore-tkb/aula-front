@@ -886,7 +886,7 @@ export default function ScheduleShift() {
 													<Button
 														key={trainee.userId}
 														variant={isSelected ? 'default' : 'outline'}
-														className={`w-full justify-between transition-all duration-200 ${
+														className={`h-auto w-full flex-col items-start justify-start gap-1.5 py-2.5 text-left transition-all duration-200 ${
 															isSelected
 																? 'scale-105 bg-blue-500 text-white shadow-lg hover:bg-blue-600'
 																: assignedCount > 0
@@ -895,14 +895,21 @@ export default function ScheduleShift() {
 														}`}
 														onClick={() => handleTraineeClick(trainee)}
 													>
-														<span className="font-medium text-slate-700 text-sm">
-															{trainee.name}
-														</span>
-														{assignedCount > 0 && (
-															<span className="rounded-full bg-emerald-600 px-2 py-0.5 text-white text-xs">
-																{assignedCount}コマ
-															</span>
-														)}
+                                                        <div className="flex w-full items-center justify-between gap-2">
+                                                            <span className="font-medium text-slate-700 text-sm">
+                                                                {trainee.name}
+                                                            </span>
+                                                            {assignedCount > 0 && (
+                                                                <span className="rounded-full bg-emerald-600 px-2 py-0.5 text-white text-xs">
+                                                                    {assignedCount}コマ
+                                                                </span>
+                                                            )}
+                                                        </div>
+                                                        <p
+                                                            className={`w-full whitespace-normal break-words text-left text-xs leading-snug ${isSelected ? 'text-blue-100' : 'text-slate-500'}`}
+                                                        >
+                                                            {trainee.comment}
+                                                        </p>
 													</Button>
 												);
 											})
@@ -927,22 +934,22 @@ export default function ScheduleShift() {
 													}`}
 													onClick={() => handleExaminerClick(examiner)}
 												>
-													<div className="flex w-full items-center justify-between gap-2">
-															<span className="font-medium text-slate-700 text-sm">
-															{examiner.name}
-														</span>
-														{assignedCount > 0 && (
-																<span className="rounded-full bg-emerald-600 px-2 py-0.5 text-white text-xs">
-																{assignedCount}コマ
-															</span>
-														)}
-													</div>
-													<p
-														className={`w-full whitespace-normal break-words text-left text-xs leading-snug ${isSelected ? 'text-blue-100' : 'text-slate-500'}`}
-													>
-														{examiner.comment}
-													</p>
-												</Button>
+                                                    <div className="flex w-full items-center justify-between gap-2">
+                                                            <span className="font-medium text-slate-700 text-sm">
+                                                            {examiner.name}
+                                                        </span>
+                                                        {assignedCount > 0 && (
+                                                                <span className="rounded-full bg-emerald-600 px-2 py-0.5 text-white text-xs">
+                                                                {assignedCount}コマ
+                                                            </span>
+                                                        )}
+                                                    </div>
+                                                    <p
+                                                        className={`w-full whitespace-normal break-words text-left text-xs leading-snug ${isSelected ? 'text-blue-100' : 'text-slate-500'}`}
+                                                    >
+                                                        {examiner.comment}
+                                                    </p>
+                                                </Button>
 											);
 										})
 									) : (
