@@ -697,7 +697,7 @@ export default function ScheduleShift() {
 																</div>
 															) : (
 																<div>
-    															</div>
+																</div>
 															)}
 														</div>
 													</div>
