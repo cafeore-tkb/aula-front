@@ -1,0 +1,71 @@
+.tableWrapper {
+    position: relative;
+    width: 100%;
+    overflow: auto;
+}
+
+.table {
+    width: 100%;
+    caption-side: bottom;
+    font-size: 0.875rem;
+}
+
+.tableHeader tr {
+    border-bottom: 1px solid var(--border);
+}
+
+.tableBody tr:last-child {
+    border-bottom: 0;
+}
+
+.tableFooter {
+    border-top: 1px solid var(--border);
+    background: color-mix(in oklab, var(--muted) 50%, transparent);
+    font-weight: 500;
+}
+
+.tableFooter>tr:last-child {
+    border-bottom: 0;
+}
+
+.tableRow {
+    border-bottom: 1px solid var(--border);
+    transition: background-color 0.2s;
+}
+
+.tableRow:hover {
+    background: color-mix(in oklab, var(--muted) 50%, transparent);
+}
+
+.tableRow[data-state='selected'] {
+    background: var(--muted);
+}
+
+.tableHead {
+    height: 3rem;
+    padding: 0 1rem;
+    text-align: left;
+    vertical-align: middle;
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: var(--muted-foreground);
+}
+
+.tableHead:has([role='checkbox']) {
+    padding-right: 0;
+}
+
+.tableCell {
+    padding: 1rem;
+    vertical-align: middle;
+}
+
+.tableCell:has([role='checkbox']) {
+    padding-right: 0;
+}
+
+.tableCaption {
+    margin-top: 1rem;
+    font-size: 0.875rem;
+    color: var(--muted-foreground);
+}

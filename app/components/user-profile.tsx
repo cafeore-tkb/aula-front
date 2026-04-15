@@ -4,6 +4,7 @@ import type { UserProfile as UserProfileType } from '../lib/firebase';
 import { updateUserProfile } from '../lib/firebase';
 import { useAuth } from '../lib/auth-context';
 import { LogoutButton } from './logout-button';
+import styles from './user-profile.module.scss';
 
 interface UserProfileProps {
 	user: User;
@@ -59,32 +60,32 @@ export function UserProfile({ user, userProfile }: UserProfileProps) {
 	if (!user || !userProfile) return null;
 
 	return (
-		<div className="rounded-lg bg-white p-6 shadow-md">
-			<div className="mb-6 flex items-center space-x-4">
+		<div className={styles.profileCard}>
+			<div className={styles.profileHeader}>
 				{user.photoURL && (
 					<img
 						src={user.photoURL}
 						alt={user.displayName || 'ユーザー'}
-						className="h-16 w-16 rounded-full"
+						className={styles.avatar}
 					/>
 				)}
-				<div className="flex-1">
-					<h3 className="font-semibold text-gray-900 text-xl">
+				<div className={styles.profileMeta}>
+					<h3 className={styles.userName}>
 						{user.displayName || 'ユーザー'}
 					</h3>
 				</div>
 			</div>
 
 			{isEditing ? (
-				<div className="mb-6 space-y-4">
-					<h4 className="border-b pb-1 font-medium text-gray-700 text-sm">
+				<div className={styles.editSection}>
+					<h4 className={styles.sectionTitle}>
 						プロフィール編集
 					</h4>
 
 					<div>
 						<label
 							htmlFor={nameId}
-							className="mb-1 block font-medium text-gray-700 text-sm"
+							className={styles.inputLabel}
 						>
 							表示名
 						</label>
@@ -93,7 +94,7 @@ export function UserProfile({ user, userProfile }: UserProfileProps) {
 							id={nameId}
 							value={name}
 							onChange={(e) => setName(e.target.value)}
-							className="w-full rounded-md border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+							className={styles.inputField}
 							placeholder="名前を入力"
 						/>
 					</div>
@@ -101,7 +102,7 @@ export function UserProfile({ user, userProfile }: UserProfileProps) {
 					<div>
 						<label
 							htmlFor={yearId}
-							className="mb-1 block font-medium text-gray-700 text-sm"
+							className={styles.inputLabel}
 						>
 							入学年度
 						</label>
@@ -110,18 +111,18 @@ export function UserProfile({ user, userProfile }: UserProfileProps) {
 							id={yearId}
 							value={year}
 							onChange={(e) => setYear(Number(e.target.value))}
-							className="w-full rounded-md border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+							className={styles.inputField}
 							min="2000"
 							max="3000"
 						/>
 					</div>
 
-					<div className="flex space-x-3">
+					<div className={styles.buttonRow}>
 						<button
 							type="button"
 							onClick={handleSave}
 							disabled={loading || !name.trim()}
-							className="rounded-md bg-blue-600 px-4 py-2 text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:cursor-not-allowed disabled:opacity-50"
+							className={styles.saveButton}
 						>
 							{loading ? '保存中...' : '保存'}
 						</button>
@@ -129,47 +130,47 @@ export function UserProfile({ user, userProfile }: UserProfileProps) {
 							type="button"
 							onClick={handleCancel}
 							disabled={loading}
-							className="rounded-md bg-gray-300 px-4 py-2 text-gray-700 hover:bg-gray-400 focus:outline-none focus:ring-2 focus:ring-gray-500 disabled:opacity-50"
+							className={styles.cancelButton}
 						>
 							キャンセル
 						</button>
 					</div>
 				</div>
 			) : (
-				<div className="mb-6 space-y-3">
-					<div className="flex items-center justify-between">
-						<h4 className="border-b pb-1 font-medium text-gray-700 text-sm">
+				<div className={styles.infoSection}>
+					<div className={styles.infoHeader}>
+						<h4 className={styles.sectionTitle}>
 							アカウント情報
 						</h4>
 						<button
 							type="button"
 							onClick={() => setIsEditing(true)}
-							className="rounded-md bg-blue-600 px-3 py-1 text-white text-xs hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
+							className={styles.editButton}
 						>
 							編集
 						</button>
 					</div>
 
-					<div className="space-y-2 text-gray-600 text-sm">
-						<div className="flex justify-between">
+					<div className={styles.infoList}>
+						<div className={styles.infoRow}>
 							<span>表示名:</span>
 							<span>{userProfile.name || '未設定'}</span>
 						</div>
 						<div>
-							<span className="block">Gmail:</span>
-							<span className="block break-all text-right text-gray-900">
+							<span className={styles.gmailLabel}>Gmail:</span>
+							<span className={styles.gmailValue}>
 								{userProfile.gmail}
 							</span>
 						</div>
-						<div className="flex justify-between">
+						<div className={styles.infoRow}>
 							<span>入学年度:</span>
 							<span>{`${userProfile.year.toString().slice(2)}生`}</span>
 						</div>
-						<div className="flex justify-between">
+						<div className={styles.infoRow}>
 							<span>管理者:</span>
 							<span>{userProfile.isAdmin ? '管理者' : '一般構成員'}</span>
 						</div>
-						<div className="flex justify-between">
+						<div className={styles.infoRow}>
 							<span>ステータス:</span>
 							<span>{cafeoreStatus}</span>
 						</div>

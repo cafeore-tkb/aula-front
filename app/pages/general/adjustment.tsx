@@ -19,6 +19,7 @@ import { RadioGroup, RadioGroupItem } from '../../components/ui/radio-group';
 import { useAuth } from '../../lib/auth-context';
 import { db } from '../../lib/firebase';
 import { List } from 'lucide-react';
+import styles from './adjustment.module.scss';
 
 export function meta() {
 	return [
@@ -293,10 +294,10 @@ export default function Adjustment() {
 	// ローディング中の表示
 	if (isLoading) {
 		return (
-			<div className="flex min-h-screen items-center justify-center bg-slate-50">
-				<div className="text-center">
-					<div className="mx-auto mb-4 h-8 w-8 animate-spin rounded-full border-4 border-teal-400 border-t-transparent" />
-					<p className="text-slate-600">データを読み込み中...</p>
+			<div className={styles.loadingWrap}>
+				<div className={styles.loadingInner}>
+					<div className={styles.spinner} />
+					<p className={styles.loadingText}>データを読み込み中...</p>
 				</div>
 			</div>
 		);
@@ -304,19 +305,19 @@ export default function Adjustment() {
 
 	return (
 		<div
-			className={`bg-slate-50 ${isMobile ? 'min-h-screen p-4' : 'p-4 lg:h-screen lg:overflow-hidden lg:p-6'}`}
+			className={`${styles.page} ${isMobile ? styles.pageMobile : styles.pageDesktop}`}
 		>
 			<div
-				className={`flex ${isMobile ? 'min-h-full flex-col gap-4' : isTablet ? 'h-full flex-col gap-4' : 'h-full flex-row gap-3 xl:gap-6'}`}
+				className={`${styles.layout} ${isMobile ? styles.layoutMobile : isTablet ? styles.layoutTablet : styles.layoutDesktop}`}
 			>
 				{/* モバイル時：シフト情報を一番上に表示 */}
 				{isMobile && shiftInfo && (
-					<Card className="border-violet-200 bg-violet-50 shadow-md">
-						<CardContent className="p-3">
-							<div className="flex items-center space-x-2">
-								<span className="text-xl">📋</span>
+					<Card className={styles.shiftInfoCard}>
+						<CardContent className={styles.shiftInfoContentMobile}>
+							<div className={styles.shiftInfoRow}>
+								<span className={styles.shiftIconMobile}>📋</span>
 								<div>
-									<h2 className="font-bold text-violet-900 text-xs">
+									<h2 className={styles.shiftInfoTitleMobile}>
 										{shiftInfo.year}年度 {shiftInfo.semester === 'spring' ? '春' : '秋'}
 										学期 {shiftInfo.module}モジュール
 									</h2>
@@ -328,27 +329,27 @@ export default function Adjustment() {
 
 				{/* 左側：時間割表 */}
 				<div
-					className={`${isDesktop ? 'h-full w-3/4 flex-1 overflow-hidden' : 'w-full'}`}
+					className={isDesktop ? styles.gridPaneDesktop : styles.gridPaneDefault}
 				>
-					<div className={`flex ${isMobile ? 'flex-col' : 'h-full flex-col'}`}>
+					<div className={isMobile ? styles.gridWrapMobile : styles.gridWrapDesktop}>
 						<div
-							className={`grid ${isMobile ? 'grid-cols-8' : 'flex-1 grid-cols-8'} rounded-xl border border-slate-200 bg-white shadow-lg ${
+							className={`${styles.scheduleGrid} ${
 								isMobile
-									? 'gap-0.5 p-1'
+									? styles.scheduleGridMobile
 									: isTablet
-										? 'gap-1 p-2'
-										: 'gap-2 p-3 xl:gap-3 xl:p-4'
+										? styles.scheduleGridTablet
+										: styles.scheduleGridDesktop
 							}`}
 						>
 							{/* ヘッダー行 */}
-							<Card className="rounded-lg bg-blue-500 text-white shadow-sm">
+							<Card className={styles.dayHeaderCard}>
 								<CardContent
-									className={`text-center font-semibold ${
+									className={`${styles.dayHeaderText} ${
 										isMobile
-											? 'p-0.5 text-xs'
+											? styles.dayHeaderTextMobile
 											: isTablet
-												? 'p-1 text-xs'
-												: 'p-1 text-xs sm:p-1.5 lg:p-2 lg:text-sm'
+												? styles.dayHeaderTextTablet
+												: styles.dayHeaderTextDesktop
 									}`}
 								>
 									時限
@@ -357,18 +358,18 @@ export default function Adjustment() {
 							{day.map((dayName, index) => (
 								<Card
 									key={dayName}
-									className={`rounded-lg bg-blue-500 text-white shadow-sm transition-colors hover:bg-blue-600 ${
-										isEditMode ? 'cursor-pointer' : 'cursor-default opacity-75'
+									className={`${styles.dayHeaderCard} ${
+										isEditMode ? styles.dayHeaderCardEditable : styles.dayHeaderCardReadonly
 									}`}
 									onClick={() => isEditMode && toggleColumnAll(index)}
 								>
 									<CardContent
-										className={`text-center font-semibold ${
+										className={`${styles.dayHeaderText} ${
 											isMobile
-												? 'p-0.5 text-xs'
+												? styles.dayHeaderTextMobile
 												: isTablet
-													? 'p-1 text-xs'
-													: 'p-1 text-xs sm:p-1.5 lg:p-2 lg:text-sm'
+													? styles.dayHeaderTextTablet
+													: styles.dayHeaderTextDesktop
 										}`}
 									>
 										{isMobile ? dayName : `${dayName}曜日`}
@@ -381,30 +382,30 @@ export default function Adjustment() {
 								<React.Fragment key={period}>
 									{/* 時限・時間表示 */}
 									<Card
-										className={`rounded-lg border border-slate-200 bg-slate-100 shadow-sm transition-colors hover:bg-slate-200 ${
-											isEditMode ? 'cursor-pointer' : 'cursor-default opacity-75'
+										className={`${styles.timeHeaderCard} ${
+											isEditMode ? styles.timeHeaderCardEditable : styles.timeHeaderCardReadonly
 										}`}
 										onClick={() => isEditMode && toggleRowAll(periodIndex)}
 									>
 										<CardContent
-											className={`text-center font-medium ${
+											className={`${styles.timeHeaderContent} ${
 												isMobile
-													? 'p-0.5'
+													? styles.timeHeaderContentMobile
 													: isTablet
-														? 'p-1'
-														: 'p-1 sm:p-1.5 lg:p-2 xl:p-2.5'
+														? styles.timeHeaderContentTablet
+														: styles.timeHeaderContentDesktop
 											}`}
 										>
-											<div className={isMobile ? 'text-xs' : 'text-xs lg:text-sm'}>
-												<div className="font-semibold text-slate-700">{period}限</div>
+											<div className={isMobile ? styles.periodTextMobile : styles.periodTextDesktop}>
+												<div className={styles.periodMain}>{period}限</div>
 												{!isMobile && (
-													<div className="whitespace-nowrap text-slate-500 text-xs">
+													<div className={styles.periodSub}>
 														{isDesktop ? (
 															`${startTimes[periodIndex]}-${endTimes[periodIndex]}`
 														) : isTablet ? (
 															startTimes[periodIndex]
 														) : (
-															<span className="hidden sm:inline lg:hidden">
+															<span className={styles.periodSubResponsiveOnly}>
 																{startTimes[periodIndex]}
 															</span>
 														)}
@@ -421,17 +422,17 @@ export default function Adjustment() {
 											<Button
 												key={`${period}-${dayName}`}
 												variant={isSelected ? 'default' : 'ghost'}
-												className={`h-full w-full rounded-lg border font-semibold shadow-sm transition-all duration-300 hover:shadow-md ${
+												className={`${styles.slotButtonBase} ${
 													isMobile
-														? 'text-xs'
+														? styles.slotButtonMobile
 														: isTablet
-															? 'text-sm'
-															: 'lg:text-sm xl:text-base'
+															? styles.slotButtonTablet
+															: styles.slotButtonDesktop
 												} ${
 													isSelected
-														? 'bg-emerald-500 text-white shadow-lg hover:bg-emerald-600'
-														: 'text-slate-600 hover:bg-gray-200 hover:text-slate-800'
-												} ${!isEditMode && 'cursor-default opacity-75'}`}
+														? styles.slotButtonSelected
+														: styles.slotButtonUnselected
+												} ${!isEditMode ? styles.slotButtonReadonly : ''}`}
 												onClick={() => isEditMode && toggleCell(periodIndex, dayIndex)}
 												disabled={!isEditMode}
 											>
@@ -447,25 +448,25 @@ export default function Adjustment() {
 
 				{/* 右側：入力欄 (1/4の幅) */}
 				<div
-					className={`${isMobile ? 'mt-4 w-full' : isTablet ? 'mt-4 w-full' : 'mt-0 h-full w-1/4'} flex flex-col`}
+					className={`${styles.sidePane} ${isMobile ? styles.sidePaneMobile : isTablet ? styles.sidePaneTablet : styles.sidePaneDesktop}`}
 				>
 					<div
-						className={`flex flex-col ${isMobile ? 'space-y-2' : isTablet ? 'space-y-3' : 'h-full space-y-3'}`}
+						className={`${styles.sideStack} ${isMobile ? styles.sideStackMobile : isTablet ? styles.sideStackTablet : styles.sideStackDesktop}`}
 					>
 						{/* シフト情報表示（タブレット・デスクトップのみ） */}
 						{!isMobile && shiftInfo && (
-							<Card className="border-violet-200 bg-violet-50 shadow-md">
-								<CardContent className={isMobile ? 'p-3' : 'p-4'}>
-									<div className="flex items-center space-x-2">
-										<span className={isMobile ? 'text-xl' : 'text-2xl'}>📋</span>
+							<Card className={styles.shiftInfoCard}>
+								<CardContent className={isMobile ? styles.shiftInfoContentMobile : styles.shiftInfoContentDesktop}>
+									<div className={styles.shiftInfoRow}>
+										<span className={isMobile ? styles.shiftIconMobile : styles.shiftIconDesktop}>📋</span>
 										<div>
 											<h2
-												className={`font-bold text-violet-900 ${
+												className={`${styles.shiftInfoTitle} ${
 													isMobile
-														? 'text-xs'
+														? styles.shiftInfoTitleMobile
 														: isTablet
-															? 'text-sm'
-															: 'text-sm lg:text-base'
+															? styles.shiftInfoTitleTablet
+															: styles.shiftInfoTitleDesktop
 												}`}
 											>
 												{shiftInfo.year}年度 {shiftInfo.semester === 'spring' ? '春' : '秋'}
@@ -479,26 +480,26 @@ export default function Adjustment() {
 
 						{/* ユーザー名表示 */}
 						{user && (
-							<Card className="border-sky-200 bg-sky-50 shadow-md">
-								<CardContent className={isMobile ? 'p-2' : 'p-3'}>
-									<div className="flex items-center space-x-2">
+							<Card className={styles.userCard}>
+								<CardContent className={isMobile ? styles.userCardContentMobile : styles.userCardContentDesktop}>
+									<div className={styles.userRow}>
 										<div
-											className={`flex items-center justify-center rounded-full bg-sky-500 shadow-sm ${
-												isMobile ? 'h-6 w-6' : 'h-8 w-8'
+											className={`${styles.avatarCircle} ${
+												isMobile ? styles.avatarCircleMobile : styles.avatarCircleDesktop
 											}`}
 										>
 											<span
-												className={`font-bold text-white ${isMobile ? 'text-xs' : 'text-sm'}`}
+												className={`${styles.avatarInitial} ${isMobile ? styles.avatarInitialMobile : styles.avatarInitialDesktop}`}
 											>
 												{(user.displayName || user.email || 'U').charAt(0).toUpperCase()}
 											</span>
 										</div>
 										<div>
-											<p className={`text-sky-600 ${isMobile ? 'text-xs' : 'text-xs'}`}>
+											<p className={styles.userLoginLabel}>
 												ログイン中
 											</p>
 											<p
-												className={`font-semibold text-sky-900 ${isMobile ? 'text-xs' : 'text-sm'}`}
+												className={`${styles.userLoginName} ${isMobile ? styles.userLoginNameMobile : styles.userLoginNameDesktop}`}
 											>
 												{user.displayName || user.email || 'ユーザー'}
 											</p>
@@ -509,15 +510,15 @@ export default function Adjustment() {
 						)}
 
 						{/* コメント欄 */}
-						<Card className="rounded-xl border-slate-200 bg-white shadow-md">
-							<CardContent className={isMobile ? 'p-3' : 'p-4'}>
+						<Card className={styles.formCard}>
+							<CardContent className={isMobile ? styles.formCardContentMobile : styles.formCardContentDesktop}>
 								<label
 									htmlFor={subjectNameId}
-									className={`mb-2 flex items-center font-semibold text-slate-700 ${
-										isMobile ? 'text-xs' : 'text-sm'
+									className={`${styles.formLabel} ${
+										isMobile ? styles.formLabelMobile : styles.formLabelDesktop
 									}`}
 								>
-									<span className={`mr-2 ${isMobile ? 'text-base' : 'text-lg'}`}>
+									<span className={isMobile ? styles.formLabelIconMobile : styles.formLabelIconDesktop}>
 										💬
 									</span>
 									コメント
@@ -527,8 +528,8 @@ export default function Adjustment() {
 									value={comment}
 									onChange={(e) => setComment(e.target.value)}
 									rows={isMobile ? 2 : 3}
-									className={`w-full resize-none rounded-lg border border-slate-300 transition-all duration-200 focus:border-transparent focus:outline-none focus:ring-2 focus:ring-teal-400 focus:ring-offset-1 ${
-										isMobile ? 'p-2 text-xs' : 'p-3 text-sm'
+									className={`${styles.commentInput} ${
+										isMobile ? styles.commentInputMobile : styles.commentInputDesktop
 									}`}
 									placeholder="ご要望やコメントがあればお書きください..."
 									disabled={!isEditMode}
@@ -538,14 +539,14 @@ export default function Adjustment() {
 
 						{/* 希望頻度 */}
 						{shiftInfo?.isTwice && (
-							<Card className="rounded-xl border-slate-200 bg-white shadow-md">
-								<CardContent className={isMobile ? 'p-3' : 'p-4'}>
+							<Card className={styles.formCard}>
+								<CardContent className={isMobile ? styles.formCardContentMobile : styles.formCardContentDesktop}>
 									<h3
-										className={`mb-3 flex items-center font-semibold text-slate-700 ${
-											isMobile ? 'text-xs' : 'text-sm'
+										className={`${styles.formLabel} ${
+											isMobile ? styles.formLabelMobile : styles.formLabelDesktop
 										}`}
 									>
-										<span className={`mr-2 ${isMobile ? 'text-base' : 'text-lg'}`}>
+										<span className={isMobile ? styles.formLabelIconMobile : styles.formLabelIconDesktop}>
 											📊
 										</span>
 										希望頻度
@@ -553,65 +554,53 @@ export default function Adjustment() {
 									<RadioGroup
 										value={frequency}
 										onValueChange={setFrequency}
-										className={isMobile ? 'space-y-1.5' : 'space-y-2'}
+										className={isMobile ? styles.frequencyGroupMobile : styles.frequencyGroupDesktop}
 										disabled={!isEditMode}
 									>
 										<div
-											className={`flex items-center space-x-3 rounded-lg border border-slate-200 bg-slate-50 transition-all hover:border-teal-300 hover:bg-teal-50 ${
-												isMobile ? 'p-2' : 'p-3'
-											} ${!isEditMode && 'opacity-60'}`}
+											className={`${styles.frequencyOption} ${isMobile ? styles.frequencyOptionMobile : styles.frequencyOptionDesktop} ${!isEditMode ? styles.frequencyOptionDisabled : ''}`}
 										>
 											<RadioGroupItem
 												value="週1回"
 												id={weekly1Id}
-												className="text-teal-600"
+												className={styles.frequencyRadio}
 												disabled={!isEditMode}
 											/>
 											<label
 												htmlFor={weekly1Id}
-												className={`flex-1 font-medium text-slate-800 ${
-													isMobile ? 'text-xs' : 'text-sm'
-												} ${isEditMode ? 'cursor-pointer' : 'cursor-default'}`}
+												className={`${styles.frequencyLabel} ${isMobile ? styles.frequencyLabelMobile : styles.frequencyLabelDesktop} ${isEditMode ? styles.frequencyLabelClickable : styles.frequencyLabelReadonly}`}
 											>
 												週1回
 											</label>
 										</div>
 										<div
-											className={`flex items-center space-x-3 rounded-lg border border-slate-200 bg-slate-50 transition-all hover:border-teal-300 hover:bg-teal-50 ${
-												isMobile ? 'p-2' : 'p-3'
-											} ${!isEditMode && 'opacity-60'}`}
+											className={`${styles.frequencyOption} ${isMobile ? styles.frequencyOptionMobile : styles.frequencyOptionDesktop} ${!isEditMode ? styles.frequencyOptionDisabled : ''}`}
 										>
 											<RadioGroupItem
 												value="週2回"
 												id={weekly2Id}
-												className="text-teal-600"
+												className={styles.frequencyRadio}
 												disabled={!isEditMode}
 											/>
 											<label
 												htmlFor={weekly2Id}
-												className={`flex-1 font-medium text-slate-800 ${
-													isMobile ? 'text-xs' : 'text-sm'
-												} ${isEditMode ? 'cursor-pointer' : 'cursor-default'}`}
+												className={`${styles.frequencyLabel} ${isMobile ? styles.frequencyLabelMobile : styles.frequencyLabelDesktop} ${isEditMode ? styles.frequencyLabelClickable : styles.frequencyLabelReadonly}`}
 											>
 												週2回
 											</label>
 										</div>
 										<div
-											className={`flex items-center space-x-3 rounded-lg border border-slate-200 bg-slate-50 transition-all hover:border-teal-300 hover:bg-teal-50 ${
-												isMobile ? 'p-2' : 'p-3'
-											} ${!isEditMode && 'opacity-60'}`}
+											className={`${styles.frequencyOption} ${isMobile ? styles.frequencyOptionMobile : styles.frequencyOptionDesktop} ${!isEditMode ? styles.frequencyOptionDisabled : ''}`}
 										>
 											<RadioGroupItem
 												value="試験官"
 												id={examId}
-												className="text-teal-600"
+												className={styles.frequencyRadio}
 												disabled={!isEditMode}
 											/>
 											<label
 												htmlFor={examId}
-												className={`flex-1 font-medium text-slate-800 ${
-													isMobile ? 'text-xs' : 'text-sm'
-												} ${isEditMode ? 'cursor-pointer' : 'cursor-default'}`}
+												className={`${styles.frequencyLabel} ${isMobile ? styles.frequencyLabelMobile : styles.frequencyLabelDesktop} ${isEditMode ? styles.frequencyLabelClickable : styles.frequencyLabelReadonly}`}
 											>
 												試験官
 											</label>
@@ -622,48 +611,40 @@ export default function Adjustment() {
 						)}
 
 						{/* ボタン */}
-						<div className="flex gap-3">
+						<div className={styles.actionRow}>
 							{!isEditMode ? (
 								<Button
-									className={`flex-1 transform rounded-lg bg-amber-500 font-bold text-white shadow-lg transition-all duration-300 hover:scale-105 hover:bg-amber-600 hover:shadow-xl ${
-										isMobile ? 'py-2' : 'py-3'
+									className={`${styles.editButton} ${
+										isMobile ? styles.actionButtonMobile : styles.actionButtonDesktop
 									}`}
 									onClick={() => setIsEditMode(true)}
 								>
 									<span
-										className={`flex items-center justify-center gap-2 ${
-											isMobile ? 'text-xs' : 'text-sm'
-										}`}
+										className={`${styles.actionButtonInner} ${isMobile ? styles.actionButtonTextMobile : styles.actionButtonTextDesktop}`}
 									>
 										📝 編集する
 									</span>
 								</Button>
 							) : (
 								<Button
-									className={`flex-1 transform rounded-lg bg-teal-600 font-bold text-white shadow-lg transition-all duration-300 hover:scale-105 hover:bg-teal-700 hover:shadow-xl disabled:opacity-50 disabled:hover:scale-100 ${
-										isMobile ? 'py-2' : 'py-3'
+									className={`${styles.saveButton} ${
+										isMobile ? styles.actionButtonMobile : styles.actionButtonDesktop
 									}`}
 									onClick={handleSave}
 									disabled={isSaving}
 								>
 									{isSaving ? (
 										<span
-											className={`flex items-center justify-center gap-2 ${
-												isMobile ? 'text-xs' : 'text-sm'
-											}`}
+											className={`${styles.actionButtonInner} ${isMobile ? styles.actionButtonTextMobile : styles.actionButtonTextDesktop}`}
 										>
 											<div
-												className={`animate-spin rounded-full border-2 border-white border-t-transparent ${
-													isMobile ? 'h-3 w-3' : 'h-4 w-4'
-												}`}
+												className={isMobile ? styles.saveSpinnerMobile : styles.saveSpinnerDesktop}
 											/>
 											保存中...
 										</span>
 									) : (
 										<span
-											className={`flex items-center justify-center gap-2 ${
-												isMobile ? 'text-xs' : 'text-sm'
-											}`}
+											className={`${styles.actionButtonInner} ${isMobile ? styles.actionButtonTextMobile : styles.actionButtonTextDesktop}`}
 										>
 											💾 保存する
 										</span>

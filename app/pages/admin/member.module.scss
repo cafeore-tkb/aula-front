@@ -1,0 +1,196 @@
+.loadingWrap {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #f3f4f6;
+}
+
+.loadingInner {
+    text-align: center;
+}
+
+.spinner {
+    width: 2rem;
+    height: 2rem;
+    margin: 0 0 1rem;
+    border-radius: 9999px;
+    border: 4px solid #ef4444;
+    border-top-color: transparent;
+    animation: spin 1s linear infinite;
+}
+
+.loadingText {
+    color: #4b5563;
+}
+
+.page {
+    min-height: 100vh;
+    background: #f3f4f6;
+    padding: 2rem 0;
+}
+
+.container {
+    width: 100%;
+    max-width: 72rem;
+    margin: 0 auto;
+    padding: 0 1rem;
+}
+
+.header {
+    margin-bottom: 1.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.title {
+    margin: 0;
+    color: #111827;
+    font-size: 1.875rem;
+    font-weight: 700;
+}
+
+.userMeta {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.badge {
+    border-radius: 9999px;
+    background: #fee2e2;
+    padding: 0.25rem 0.75rem;
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: #dc2626;
+}
+
+.userName {
+    color: #4b5563;
+    font-size: 0.875rem;
+}
+
+.loadingUsersWrap {
+    padding: 2rem 0;
+    text-align: center;
+}
+
+.loadingUsersText {
+    font-size: 0.875rem;
+    color: #6b7280;
+}
+
+.tabsRoot {
+    width: 100%;
+}
+
+.tabsList {
+    margin-bottom: 1.5rem;
+    display: inline-grid;
+    max-width: 32rem;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.25rem;
+    border-radius: 0.5rem;
+    background: #e5e7eb;
+    padding: 0.125rem;
+}
+
+.tabsTrigger {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.25rem;
+    border-radius: 0.25rem;
+    padding: 0.5rem 0;
+    font-size: 0.75rem;
+}
+
+.tabsIcon {
+    width: 1rem;
+    height: 1rem;
+}
+
+.tabsContent {
+    margin-top: 1.5rem;
+}
+
+.tableShell {
+    overflow: hidden;
+    border: 1px solid #e5e7eb;
+    border-radius: 0.5rem;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+}
+
+.tableScrollView {
+    max-height: 500px;
+    overflow-y: auto;
+}
+
+.tableScrollEdit {
+    max-height: 400px;
+    overflow-y: auto;
+}
+
+.tableCollapsed {
+    border-collapse: collapse;
+}
+
+.tableHeaderSticky {
+    position: sticky;
+    top: 0;
+    z-index: 20;
+    background: #f3f4f6;
+}
+
+.tableHeaderRow {
+    border-bottom: 1px solid #e5e7eb;
+}
+
+.tableHead {
+    padding: 0.75rem 1.5rem;
+    font-weight: 600;
+    color: #374151;
+}
+
+.tableRowBase {
+    border-bottom: 1px solid #f3f4f6;
+    transition: background-color 0.2s;
+}
+
+.tableRowBase:hover {
+    background: #f9fafb;
+}
+
+.tableRowEven {
+    background: #fff;
+}
+
+.tableRowOdd {
+    background: #f9fafb;
+}
+
+.tableCell {
+    padding: 0.75rem 1.5rem;
+    color: #374151;
+}
+
+.tableCellStrong {
+    padding: 0.75rem 1.5rem;
+    font-weight: 500;
+    color: #111827;
+}
+
+.selectTrigger {
+    width: 180px;
+}
+
+.homeButtonWrap {
+    margin-top: 2rem;
+}
+
+@keyframes spin {
+    to {
+        transform: rotate(360deg);
+    }
+}

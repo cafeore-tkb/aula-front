@@ -1,0 +1,110 @@
+.button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    white-space: nowrap;
+    border-radius: 0.375rem;
+    font-size: 0.875rem;
+    font-weight: 500;
+    border: 1px solid transparent;
+    transition: background-color 0.15s ease, color 0.15s ease, border-color 0.15s ease;
+    cursor: pointer;
+
+    &:focus-visible {
+        outline: 2px solid var(--color-blue-500);
+        outline-offset: 2px;
+    }
+
+    &:disabled {
+        pointer-events: none;
+        opacity: 0.5;
+    }
+
+    svg {
+        width: 1rem;
+        height: 1rem;
+        pointer-events: none;
+        flex-shrink: 0;
+    }
+}
+
+.variantDefault {
+    background-color: var(--color-blue-600);
+    color: var(--color-white);
+
+    &:hover {
+        background-color: var(--color-blue-700);
+    }
+}
+
+.variantDestructive {
+    background-color: var(--color-red-600);
+    color: var(--color-white);
+
+    &:hover {
+        background-color: var(--color-red-700);
+    }
+}
+
+.variantOutline {
+    background-color: var(--color-white);
+    border-color: var(--color-gray-300);
+    color: var(--color-gray-700);
+
+    &:hover {
+        background-color: var(--color-gray-50);
+        color: var(--color-gray-900);
+    }
+}
+
+.variantSecondary {
+    background-color: var(--color-slate-100);
+    color: var(--color-slate-700);
+
+    &:hover {
+        background-color: var(--color-slate-200);
+    }
+}
+
+.variantGhost {
+    background-color: transparent;
+    color: var(--color-gray-700);
+
+    &:hover {
+        background-color: var(--color-slate-100);
+        color: var(--color-gray-900);
+    }
+}
+
+.variantLink {
+    background-color: transparent;
+    border-color: transparent;
+    color: var(--color-blue-600);
+    text-underline-offset: 4px;
+
+    &:hover {
+        text-decoration: underline;
+    }
+}
+
+.sizeDefault {
+    height: 2.5rem;
+    padding: 0.5rem 1rem;
+}
+
+.sizeSm {
+    height: 2.25rem;
+    padding: 0.5rem 0.75rem;
+}
+
+.sizeLg {
+    height: 2.75rem;
+    padding: 0.5rem 2rem;
+}
+
+.sizeIcon {
+    height: 2.5rem;
+    width: 2.5rem;
+    padding: 0;
+}

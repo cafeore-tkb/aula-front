@@ -5,9 +5,10 @@ import {
 	signInWithGoogle,
 } from '../lib/firebase';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from './ui/tabs';
+import styles from './login-page.module.scss';
 
 const GoogleIcon = () => (
-	<svg className="mr-2 h-5 w-5" viewBox="0 0 48 48">
+	<svg className={styles.googleIcon} viewBox="0 0 48 48">
 		<title>Google</title>
 		<path
 			fill="#4285F4"
@@ -102,24 +103,24 @@ export function LoginPage() {
 	};
 
 	return (
-		<div className="flex min-h-screen items-center justify-center bg-gray-50">
-			<div className="w-full max-w-md space-y-8 p-8">
-				<Tabs defaultValue="login" className="w-full">
-					<div className="mb-6 text-center">
-						<h2 className="mt-6 font-bold text-3xl text-gray-900">アカウント認証</h2>
-						<p className="mt-2 text-gray-600 text-sm">
+		<div className={styles.wrapper}>
+			<div className={styles.container}>
+				<Tabs defaultValue="login" className={styles.tabs}>
+					<div className={styles.header}>
+						<h2 className={styles.title}>アカウント認証</h2>
+						<p className={styles.subtitle}>
 							Googleアカウントで認証してください
 						</p>
 					</div>
 
-					<TabsList className="grid w-full grid-cols-2">
+					<TabsList className={styles.tabsList}>
 						<TabsTrigger value="login">ログイン</TabsTrigger>
 						<TabsTrigger value="register">新規登録</TabsTrigger>
 					</TabsList>
 
-					<TabsContent value="login" className="mt-6 space-y-4">
+					<TabsContent value="login" className={styles.tabsContent}>
 						{error && (
-							<div className="rounded border border-red-200 bg-red-50 px-4 py-3 text-red-700">
+							<div className={styles.errorBox}>
 								{error}
 							</div>
 						)}
@@ -128,22 +129,22 @@ export function LoginPage() {
 							type="button"
 							onClick={() => handleGoogleAuth(false)}
 							disabled={loading}
-							className="group relative flex w-full justify-center rounded-md border border-transparent bg-blue-600 px-4 py-3 font-medium text-sm text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+							className={styles.loginButton}
 						>
 							{loading ? (
-								<div className="flex items-center">
-									<div className="-ml-1 mr-3 h-5 w-5 animate-spin rounded-full border-2 border-white border-t-transparent" />
+								<div className={styles.buttonContent}>
+									<div className={styles.spinner} />
 									ログイン中...
 								</div>
 							) : (
-								<div className="flex items-center">
+								<div className={styles.buttonContent}>
 									<GoogleIcon />
 									Googleでログイン
 								</div>
 							)}
 						</button>
 
-						<div className="text-center text-gray-500 text-xs">
+						<div className={styles.guideText}>
 							<p>
 								まだアカウントをお持ちでない方は、
 								<br />
@@ -152,18 +153,18 @@ export function LoginPage() {
 						</div>
 					</TabsContent>
 
-					<TabsContent value="register" className="mt-6 space-y-4">
+					<TabsContent value="register" className={styles.tabsContent}>
 						{error && (
-							<div className="rounded border border-red-200 bg-red-50 px-4 py-3 text-red-700">
+							<div className={styles.errorBox}>
 								{error}
 							</div>
 						)}
 
-						<div className="space-y-4">
+						<div className={styles.formArea}>
 							<div>
 								<label
 									htmlFor={passwordInputId}
-									className="block font-medium text-gray-700 text-sm"
+									className={styles.label}
 								>
 									秘密のパスワード
 								</label>
@@ -173,10 +174,10 @@ export function LoginPage() {
 									value={registrationPassword}
 									onChange={(e) => setRegistrationPassword(e.target.value)}
 									placeholder="新規登録用の秘密のパスワードを入力"
-									className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-green-500 focus:outline-none focus:ring-1 focus:ring-green-500"
+									className={styles.passwordInput}
 									disabled={loading}
 								/>
-								<p className="mt-1 text-gray-500 text-xs">
+								<p className={styles.passwordHelp}>
 									新規登録には管理者から提供された秘密のパスワードが必要です
 								</p>
 							</div>
@@ -185,15 +186,15 @@ export function LoginPage() {
 								type="button"
 								onClick={() => handleGoogleAuth(true)}
 								disabled={loading || !registrationPassword.trim()}
-								className="group relative flex w-full justify-center rounded-md border border-transparent bg-green-600 px-4 py-3 font-medium text-sm text-white hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+								className={styles.registerButton}
 							>
 								{loading ? (
-									<div className="flex items-center">
-										<div className="-ml-1 mr-3 h-5 w-5 animate-spin rounded-full border-2 border-white border-t-transparent" />
+									<div className={styles.buttonContent}>
+										<div className={styles.spinner} />
 										登録中...
 									</div>
 								) : (
-									<div className="flex items-center">
+									<div className={styles.buttonContent}>
 										<GoogleIcon />
 										Googleで新規登録
 									</div>
@@ -201,7 +202,7 @@ export function LoginPage() {
 							</button>
 						</div>
 
-						<div className="text-center text-gray-500 text-xs">
+						<div className={styles.guideText}>
 							<p>
 								既にアカウントをお持ちの方は、
 								<br />

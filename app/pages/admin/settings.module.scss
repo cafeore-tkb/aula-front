@@ -1,0 +1,82 @@
+.loadingWrap {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #f3f4f6;
+}
+
+.loadingInner {
+    text-align: center;
+}
+
+.spinner {
+    width: 2rem;
+    height: 2rem;
+    margin: 0 0 1rem;
+    border-radius: 9999px;
+    border: 4px solid #ef4444;
+    border-top-color: transparent;
+    animation: spin 1s linear infinite;
+}
+
+.loadingText {
+    color: #4b5563;
+}
+
+.page {
+    min-height: 100vh;
+    background: #f3f4f6;
+    padding: 2rem 0;
+}
+
+.container {
+    width: 100%;
+    max-width: 72rem;
+    margin: 0 auto;
+    padding: 0 1rem;
+}
+
+.header {
+    margin-bottom: 1.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.title {
+    margin: 0;
+    color: #111827;
+    font-size: 1.875rem;
+    font-weight: 700;
+}
+
+.userMeta {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.badge {
+    border-radius: 9999px;
+    background: #fee2e2;
+    padding: 0.25rem 0.75rem;
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: #dc2626;
+}
+
+.userName {
+    color: #4b5563;
+    font-size: 0.875rem;
+}
+
+.homeButtonWrap {
+    margin-top: 2rem;
+}
+
+@keyframes spin {
+    to {
+        transform: rotate(360deg);
+    }
+}

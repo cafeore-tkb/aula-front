@@ -5,6 +5,7 @@ import { Input } from '~/components/ui/input';
 import { StatusSelecter } from '../../components/status-selecter';
 import { useAuth } from '../../lib/auth-context';
 import { createUserProfileWithData } from '../../lib/firebase';
+import styles from './create-profile.module.scss';
 export function meta() {
 	return [
 		{ title: 'プロフィール作成 - Aula' },
@@ -109,10 +110,10 @@ export default function CreateProfile() {
 	// ローディング中の表示
 	if (loading) {
 		return (
-			<div className="flex min-h-screen items-center justify-center bg-gray-100">
-				<div className="text-center">
-					<div className="mb-4 h-8 w-8 animate-spin rounded-full border-4 border-blue-500 border-t-transparent"></div>
-					<p className="text-gray-600">プロフィール情報を確認中...</p>
+			<div className={styles.loadingWrap}>
+				<div className={styles.loadingInner}>
+					<div className={styles.spinner}></div>
+					<p className={styles.loadingText}>プロフィール情報を確認中...</p>
 				</div>
 			</div>
 		);
@@ -129,24 +130,24 @@ export default function CreateProfile() {
 	}
 
 	return (
-		<div className="min-h-screen bg-gray-100 py-8">
+		<div className={styles.page}>
 			<div
-				className={`mx-auto px-4 ${
-					isMobile ? 'max-w-full' : isTablet ? 'max-w-2xl' : 'max-w-4xl'
+				className={`${styles.container} ${
+					isMobile ? styles.containerMobile : isTablet ? styles.containerTablet : styles.containerDesktop
 				}`}
 			>
-				<div className="rounded-lg bg-white p-8 shadow-md">
-					<div className="mb-6 text-center">
+				<div className={styles.card}>
+					<div className={styles.header}>
 						<h1
-							className={`mb-2 font-bold text-gray-900 ${
-								isMobile ? 'text-xl' : isTablet ? 'text-2xl' : 'text-3xl'
+							className={`${styles.title} ${
+								isMobile ? styles.titleMobile : isTablet ? styles.titleTablet : styles.titleDesktop
 							}`}
 							style={{ fontFamily: 'var(--font-rounded)' }}
 						>
 							プロフィール作成
 						</h1>
 						<div
-							className={`pt-3 text-gray-700 ${isMobile ? 'text-sm' : 'text-lg'}`}
+							className={`${styles.description} ${isMobile ? styles.descriptionMobile : styles.descriptionDesktop}`}
 							style={{ fontFamily: 'var(--font-rounded)' }}
 						>
 							<p>Aulaサービスを利用するには、プロフィール情報の登録が必要です。</p>
@@ -156,51 +157,51 @@ export default function CreateProfile() {
 						</div>
 					</div>{' '}
 					{/* ユーザー情報の表示 */}
-					<div className="mb-6">
+					<div className={styles.userSection}>
 						<div
-							className={`mb-6 flex items-center rounded-lg bg-gray-50 p-4 ${
-								isMobile ? 'flex-col space-y-3 text-center' : 'space-x-4'
+							className={`${styles.userCard} ${
+								isMobile ? styles.userCardMobile : styles.userCardDesktop
 							}`}
 						>
 							{user.photoURL && (
 								<img
 									src={user.photoURL}
 									alt={user.displayName || 'ユーザー'}
-									className={` ${isMobile ? 'h-20 w-20' : 'h-16 w-16'}`}
+									className={isMobile ? styles.avatarMobile : styles.avatarDesktop}
 								/>
 							)}
-							<div className="flex-1">
+							<div className={styles.userInfo}>
 								<h3
-									className={`font-semibold text-gray-900 ${
-										isMobile ? 'text-base' : 'text-lg'
+									className={`${styles.userName} ${
+										isMobile ? styles.userNameMobile : styles.userNameDesktop
 									}`}
 								>
 									{user.displayName || 'ユーザー'}
 								</h3>
-								<p className={`text-gray-600 ${isMobile ? 'text-xs' : 'text-sm'}`}>
+								<p className={`${styles.userEmail} ${isMobile ? styles.userEmailMobile : styles.userEmailDesktop}`}>
 									{user.email}
 								</p>
 							</div>
 						</div>
 
 						{/* プロフィール入力フォーム */}
-						<div className={`${isDesktop ? 'grid grid-cols-2 gap-6' : 'space-y-5'}`}>
+						<div className={isDesktop ? styles.formGridDesktop : styles.formStack}>
 							<div>
 								<label
 									htmlFor={displayNameId}
-									className="mb-2 block font-medium text-gray-700 text-sm"
+									className={styles.label}
 								>
-									表示名 <span className="text-red-500">*</span>
+									表示名 <span className={styles.required}>*</span>
 								</label>
 								<Input
 									id={displayNameId}
 									type="text"
 									placeholder="例: 山田 太郎"
-									className="w-full"
+									className={styles.inputFull}
 									value={displayName}
 									onChange={(e) => setDisplayName(e.target.value)}
 								/>
-								<p className="mt-1 text-gray-500 text-xs">
+								<p className={styles.helperText}>
 									他のメンバーに表示される名前です
 								</p>
 							</div>
@@ -208,20 +209,20 @@ export default function CreateProfile() {
 							<div>
 								<label
 									htmlFor={yearId}
-									className="mb-2 block font-medium text-gray-700 text-sm"
+									className={styles.label}
 								>
-									筑波大学入学年度 <span className="text-red-500">*</span>
+									筑波大学入学年度 <span className={styles.required}>*</span>
 								</label>
 								<Input
 									id={yearId}
 									type="number"
 									placeholder="例: 2025"
 									min="2000"
-									className="w-full"
+									className={styles.inputFull}
 									value={year}
 									onChange={(e) => setYear(e.target.value)}
 								/>
-								<p className="mt-1 text-gray-500 text-xs">
+								<p className={styles.helperText}>
 									あなたが筑波大学に入学した年度を入力してください
 								</p>
 							</div>
@@ -229,16 +230,16 @@ export default function CreateProfile() {
 							<div>
 								<label
 									htmlFor={statusId}
-									className="mb-2 block font-medium text-gray-700 text-sm"
+									className={styles.label}
 								>
-									珈琲・俺ステータス <span className="text-red-500">*</span>
+									珈琲・俺ステータス <span className={styles.required}>*</span>
 								</label>
 								<StatusSelecter
 									status={status}
 									setStatus={setStatus}
 									statusId={statusId}
 								/>
-								<p className="mt-1 text-gray-500 text-xs">
+								<p className={styles.helperText}>
 									現在の珈琲・俺での役割を選択してください
 								</p>
 							</div>
@@ -246,8 +247,8 @@ export default function CreateProfile() {
 					</div>
 					{/* エラーメッセージ */}
 					{error && (
-						<div className="mb-4 rounded-lg bg-red-50 p-3">
-							<p className={`text-red-600 ${isMobile ? 'text-xs' : 'text-sm'}`}>
+						<div className={styles.errorBox}>
+							<p className={`${styles.errorText} ${isMobile ? styles.errorTextMobile : styles.errorTextDesktop}`}>
 								{error}
 							</p>
 						</div>
@@ -257,13 +258,13 @@ export default function CreateProfile() {
 						type="button"
 						onClick={handleCreateProfile}
 						disabled={isCreating}
-						className={`w-full rounded-lg bg-blue-600 px-4 font-semibold text-white transition-colors hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:cursor-not-allowed disabled:opacity-50 ${
-							isMobile ? 'py-2.5 text-sm' : 'py-3 text-base'
+						className={`${styles.submitButton} ${
+							isMobile ? styles.submitButtonMobile : styles.submitButtonDesktop
 						}`}
 					>
 						{isCreating ? (
-							<span className="flex items-center justify-center">
-								<div className="mr-2 h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent"></div>
+							<span className={styles.submitButtonInner}>
+								<div className={styles.submitSpinner}></div>
 								プロフィール作成中...
 							</span>
 						) : (
@@ -271,7 +272,7 @@ export default function CreateProfile() {
 						)}
 					</button>
 					{/* ログアウトボタン */}
-					<div className="mt-4 text-center">
+					<div className={styles.signOutWrap}>
 						<button
 							type="button"
 							onClick={async () => {
@@ -290,7 +291,7 @@ export default function CreateProfile() {
 									navigate('/login');
 								}
 							}}
-							className="text-gray-500 text-sm hover:text-gray-700"
+							className={styles.signOutButton}
 						>
 							別のアカウントでログイン
 						</button>

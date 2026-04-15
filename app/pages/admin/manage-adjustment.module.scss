@@ -1,0 +1,192 @@
+.page {
+    min-height: 100vh;
+    background: var(--color-gray-100);
+    padding: 2rem 0;
+}
+
+.container {
+    max-width: 72rem;
+    margin: 0 auto;
+    padding: 0 1rem;
+}
+
+.header {
+    margin-bottom: 1.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.title {
+    font-size: 1.875rem;
+    line-height: 2.25rem;
+    font-weight: 700;
+    color: var(--color-gray-900);
+}
+
+.userInfo {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.adminBadge {
+    border-radius: 9999px;
+    background: var(--color-red-100);
+    padding: 0.25rem 0.75rem;
+    font-size: 0.875rem;
+    line-height: 1.25rem;
+    font-weight: 500;
+    color: var(--color-red-600);
+}
+
+.userName {
+    font-size: 0.875rem;
+    line-height: 1.25rem;
+    color: var(--color-gray-600);
+}
+
+.sectionHeading {
+    margin-bottom: 1rem;
+    font-size: 1.125rem;
+    line-height: 1.75rem;
+    font-weight: 500;
+    color: var(--color-gray-900);
+}
+
+.formCard {
+    margin-bottom: 1.5rem;
+    border-radius: 0.5rem;
+    background: var(--color-white);
+    padding: 1.5rem;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+}
+
+.formTitle {
+    margin-bottom: 1rem;
+    font-size: 1.125rem;
+    line-height: 1.75rem;
+    font-weight: 600;
+    color: var(--color-gray-900);
+}
+
+.formGrid {
+    display: grid;
+    grid-template-columns: repeat(1, minmax(0, 1fr));
+    gap: 1rem;
+}
+
+.label {
+    display: block;
+    margin-bottom: 0.5rem;
+    font-size: 0.875rem;
+    line-height: 1.25rem;
+    color: var(--color-gray-700);
+}
+
+.addButtonWrap {
+    display: flex;
+    align-items: flex-end;
+}
+
+.addButton {
+    width: 100%;
+    padding: 0.5rem 1.5rem;
+    font-weight: 600;
+    background: var(--color-blue-600);
+    color: var(--color-white);
+
+    &:hover {
+        background: var(--color-blue-700);
+    }
+
+    &:disabled {
+        opacity: 0.5;
+    }
+}
+
+.loadingWrap {
+    padding: 2rem 0;
+    text-align: center;
+}
+
+.loadingText {
+    font-size: 0.875rem;
+    line-height: 1.25rem;
+    color: var(--color-gray-500);
+}
+
+.tableCard {
+    border-radius: 0.5rem;
+    background: var(--color-white);
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+}
+
+.tableText {
+    font-size: 1.25rem;
+    line-height: 1.75rem;
+}
+
+.rowOpen {
+    background: var(--color-green-200);
+}
+
+.rowClosed {
+    background: var(--color-gray-200);
+}
+
+.selectTriggerBase {
+    width: 120px;
+    background: transparent;
+}
+
+.selectPositive {
+    border-color: var(--color-green-300);
+    color: var(--color-green-700);
+
+    &:hover {
+        background: color-mix(in oklab, var(--color-green-100) 50%, transparent);
+    }
+}
+
+.selectNeutral {
+    border-color: var(--color-gray-300);
+    color: var(--color-gray-700);
+
+    &:hover {
+        background: color-mix(in oklab, var(--color-gray-100) 50%, transparent);
+    }
+}
+
+.actionButtons {
+    display: flex;
+    gap: 0.5rem;
+}
+
+.primaryActionButton {
+    background: var(--color-blue-600);
+    color: var(--color-white);
+
+    &:hover {
+        background: var(--color-blue-700);
+    }
+}
+
+.csvButton {
+    border-color: var(--color-green-600);
+    color: var(--color-green-600);
+
+    &:hover {
+        background: var(--color-green-50);
+    }
+}
+
+.homeButtonWrap {
+    margin-top: 2rem;
+}
+
+@media (min-width: 768px) {
+    .formGrid {
+        grid-template-columns: repeat(5, minmax(0, 1fr));
+    }
+}

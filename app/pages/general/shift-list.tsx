@@ -11,6 +11,7 @@ import {
 } from '../../components/ui/card';
 import { useAuth } from '../../lib/auth-context';
 import { db, type ShiftUsual } from '../../lib/firebase';
+import styles from './shift-list.module.scss';
 
 export function meta() {
 	return [
@@ -67,38 +68,38 @@ export default function ShiftList() {
 	// ローディング中
 	if (loading || !userProfile) {
 		return (
-			<div className="flex min-h-screen items-center justify-center bg-slate-50">
-				<div className="text-center">
-					<div className="mx-auto mb-4 h-8 w-8 animate-spin rounded-full border-4 border-teal-400 border-t-transparent" />
-					<p className="text-slate-600">読み込み中...</p>
+			<div className={styles.loadingWrap}>
+				<div className={styles.loadingInner}>
+					<div className={styles.spinner} />
+					<p className={styles.loadingText}>読み込み中...</p>
 				</div>
 			</div>
 		);
 	}
 
 	return (
-		<div className="min-h-screen bg-slate-50 py-8">
-			<div className="mx-auto max-w-6xl px-4">
+		<div className={styles.page}>
+			<div className={styles.container}>
 				{/* ヘッダー */}
-				<div className="mb-6">
-					<h1 className="mb-2 font-bold text-3xl text-slate-800">シフト一覧</h1>
-					<p className="text-slate-600">公開されているシフトの募集一覧です</p>
+				<div className={styles.header}>
+					<h1 className={styles.title}>シフト一覧</h1>
+					<p className={styles.subtitle}>公開されているシフトの募集一覧です</p>
 				</div>
 
 				{/* シフト一覧 */}
 				{loadingShifts ? (
-					<div className="text-center">
-						<div className="mx-auto mb-4 h-8 w-8 animate-spin rounded-full border-4 border-teal-400 border-t-transparent" />
-						<p className="text-slate-600">シフトを読み込み中...</p>
+					<div className={styles.listLoadingWrap}>
+						<div className={styles.spinner} />
+						<p className={styles.loadingText}>シフトを読み込み中...</p>
 					</div>
 				) : shifts.length === 0 ? (
 					<Card>
-						<CardContent className="py-12 text-center">
-							<p className="text-slate-500">現在公開されているシフトはありません</p>
+						<CardContent className={styles.emptyContent}>
+							<p className={styles.emptyText}>現在公開されているシフトはありません</p>
 						</CardContent>
 					</Card>
 				) : (
-					<div className="space-y-6">
+					<div className={styles.listWrap}>
 						{shifts.map((shift) => {
 							// 学期の日本語変換
 							const semesterJa =
@@ -116,19 +117,19 @@ export default function ShiftList() {
 							return (
 								<Card
 									key={shift.uid}
-									className="border-teal-200 bg-teal-50 transition-shadow hover:shadow-md"
+									className={styles.shiftCard}
 								>
 									<CardHeader>
-										<CardTitle className="flex items-center justify-between">
+										<CardTitle className={styles.shiftTitle}>
 											<span>
 												{shift.year}年度 {semesterJa}学期 {shift.module}モジュール
 											</span>
 										</CardTitle>
 									</CardHeader>
 									<CardContent>
-										<div className="space-y-3">
+										<div className={styles.shiftContent}>
 											{/* ボタン */}
-											<div className="flex gap-2 pt-2">
+											<div className={styles.actionRow}>
 												<Button
 													onClick={() =>
 														navigate('/adjustment', {
@@ -141,7 +142,7 @@ export default function ShiftList() {
 															},
 														})
 													}
-													className="bg-teal-500 hover:bg-teal-600 hover:text-white"
+													className={styles.answerButton}
 												>
 													シフトを回答する
 												</Button>
@@ -155,7 +156,7 @@ export default function ShiftList() {
 				)}
 
 				{/* ホームに戻るボタン */}
-				<div className="mt-8">
+				<div className={styles.homeButtonWrap}>
 					<HomeButton />
 				</div>
 			</div>

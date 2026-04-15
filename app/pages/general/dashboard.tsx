@@ -3,6 +3,7 @@ import { useMediaQuery } from 'react-responsive';
 import { Link, useNavigate } from 'react-router';
 import { UserProfile } from '../../components/user-profile';
 import { useAuth } from '../../lib/auth-context';
+import styles from './dashboard.module.scss';
 
 export function meta() {
 	return [
@@ -41,10 +42,10 @@ export default function Home() {
 	// ローディング中またはプロファイル読み込み中
 	if (loading || (user && !userProfile)) {
 		return (
-			<div className="flex min-h-screen items-center justify-center bg-gray-100">
-				<div className="text-center">
-					<div className="mb-4 h-8 w-8 animate-spin rounded-full border-4 border-blue-500 border-t-transparent"></div>
-					<p className="text-gray-600">読み込み中...</p>
+			<div className={styles.loadingWrap}>
+				<div className={styles.loadingInner}>
+					<div className={styles.spinner}></div>
+					<p className={styles.loadingText}>読み込み中...</p>
 				</div>
 			</div>
 		);
@@ -57,9 +58,9 @@ export default function Home() {
 
 	// ログイン済みユーザーのダッシュボード
 	return (
-		<div className="min-h-screen bg-gray-100 py-8">
-			<div className="mx-auto max-w-6xl px-4">
-				<h1 className={`mb-6 font-bold text-gray-900 ${isMobile ? 'text-2xl' : 'text-3xl'}`}>
+		<div className={styles.page}>
+			<div className={styles.container}>
+				<h1 className={`${styles.title} ${isMobile ? styles.titleMobile : styles.titleDesktop}`}>
 					ホーム
 				</h1>
 

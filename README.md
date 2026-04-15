@@ -1,87 +1,145 @@
-# Welcome to React Router!
+# Aula Frontend
 
-A modern, production-ready template for building full-stack React applications using React Router.
+珈琲・俺のシフト調整アプリ（React Router v7 + Firebase）のフロントエンドです。
 
-[![Open in StackBlitz](https://developer.stackblitz.com/img/open_in_stackblitz.svg)](https://stackblitz.com/github/remix-run/react-router-templates/tree/main/default)
+## Tech Stack
 
-## Features
+- React 19 / React Router v7
+- TypeScript
+- Firebase (Auth / Firestore / Hosting)
+- SCSS + CSS Modules
+- pnpm
 
-- 🚀 Server-side rendering
-- ⚡️ Hot Module Replacement (HMR)
-- 📦 Asset bundling and optimization
-- 🔄 Data loading and mutations
-- 🔒 TypeScript by default
-- 🎉 TailwindCSS for styling
-- 📖 [React Router docs](https://reactrouter.com/)
+## Setup
 
-## Getting Started
-
-### Installation
-
-Install the dependencies:
+### 1. Install dependencies
 
 ```bash
-npm install
+pnpm install
 ```
 
-### Development
+### 2. Configure environment variables
 
-Start the development server with HMR:
+`.env` を作成して Firebase の設定値を入れてください。
+
+```env
+VITE_FIREBASE_API_KEY=...
+VITE_FIREBASE_AUTH_DOMAIN=...
+VITE_FIREBASE_PROJECT_ID=...
+VITE_FIREBASE_STORAGE_BUCKET=...
+VITE_FIREBASE_MESSAGING_SENDER_ID=...
+VITE_FIREBASE_APP_ID=...
+```
+
+## Development
 
 ```bash
-npm run dev
+pnpm dev
 ```
 
-Your application will be available at `http://localhost:5173`.
+`http://localhost:5173` で起動します。
 
-## Building for Production
-
-Create a production build:
+## Build
 
 ```bash
-npm run build
+pnpm build
 ```
 
-## Deployment
-
-### Docker Deployment
-
-To build and run using Docker:
+## Test
 
 ```bash
-docker build -t my-app .
-
-# Run the container
-docker run -p 3000:3000 my-app
+pnpm test
 ```
 
-The containerized application can be deployed to any platform that supports Docker, including:
+## Deploy
 
-- AWS ECS
-- Google Cloud Run
-- Azure Container Apps
-- Digital Ocean App Platform
-- Fly.io
-- Railway
+主なコマンド:
 
-### DIY Deployment
-
-If you're familiar with deploying Node applications, the built-in app server is production-ready.
-
-Make sure to deploy the output of `npm run build`
-
-```
-├── package.json
-├── package-lock.json (or pnpm-lock.yaml, or bun.lockb)
-├── build/
-│   ├── client/    # Static assets
-│   └── server/    # Server-side code
+```bash
+pnpm deploy
+pnpm deploy:hosting
 ```
 
-## Styling
+### 前提条件
 
-This template comes with [Tailwind CSS](https://tailwindcss.com/) already configured for a simple default starting experience. You can use whatever CSS framework you prefer.
+1. Firebase CLI をインストール
 
----
+```bash
+npm install -g firebase-tools
+```
 
-Built with ❤️ using React Router.
+2. Firebase プロジェクトを用意（現行: `aula-eb466`）
+3. Firebase にログイン
+
+```bash
+firebase login
+```
+
+### 環境変数
+
+- ローカル開発: `.env`
+- 本番ビルド: `.env.production`
+
+```env
+VITE_FIREBASE_API_KEY=...
+VITE_FIREBASE_AUTH_DOMAIN=...
+VITE_FIREBASE_PROJECT_ID=...
+VITE_FIREBASE_STORAGE_BUCKET=...
+VITE_FIREBASE_MESSAGING_SENDER_ID=...
+VITE_FIREBASE_APP_ID=...
+```
+
+### デプロイ手順
+
+1. ビルド
+
+```bash
+pnpm build
+```
+
+2. デプロイ
+
+```bash
+pnpm deploy
+```
+
+または Hosting のみ:
+
+```bash
+pnpm deploy:hosting
+# もしくは
+firebase deploy --only hosting
+```
+
+3. 公開URLで動作確認（例: `https://aula-eb466.web.app`）
+
+### 重要設定
+
+- `firebase.json`
+	- `hosting.public` は `build/client`
+	- `hosting.rewrites` は `** -> /index.html`（SPAルーティング対応）
+- `react-router.config.ts`
+	- `ssr: false`（Firebase Hosting では SPA モード運用）
+
+### トラブルシューティング
+
+- ビルド失敗時
+
+```bash
+rm -rf node_modules pnpm-lock.yaml
+pnpm install
+rm -rf .react-router build
+```
+
+- デプロイ後に 404 が出る
+	- `firebase.json` の `rewrites` 設定を確認
+
+- 環境変数が効かない
+	- 変数名が `VITE_` プレフィックスか確認
+	- `.env` / `.env.production` を見直して再ビルド
+
+## Styling Policy
+
+- 画面・コンポーネントのスタイルは `*.module.scss` を利用
+- グローバル定義は `app/styles/app.scss`（トークン/リセット中心）
+- 文字列ベースのユーティリティ `className` は使用しない
