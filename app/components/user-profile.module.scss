@@ -1,0 +1,165 @@
+/* Used by: app/components/user-profile.tsx */
+.profileCard {
+    border-radius: 0.5rem;
+    background: var(--color-white);
+    padding: 1.5rem;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+}
+
+.profileHeader {
+    margin-bottom: 1.5rem;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.avatar {
+    width: 4rem;
+    height: 4rem;
+    border-radius: 9999px;
+}
+
+.profileMeta {
+    flex: 1;
+}
+
+.userName {
+    font-size: 1.25rem;
+    line-height: 1.75rem;
+    font-weight: 600;
+    color: var(--color-gray-900);
+}
+
+.editSection {
+    margin-bottom: 1.5rem;
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.sectionTitle {
+    padding-bottom: 0.25rem;
+    border-bottom: 1px solid var(--color-gray-300);
+    font-size: 0.875rem;
+    line-height: 1.25rem;
+    font-weight: 500;
+    color: var(--color-gray-700);
+}
+
+.inputLabel {
+    display: block;
+    margin-bottom: 0.25rem;
+    font-size: 0.875rem;
+    line-height: 1.25rem;
+    font-weight: 500;
+    color: var(--color-gray-700);
+}
+
+.inputField {
+    width: 100%;
+    border-radius: 0.375rem;
+    border: 1px solid var(--color-gray-300);
+    padding: 0.5rem 0.75rem;
+
+    &:focus {
+        outline: 2px solid var(--color-blue-500);
+        outline-offset: 2px;
+    }
+}
+
+.buttonRow {
+    display: flex;
+    gap: 0.75rem;
+}
+
+.saveButton,
+.cancelButton,
+.editButton {
+    border-radius: 0.375rem;
+    border: 1px solid transparent;
+    font-weight: 500;
+    transition: background-color 0.15s ease;
+
+    &:focus-visible {
+        outline: 2px solid var(--color-blue-500);
+        outline-offset: 2px;
+    }
+
+    &:disabled {
+        opacity: 0.5;
+    }
+}
+
+.saveButton {
+    background: var(--color-blue-600);
+    color: var(--color-white);
+    padding: 0.5rem 1rem;
+
+    &:hover {
+        background: var(--color-blue-700);
+    }
+
+    &:disabled {
+        cursor: not-allowed;
+    }
+}
+
+.cancelButton {
+    background: var(--color-gray-300);
+    color: var(--color-gray-700);
+    padding: 0.5rem 1rem;
+
+    &:hover {
+        background: var(--color-gray-400);
+    }
+}
+
+.infoSection {
+    margin-bottom: 1.5rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+
+.infoHeader {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.editButton {
+    background: var(--color-blue-600);
+    color: var(--color-white);
+    padding: 0.25rem 0.75rem;
+    font-size: 0.75rem;
+    line-height: 1rem;
+
+    &:hover {
+        background: var(--color-blue-700);
+    }
+}
+
+.infoList {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    font-size: 0.875rem;
+    line-height: 1.25rem;
+    color: var(--color-gray-600);
+}
+
+.infoRow {
+    display: flex;
+    justify-content: space-between;
+}
+
+.gmailLabel {
+    display: block;
+}
+
+.gmailValue {
+    display: block;
+    word-break: break-all;
+    text-align: right;
+    color: var(--color-gray-900);
+}

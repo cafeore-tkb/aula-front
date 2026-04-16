@@ -2,6 +2,7 @@ import { useEffect } from 'react';
 import { useNavigate } from 'react-router';
 import { HomeButton } from '../../components/home-button';
 import { useAuth } from '../../lib/auth-context';
+import styles from './admin-pages.module.scss';
 
 export function meta() {
 	return [
@@ -34,10 +35,10 @@ export default function Admin() {
 	// ローディング中の表示
 	if (loading) {
 		return (
-			<div className="flex min-h-screen items-center justify-center bg-gray-100">
-				<div className="text-center">
-					<div className="mb-4 h-8 w-8 animate-spin rounded-full border-4 border-red-500 border-t-transparent"></div>
-					<p className="text-gray-600">権限を確認中...</p>
+			<div className={styles.loadingWrap}>
+				<div className={styles.loadingInner}>
+					<div className={styles.spinner}></div>
+					<p className={styles.loadingText}>権限を確認中...</p>
 				</div>
 			</div>
 		);
@@ -51,10 +52,10 @@ export default function Admin() {
 	// ユーザープロフィールが未読み込みの場合
 	if (!userProfile) {
 		return (
-			<div className="flex min-h-screen items-center justify-center bg-gray-100">
-				<div className="text-center">
-					<div className="mb-4 h-8 w-8 animate-spin rounded-full border-4 border-red-500 border-t-transparent"></div>
-					<p className="text-gray-600">プロフィール情報を読み込み中...</p>
+			<div className={styles.loadingWrap}>
+				<div className={styles.loadingInner}>
+					<div className={styles.spinner}></div>
+					<p className={styles.loadingText}>プロフィール情報を読み込み中...</p>
 				</div>
 			</div>
 		);
@@ -67,22 +68,22 @@ export default function Admin() {
 
 	// 管理者ページのメインコンテンツ
 	return (
-		<div className="min-h-screen bg-gray-100 py-8">
-			<div className="mx-auto max-w-6xl px-4">
-				<div className="mb-6 flex items-center justify-between">
-					<h1 className="font-bold text-3xl text-gray-900">管理者ページ</h1>
-					<div className="flex items-center space-x-2">
-						<span className="rounded-full bg-red-100 px-3 py-1 font-medium text-red-600 text-sm">
+		<div className={styles.page}>
+			<div className={styles.container}>
+				<div className={styles.header}>
+					<h1 className={styles.title}>管理者ページ</h1>
+					<div className={styles.userMeta}>
+						<span className={styles.badge}>
 							管理者
 						</span>
-						<span className="text-gray-600 text-sm">
+						<span className={styles.userName}>
 							{userProfile.name || user.displayName || 'ユーザー'}
 						</span>
 					</div>
 				</div>
 
 				{/* ホームに戻るボタン */}
-				<div className="mt-8">
+				<div className={styles.homeButtonWrap}>
 					<HomeButton />
 				</div>
 			</div>

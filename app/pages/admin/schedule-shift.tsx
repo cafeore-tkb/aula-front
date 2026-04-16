@@ -6,6 +6,7 @@ import { Button } from '../../components/ui/button';
 import { Card, CardContent } from '../../components/ui/card';
 import { useAuth } from '../../lib/auth-context';
 import type { ShiftListItem, UserProfile } from '../../lib/firebase';
+import styles from './admin-pages.module.scss';
 
 /**
  * スタッフメンバーの情報を表すインターフェース
@@ -536,26 +537,26 @@ export default function ScheduleShift() {
 
 	return (
 		<div
-			className={`bg-slate-50 ${isMobile ? 'min-h-screen py-3' : isTablet ? 'min-h-screen py-6' : 'min-h-screen py-4'}`}
+			className={`${styles.schedulePage} ${isMobile ? styles.schedulePageMobile : isTablet ? styles.schedulePageTablet : styles.schedulePageDesktop}`}
 		>
 			<div
-				className={`mx-auto ${isMobile ? 'max-w-full px-2' : isTablet ? 'max-w-[97vw] px-3' : 'max-w-[98vw] px-4'}`}
+				className={`${styles.scheduleContainer} ${isMobile ? styles.scheduleContainerMobile : isTablet ? styles.scheduleContainerTablet : styles.scheduleContainerDesktop}`}
 			>
 				{/* ヘッダー */}
-				<div className="mb-6">
-					<div className="flex w-full items-center justify-between">
+				<div className={styles.scheduleHeader}>
+					<div className={styles.scheduleHeaderRow}>
 						<h1
-							className={`font-bold text-slate-800 ${isMobile ? 'text-2xl' : 'text-3xl'}`}
+							className={`${styles.scheduleTitle} ${isMobile ? styles.scheduleTitleMobile : styles.scheduleTitleDesktop}`}
 						>
 							シフト作成
 						</h1>
 						{loadingUsers ? (
-							<div className="mt-2 flex items-center gap-2">
-								<div className="h-4 w-4 animate-spin rounded-full border-2 border-blue-500 border-t-transparent" />
-								<span className="text-slate-500 text-sm">読み込み中...</span>
+							<div className={styles.scheduleLoadingUsers}>
+								<div className={styles.scheduleLoadingUsersSpinner} />
+								<span className={styles.scheduleLoadingUsersText}>読み込み中...</span>
 							</div>
 						) : shiftData ? (
-							<div className="mt-2 items-end text-lg text-slate-600">
+							<div className={styles.shiftMeta}>
 								{shiftData.year}年度{' '}
 								{shiftData.semester === 'spring' ? '春学期 ' : '秋学期 '}
 								{shiftData.module}モジュール
@@ -565,28 +566,30 @@ export default function ScheduleShift() {
 				</div>
 
 				{/* メインコンテンツ */}
-				<div className={`${isDesktop ? 'flex items-start gap-6' : 'space-y-6'}`}>
+				<div className={isDesktop ? styles.mainContentDesktop : styles.mainContentMobile}>
 					{/* 左側：時間割表のみ */}
-					<div className={`${isDesktop ? 'flex-1' : 'w-full'}`}>
-						<div className={`flex ${isMobile ? 'flex-col' : 'h-full flex-col'}`}>
+					<div className={isDesktop ? styles.leftPaneDesktop : styles.leftPaneMobile}>
+						<div className={isMobile ? styles.leftInnerMobile : styles.leftInnerDesktop}>
 							<div
-								className={`grid ${isMobile ? 'grid-cols-8' : 'flex-1 grid-cols-8'} rounded-xl border border-slate-200 bg-white shadow-lg ${
+								className={`${styles.scheduleGrid} ${
+									isMobile ? styles.scheduleGridMobile : styles.scheduleGridDesktop
+								} ${
 									isMobile
-										? 'gap-0.5 p-1'
+										? styles.scheduleGridGapMobile
 										: isTablet
-											? 'gap-1 p-2'
-											: 'gap-2 p-3 xl:gap-3 xl:p-4'
+											? styles.scheduleGridGapTablet
+											: styles.scheduleGridGapDesktop
 								}`}
 							>
 								{/* ヘッダー行 */}
-								<Card className="rounded-lg bg-blue-500 text-white shadow-sm">
+								<Card className={styles.dayHeadCard}>
 									<CardContent
-										className={`text-center font-semibold ${
+										className={`${styles.dayHeadText} ${
 											isMobile
-												? 'p-0.5 text-xs'
+												? styles.dayHeadTextMobile
 												: isTablet
-													? 'p-1 text-xs'
-													: 'p-1 text-xs sm:p-1.5 lg:p-2 lg:text-sm'
+													? styles.dayHeadTextTablet
+													: styles.dayHeadTextDesktop
 										}`}
 									>
 										時限
@@ -595,15 +598,15 @@ export default function ScheduleShift() {
 								{day.map((dayName) => (
 									<Card
 										key={dayName}
-										className="rounded-lg bg-blue-500 text-white shadow-sm"
+										className={styles.dayHeadCard}
 									>
 										<CardContent
-											className={`text-center font-semibold ${
+											className={`${styles.dayHeadText} ${
 												isMobile
-													? 'p-0.5 text-xs'
+													? styles.dayHeadTextMobile
 													: isTablet
-														? 'p-1 text-xs'
-														: 'p-1 text-xs sm:p-1.5 lg:p-2 lg:text-sm'
+														? styles.dayHeadTextTablet
+														: styles.dayHeadTextDesktop
 											}`}
 										>
 											{isMobile ? dayName : `${dayName}曜日`}
@@ -615,18 +618,18 @@ export default function ScheduleShift() {
 								{periods.map((period, periodIndex) => (
 									<React.Fragment key={period}>
 										{/* 時限・時間表示 */}
-										<Card className="rounded-lg border border-slate-200 bg-slate-100 shadow-sm">
+										<Card className={styles.periodHeadCard}>
 											<CardContent
-												className={`text-center font-medium ${
+												className={`${styles.periodHeadContent} ${
 													isMobile
-														? 'p-0.5'
+														? styles.periodHeadContentMobile
 														: isTablet
-															? 'p-1'
-															: 'p-1 sm:p-1.5 lg:p-2 xl:p-2.5'
+															? styles.periodHeadContentTablet
+															: styles.periodHeadContentDesktop
 												}`}
 											>
-												<div className={isMobile ? 'text-xs' : 'text-xs lg:text-sm'}>
-													<div className="font-semibold text-slate-700">{period}限</div>
+												<div className={isMobile ? styles.periodTextMobile : styles.periodTextDesktop}>
+													<div className={styles.periodMain}>{period}限</div>
 												</div>
 											</CardContent>
 										</Card>
@@ -647,50 +650,50 @@ export default function ScheduleShift() {
 												<Button
 													key={`${period}-${dayName}`}
 													variant={isComplete ? 'default' : 'outline'}
-													className={`h-full w-full rounded-lg border font-medium shadow-sm transition-all duration-200 ${
+													className={`${styles.slotButton} ${
 														isMobile
-															? 'p-0.5 text-xs'
+															? styles.slotButtonMobile
 															: isTablet
-																? 'p-1 text-xs'
-																: 'p-2 text-xs lg:text-sm'
+																? styles.slotButtonTablet
+																: styles.slotButtonDesktop
 													} ${
 														isSelectedNow
-															? 'scale-105 border-4 border-blue-500 ring-4 ring-blue-200'
+															? styles.slotButtonSelectedNow
 															: ''
 													} ${
 														canAssignTrainee
-															? 'cursor-pointer border-blue-400 bg-blue-100 ring-2 ring-blue-300 hover:bg-blue-200 hover:ring-4 hover:ring-blue-400'
+															? styles.slotButtonAssignable
 															: ''
 													} ${
 														!canAssignTrainee
 															? isComplete
-																? 'bg-emerald-500 text-white shadow-lg hover:bg-emerald-600'
+																? styles.slotButtonComplete
 																: isPartial
-																	? 'border-amber-300 bg-amber-100 text-amber-800 hover:bg-amber-200'
-																	: 'text-slate-600 hover:border-blue-300 hover:bg-blue-50'
+																	? styles.slotButtonPartial
+																	: styles.slotButtonIdle
 															: ''
 													}`}
 													onClick={() => handleCellClick(periodIndex, dayIndex)}
 												>
-													<div className="flex flex-col items-center justify-center gap-0.5">
-														<div className="max-w-full text-xs">
+													<div className={styles.slotContentWrap}>
+														<div className={styles.slotTextCol}>
 															{timeSlot.trainees.length > 0 ? (
-																<div className="flex flex-col gap-0.5">
+																<div className={styles.slotNamesList}>
 																	{timeSlot.trainees.map((trainee, idx) => (
-																		<div key={trainee.userId} className="truncate font-semibold">
+																		<div key={trainee.userId} className={styles.slotNameStrong}>
 																			練{idx + 1}: {trainee.name}
 																		</div>
 																	))}
 																</div>
 															) : (
-																<div className="font-semibold">練習生:</div>
+																<div className={styles.slotNameStrong}>練習生:</div>
 															)}
 														</div>
-														<div className="max-w-full text-xs">
+														<div className={styles.slotTextCol}>
 															{examinerCount > 2 ? (
-																<div className="flex flex-col gap-0.5">
+																<div className={styles.slotNamesList}>
 																	{timeSlot.examiners.map((examiner, idx) => (
-																		<div key={examiner.userId} className="truncate">
+																		<div key={examiner.userId} className={styles.slotNameNormal}>
 																			試{idx + 1}: {examiner.name}
 																		</div>
 																	))}
@@ -711,10 +714,10 @@ export default function ScheduleShift() {
 
 						{/* セル詳細カード */}
 						{selectedCell && (
-							<Card className="mt-6 border-2 border-blue-400 bg-blue-50 shadow-lg">
-								<CardContent className="p-4">
-									<div className="mb-3 flex items-center justify-between">
-										<h3 className="font-bold text-slate-800">
+							<Card className={styles.detailCard}>
+								<CardContent className={styles.detailCardContent}>
+									<div className={styles.detailHeader}>
+										<h3 className={styles.detailTitle}>
 											{periods[selectedCell.period]}限・{day[selectedCell.day]}曜日
 										</h3>
 										<Button
@@ -730,25 +733,25 @@ export default function ScheduleShift() {
 									</div>
 
 									{/* 練習生 */}
-									<div className="mb-3">
-										<h4 className="mb-1 font-semibold text-slate-700 text-sm">
+									<div className={styles.detailSection}>
+										<h4 className={styles.detailSectionTitle}>
 											練習生 (
 											{schedule[selectedCell.period][selectedCell.day].trainees.length}名)
 										</h4>
 										{schedule[selectedCell.period][selectedCell.day].trainees.length >
 										0 ? (
-											<div className="space-y-1">
+											<div className={styles.detailList}>
 												{schedule[selectedCell.period][selectedCell.day].trainees.map(
 													(trainee) => (
 														<div
 															key={trainee.userId}
-															className="flex items-center justify-between rounded bg-white p-2"
+															className={styles.detailItemRow}
 														>
-															<span className="text-sm">{trainee.name}</span>
+															<span className={styles.detailItemName}>{trainee.name}</span>
 															<Button
 																variant="ghost"
 																size="sm"
-																className="text-red-600 hover:bg-red-50 hover:text-red-700"
+																className={styles.removeButton}
 																onClick={() => {
 																	const newSchedule = [...schedule];
 																	newSchedule[selectedCell.period][selectedCell.day].trainees =
@@ -765,30 +768,30 @@ export default function ScheduleShift() {
 												)}
 											</div>
 										) : (
-											<p className="text-slate-500 text-sm">未割り当て</p>
+											<p className={styles.unassignedText}>未割り当て</p>
 										)}
 									</div>
 
 									{/* 試験官 */}
 									<div>
-										<h4 className="mb-1 font-semibold text-slate-700 text-sm">
+										<h4 className={styles.detailSectionTitle}>
 											試験官 (
 											{schedule[selectedCell.period][selectedCell.day].examiners.length}名)
 										</h4>
 										{schedule[selectedCell.period][selectedCell.day].examiners.length >
 										0 ? (
-											<div className="space-y-1">
+											<div className={styles.detailList}>
 												{schedule[selectedCell.period][selectedCell.day].examiners.map(
 													(examiner) => (
 														<div
 															key={examiner.userId}
-															className="flex items-center justify-between rounded bg-white p-2"
+															className={styles.detailItemRow}
 														>
-															<span className="text-sm">{examiner.name}</span>
+															<span className={styles.detailItemName}>{examiner.name}</span>
 															<Button
 																variant="ghost"
 																size="sm"
-																className="text-red-600 hover:bg-red-50 hover:text-red-700"
+																className={styles.removeButton}
 																onClick={() => {
 																	const newSchedule = [...schedule];
 																	newSchedule[selectedCell.period][selectedCell.day].examiners =
@@ -805,7 +808,7 @@ export default function ScheduleShift() {
 												)}
 											</div>
 										) : (
-											<p className="text-slate-500 text-sm">未割り当て</p>
+											<p className={styles.unassignedText}>未割り当て</p>
 										)}
 									</div>
 								</CardContent>
@@ -814,17 +817,17 @@ export default function ScheduleShift() {
 					</div>
 
 					{/* 右側：スタッフリスト（トグルで練習生/試験官を切り替え） */}
-					<div className={`${isDesktop ? 'w-80' : 'w-full'}`}>
-						<Card className="shadow-lg">
-							<CardContent className={`${isMobile ? 'p-4' : 'p-6'}`}>
+					<div className={isDesktop ? styles.rightPaneDesktop : styles.rightPaneMobile}>
+						<Card className={styles.staffCard}>
+							<CardContent className={isMobile ? styles.staffCardContentMobile : styles.staffCardContentDesktop}>
 								{/* トグルボタン */}
-								<div className="mb-4 flex gap-2">
+								<div className={styles.staffToggleRow}>
 									<Button
 										variant={staffType === 'trainee' ? 'default' : 'outline'}
-										className={`flex-1 transition-all ${
+										className={`${styles.staffToggleButton} ${
 											staffType === 'trainee'
-												? 'bg-blue-500 text-white hover:bg-blue-600'
-												: 'text-slate-600 hover:bg-slate-100'
+												? styles.staffToggleActive
+												: styles.staffToggleInactive
 										}`}
 										onClick={() => handleStaffTypeChange('trainee')}
 									>
@@ -832,10 +835,10 @@ export default function ScheduleShift() {
 									</Button>
 									<Button
 										variant={staffType === 'examiner' ? 'default' : 'outline'}
-										className={`flex-1 transition-all ${
+										className={`${styles.staffToggleButton} ${
 											staffType === 'examiner'
-												? 'bg-blue-500 text-white hover:bg-blue-600'
-												: 'text-slate-600 hover:bg-slate-100'
+												? styles.staffToggleActive
+												: styles.staffToggleInactive
 										}`}
 										onClick={() => handleStaffTypeChange('examiner')}
 									>
@@ -845,15 +848,15 @@ export default function ScheduleShift() {
 
 								{/* 選択中のセル情報 */}
 								{selectedCell && (
-									<div className="mb-3 rounded bg-blue-50 p-3">
-										<div className="mb-1 font-semibold text-blue-900 text-sm">
+									<div className={styles.selectedCellInfo}>
+										<div className={styles.selectedCellTitle}>
 											📍 {periods[selectedCell.period]}限・{day[selectedCell.day]}曜日
 										</div>
-										<div className="text-slate-600 text-xs">
+										<div className={styles.selectedCellMeta}>
 											練習生:{' '}
 											{schedule[selectedCell.period][selectedCell.day].trainees.length}名
 										</div>
-										<div className="text-slate-600 text-xs">
+										<div className={styles.selectedCellMeta}>
 											試験官:{' '}
 											{schedule[selectedCell.period][selectedCell.day].examiners.length}名
 										</div>
@@ -862,13 +865,13 @@ export default function ScheduleShift() {
 
 								{/* ヘルプテキスト */}
 								{selectedStaff && staffType === 'trainee' && (
-									<div className="mb-3 animate-pulse rounded bg-blue-50 p-2 text-center text-blue-600 text-sm">
+									<div className={styles.helpText}>
 										👆 割り当てるセルをクリック
 									</div>
 								)}
 
 								{/* スタッフリスト */}
-								<div className="space-y-2">
+								<div className={styles.staffList}>
 									{staffType === 'trainee' ? (
 										// 練習生リスト
 										trainees.length > 0 ? (
@@ -881,27 +884,27 @@ export default function ScheduleShift() {
 													<Button
 														key={trainee.userId}
 														variant={isSelected ? 'default' : 'outline'}
-														className={`h-auto w-full flex-col items-start justify-start gap-1.5 py-2.5 text-left transition-all duration-200 ${
+														className={`${styles.staffItemButton} ${
 															isSelected
-																? 'scale-105 bg-blue-500 text-white shadow-lg hover:bg-blue-600'
+																? styles.staffItemSelected
 																: assignedCount > 0
-																	? 'border-emerald-300 bg-emerald-50 hover:border-emerald-500 hover:bg-emerald-100'
-																	: 'border-slate-300 hover:border-blue-500 hover:bg-blue-50'
+																	? styles.staffItemAssigned
+																	: styles.staffItemDefault
 														}`}
 														onClick={() => handleTraineeClick(trainee)}
 													>
-                                                        <div className="flex w-full items-center justify-between gap-2">
-                                                            <span className="font-medium text-slate-700 text-sm">
+														<div className={styles.staffItemHeader}>
+															<span className={styles.staffItemName}>
                                                                 {trainee.name}
                                                             </span>
                                                             {assignedCount > 0 && (
-                                                                <span className="rounded-full bg-emerald-600 px-2 py-0.5 text-white text-xs">
+																<span className={styles.assignedBadge}>
                                                                     {assignedCount}コマ
                                                                 </span>
                                                             )}
                                                         </div>
                                                         <p
-                                                            className={`w-full whitespace-normal break-words text-left text-xs leading-snug ${isSelected ? 'text-blue-100' : 'text-slate-500'}`}
+															className={`${styles.staffItemComment} ${isSelected ? styles.staffItemCommentSelected : styles.staffItemCommentDefault}`}
                                                         >
                                                             {trainee.comment}
                                                         </p>
@@ -909,7 +912,7 @@ export default function ScheduleShift() {
 												);
 											})
 										) : (
-											<p className="text-slate-500 text-sm">練習生がいません</p>
+											<p className={styles.emptyStaffText}>練習生がいません</p>
 										)
 									) : // 試験官リスト
 									examiners.length > 0 ? (
@@ -920,27 +923,27 @@ export default function ScheduleShift() {
 												<Button
 													key={examiner.userId}
 													variant={isSelected ? 'default' : 'outline'}
-														className={`h-auto w-full flex-col items-start justify-start gap-1.5 py-2.5 text-left transition-all duration-200 ${
+														className={`${styles.staffItemButton} ${
 														isSelected
-															? 'bg-blue-500 text-white hover:bg-blue-600'
+															? styles.staffItemSelected
 															: assignedCount > 0
-																? 'border-emerald-300 bg-emerald-50 hover:border-emerald-500 hover:bg-emerald-100'
-																: 'border-slate-200 bg-white hover:border-blue-300 hover:bg-blue-50'
+																? styles.staffItemAssigned
+																: styles.staffItemDefaultAlt
 													}`}
 													onClick={() => handleExaminerClick(examiner)}
 												>
-                                                    <div className="flex w-full items-center justify-between gap-2">
-                                                            <span className="font-medium text-slate-700 text-sm">
+														<div className={styles.staffItemHeader}>
+															<span className={styles.staffItemName}>
                                                             {examiner.name}
                                                         </span>
                                                         {assignedCount > 0 && (
-                                                                <span className="rounded-full bg-emerald-600 px-2 py-0.5 text-white text-xs">
+																<span className={styles.assignedBadge}>
                                                                 {assignedCount}コマ
                                                             </span>
                                                         )}
                                                     </div>
                                                     <p
-                                                        className={`w-full whitespace-normal break-words text-left text-xs leading-snug ${isSelected ? 'text-blue-100' : 'text-slate-500'}`}
+															className={`${styles.staffItemComment} ${isSelected ? styles.staffItemCommentSelected : styles.staffItemCommentDefault}`}
                                                     >
                                                         {examiner.comment}
                                                     </p>
@@ -948,7 +951,7 @@ export default function ScheduleShift() {
 											);
 										})
 									) : (
-										<p className="text-slate-500 text-sm">試験官がいません</p>
+										<p className={styles.emptyStaffText}>試験官がいません</p>
 									)}
 								</div>
 							</CardContent>

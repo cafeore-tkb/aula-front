@@ -2,6 +2,7 @@ import { useEffect } from 'react';
 import { useNavigate } from 'react-router';
 import { HomeButton } from '../../components/home-button';
 import { useAuth } from '../../lib/auth-context';
+import styles from './admin-pages.module.scss';
 
 export function meta() {
 	return [
@@ -34,10 +35,10 @@ export default function Admin() {
 	// ローディング中の表示
 	if (loading) {
 		return (
-			<div className="flex min-h-screen items-center justify-center bg-gray-100">
-				<div className="text-center">
-					<div className="mb-4 h-8 w-8 animate-spin rounded-full border-4 border-red-500 border-t-transparent"></div>
-					<p className="text-gray-600">権限を確認中...</p>
+			<div className={styles.loadingWrap}>
+				<div className={styles.loadingInner}>
+					<div className={styles.spinner}></div>
+					<p className={styles.loadingText}>権限を確認中...</p>
 				</div>
 			</div>
 		);
@@ -51,10 +52,10 @@ export default function Admin() {
 	// ユーザープロフィールが未読み込みの場合
 	if (!userProfile) {
 		return (
-			<div className="flex min-h-screen items-center justify-center bg-gray-100">
-				<div className="text-center">
-					<div className="mb-4 h-8 w-8 animate-spin rounded-full border-4 border-red-500 border-t-transparent"></div>
-					<p className="text-gray-600">プロフィール情報を読み込み中...</p>
+			<div className={styles.loadingWrap}>
+				<div className={styles.loadingInner}>
+					<div className={styles.spinner}></div>
+					<p className={styles.loadingText}>プロフィール情報を読み込み中...</p>
 				</div>
 			</div>
 		);
@@ -67,26 +68,26 @@ export default function Admin() {
 
 	// 管理者ページのメインコンテンツ
 	return (
-		<div className="min-h-screen bg-gray-100 py-8">
-			<div className="mx-auto max-w-6xl px-4">
-				<div className="mb-8 flex items-center justify-between">
-					<h1 className="font-bold text-3xl text-gray-900">管理者ページ</h1>
-					<div className="flex items-center space-x-2">
-						<span className="rounded-full bg-red-100 px-3 py-1 font-medium text-red-600 text-sm">
+		<div className={styles.page}>
+			<div className={styles.container}>
+				<div className={styles.header}>
+					<h1 className={styles.title}>管理者ページ</h1>
+					<div className={styles.userMeta}>
+						<span className={styles.badge}>
 							管理者
 						</span>
-						<span className="text-gray-600 text-sm">
+						<span className={styles.userName}>
 							{userProfile.name || user.displayName || 'ユーザー'}
 						</span>
 					</div>
 				</div>
 
-				<div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
+				<div className={styles.cardsGrid}>
 					{/* ユーザー管理 */}
-					<div className="rounded-lg bg-white p-6 shadow-md">
-						<div className="mb-4 flex items-center">
+					<div className={styles.card}>
+						<div className={styles.cardHeader}>
 							<svg
-								className="mr-3 h-8 w-8 text-blue-600"
+								className={`${styles.cardIcon} ${styles.iconBlue}`}
 								fill="none"
 								stroke="currentColor"
 								viewBox="0 0 24 24"
@@ -99,25 +100,25 @@ export default function Admin() {
 									d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197m13.5-9a2.5 2.5 0 11-5 0 2.5 2.5 0 015 0z"
 								/>
 							</svg>
-							<h2 className="font-semibold text-gray-900 text-xl">ユーザー管理</h2>
+							<h2 className={styles.cardTitle}>ユーザー管理</h2>
 						</div>
-						<p className="mb-4 text-gray-600 text-sm">
+						<p className={styles.cardText}>
 							ユーザーの権限管理やメンバーの編集を行います。
 						</p>
 						<button
 							type="button"
 							onClick={() => navigate('/admin/member')}
-							className="w-full rounded-lg bg-blue-600 px-4 py-2 text-white transition-colors hover:bg-blue-700"
+							className={`${styles.actionButton} ${styles.actionButtonBlue}`}
 						>
 							ユーザー一覧
 						</button>
 					</div>
 
 					{/* データ管理 */}
-					<div className="rounded-lg bg-white p-6 shadow-md">
-						<div className="mb-4 flex items-center">
+					<div className={styles.card}>
+						<div className={styles.cardHeader}>
 							<svg
-								className="mr-3 h-8 w-8 text-purple-600"
+								className={`${styles.cardIcon} ${styles.iconPurple}`}
 								fill="none"
 								stroke="currentColor"
 								viewBox="0 0 24 24"
@@ -130,25 +131,25 @@ export default function Admin() {
 									d="M4 7v10c0 2.21 3.582 4 8 4s8-1.79 8-4V7M4 7c0 2.21 3.582 4 8 4s8-1.79 8-4M4 7c0-2.21 3.582-4 8-4s8 1.79 8 4m0 5c0 2.21-3.582 4-8 4s-8-1.79-8-4"
 								/>
 							</svg>
-							<h2 className="font-semibold text-gray-900 text-xl">シフト管理</h2>
+							<h2 className={styles.cardTitle}>シフト管理</h2>
 						</div>
-						<p className="mb-4 text-gray-600 text-sm">
+						<p className={styles.cardText}>
 							シフトの確認・管理を行います。
 						</p>
 						<button
 							type="button"
 							onClick={() => navigate('/admin/manageAdjustment')}
-							className="w-full rounded-lg bg-purple-600 px-4 py-2 text-white transition-colors hover:bg-purple-700"
+							className={`${styles.actionButton} ${styles.actionButtonPurple}`}
 						>
 							シフト一覧
 						</button>
 					</div>
 
 					{/* システム設定 */}
-					<div className="rounded-lg bg-white p-6 shadow-md">
-						<div className="mb-4 flex items-center">
+					<div className={styles.card}>
+						<div className={styles.cardHeader}>
 							<svg
-								className="mr-3 h-8 w-8 text-green-600"
+								className={`${styles.cardIcon} ${styles.iconGreen}`}
 								fill="none"
 								stroke="currentColor"
 								viewBox="0 0 24 24"
@@ -167,15 +168,15 @@ export default function Admin() {
 									d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
 								/>
 							</svg>
-							<h2 className="font-semibold text-gray-900 text-xl">システム設定</h2>
+							<h2 className={styles.cardTitle}>システム設定</h2>
 						</div>
-						<p className="mb-4 text-gray-600 text-sm">
+						<p className={styles.cardText}>
 							アプリケーションの設定や環境の管理を行います。
 						</p>
 						<button
 							type="button"
 							onClick={() => navigate('/admin/settings')}
-							className="w-full rounded-lg bg-green-600 px-4 py-2 text-white transition-colors hover:bg-green-700"
+							className={`${styles.actionButton} ${styles.actionButtonGreen}`}
 						>
 							設定管理
 						</button>
@@ -183,7 +184,7 @@ export default function Admin() {
 				</div>
 
 				{/* ホームに戻るボタン */}
-				<div className="mt-8">
+				<div className={styles.homeButtonWrap}>
 					<HomeButton />
 				</div>
 			</div>

@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { logOut } from '../lib/firebase';
+import styles from './logout-button.module.scss';
 
 interface LogoutButtonProps {
 	className?: string;
@@ -27,27 +28,23 @@ export function LogoutButton({
 
 	// サイズに応じたクラス
 	const sizeClasses = {
-		sm: 'px-3 py-1.5 text-xs',
-		md: 'px-4 py-2 text-sm',
-		lg: 'px-6 py-3 text-base',
+		sm: styles.sizeSm,
+		md: styles.sizeMd,
+		lg: styles.sizeLg,
 	};
 
 	// バリアントに応じたクラス
 	const variantClasses = {
-		danger: 'bg-red-600 text-white hover:bg-red-700 focus:ring-red-500',
-		outline:
-			'border border-red-600 text-red-600 bg-white hover:bg-red-50 focus:ring-red-500',
+		danger: styles.variantDanger,
+		outline: styles.variantOutline,
 	};
-
-	const baseClasses =
-		'w-full rounded-md font-medium focus:outline-none focus:ring-2 disabled:cursor-not-allowed disabled:opacity-50 transition-colors';
 
 	return (
 		<button
 			type="button"
 			onClick={handleLogout}
 			disabled={loading}
-			className={`${baseClasses} ${sizeClasses[size]} ${variantClasses[variant]} ${className}`}
+			className={`${styles.buttonBase} ${sizeClasses[size]} ${variantClasses[variant]} ${className}`}
 		>
 			{loading ? 'ログアウト中...' : 'ログアウト'}
 		</button>

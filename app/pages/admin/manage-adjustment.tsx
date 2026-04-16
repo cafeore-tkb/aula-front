@@ -28,6 +28,7 @@ import {
 } from '../../components/ui/table';
 import { useAuth } from '../../lib/auth-context';
 import type { ShiftUsual } from '../../lib/firebase';
+import styles from './admin-pages.module.scss';
 
 export function meta() {
 	return [
@@ -357,34 +358,34 @@ export default function ManageAdjustment() {
 
 	// 管理者ページのメインコンテンツ
 	return (
-		<div className="min-h-screen bg-gray-100 py-8">
-			<div className="mx-auto max-w-6xl px-4">
-				<div className="mb-6 flex items-center justify-between">
-					<h1 className="font-bold text-3xl text-gray-900">管理者ページ</h1>
-					<div className="flex items-center space-x-2">
-						<span className="rounded-full bg-red-100 px-3 py-1 font-medium text-red-600 text-sm">
+		<div className={styles.page}>
+			<div className={styles.container}>
+				<div className={styles.header}>
+					<h1 className={styles.title}>管理者ページ</h1>
+					<div className={styles.manageUserInfo}>
+						<span className={styles.manageAdminBadge}>
 							管理者
 						</span>
-						<span className="text-gray-600 text-sm">
+						<span className={styles.userName}>
 							{userProfile.name || user?.displayName || 'ユーザー'}
 						</span>
 					</div>
 				</div>
 				<div>
-					<div className="mb-4 font-medium text-gray-900 text-lg">
+					<div className={styles.manageSectionHeading}>
 						シフト通常設定一覧
 					</div>
 
 					{/* 新規追加フォーム */}
-					<div className="mb-6 rounded-lg bg-white p-6 shadow-md">
-						<h2 className="mb-4 font-semibold text-gray-900 text-lg">
+					<div className={styles.manageFormCard}>
+						<h2 className={styles.manageFormTitle}>
 							新規シフト追加
 						</h2>
-						<div className="grid grid-cols-1 gap-4 md:grid-cols-5">
+						<div className={styles.manageFormGrid}>
 							<div>
 								<label
 									htmlFor={yearInputId}
-									className="mb-2 block text-gray-700 text-sm"
+									className={styles.manageLabel}
 								>
 									年度
 								</label>
@@ -400,7 +401,7 @@ export default function ManageAdjustment() {
 							<div>
 								<label
 									htmlFor={semesterSelectId}
-									className="mb-2 block text-gray-700 text-sm"
+									className={styles.manageLabel}
 								>
 									学期
 								</label>
@@ -417,7 +418,7 @@ export default function ManageAdjustment() {
 							<div>
 								<label
 									htmlFor={moduleSelectId}
-									className="mb-2 block text-gray-700 text-sm"
+									className={styles.manageLabel}
 								>
 									モジュール
 								</label>
@@ -435,7 +436,7 @@ export default function ManageAdjustment() {
 							<div>
 								<label
 									htmlFor={isTwiceSelectId}
-									className="mb-2 block text-gray-700 text-sm"
+									className={styles.manageLabel}
 								>
 									頻度
 								</label>
@@ -449,11 +450,11 @@ export default function ManageAdjustment() {
 									</SelectContent>
 								</Select>
 							</div>
-							<div className="flex items-end">
+							<div className={styles.manageAddButtonWrap}>
 								<Button
 									onClick={handleAddShift}
 									disabled={isAdding}
-									className="w-full bg-blue-600 px-6 py-2 font-semibold text-white hover:bg-blue-700 disabled:opacity-50"
+									className={styles.manageAddButton}
 								>
 									{isAdding ? '追加中...' : '✓ 追加'}
 								</Button>
@@ -462,20 +463,20 @@ export default function ManageAdjustment() {
 					</div>
 
 					{loadingShiftUsual ? (
-						<div className="py-8 text-center">
-							<p className="text-gray-500 text-sm">シフト通常設定を読み込み中...</p>
+						<div className={styles.manageLoadingWrap}>
+							<p className={styles.manageLoadingText}>シフト通常設定を読み込み中...</p>
 						</div>
 					) : (
-						<div className="rounded-lg bg-white shadow-md">
+						<div className={styles.manageTableCard}>
 							<Table>
 								<TableHeader>
 									<TableRow>
-										<TableHead className="text-xl">年度</TableHead>
-										<TableHead className="text-xl">学期</TableHead>
-										<TableHead className="text-xl">モジュール</TableHead>
-										<TableHead className="text-xl">頻度</TableHead>
-										<TableHead className="text-xl">公開設定</TableHead>
-										<TableHead className="text-xl">シフト作成</TableHead>
+										<TableHead className={styles.manageTableText}>年度</TableHead>
+										<TableHead className={styles.manageTableText}>学期</TableHead>
+										<TableHead className={styles.manageTableText}>モジュール</TableHead>
+										<TableHead className={styles.manageTableText}>頻度</TableHead>
+										<TableHead className={styles.manageTableText}>公開設定</TableHead>
+										<TableHead className={styles.manageTableText}>シフト作成</TableHead>
 									</TableRow>
 								</TableHeader>
 								<TableBody>
@@ -491,21 +492,18 @@ export default function ManageAdjustment() {
 										return (
 											<TableRow
 												key={su.year + su.semester + su.module}
-												className={su.isOpen ? 'bg-green-200' : 'bg-gray-200'}
+												className={su.isOpen ? styles.manageRowOpen : styles.manageRowClosed}
 											>
-												<TableCell className="text-xl">{su.year}</TableCell>
-												<TableCell className="text-xl">{semesterJa}</TableCell>
-												<TableCell className="text-xl">{su.module}</TableCell>
+												<TableCell className={styles.manageTableText}>{su.year}</TableCell>
+												<TableCell className={styles.manageTableText}>{semesterJa}</TableCell>
+												<TableCell className={styles.manageTableText}>{su.module}</TableCell>
 												<TableCell>
 													<Select
 														value={su.isTwice ? 'true' : 'false'}
 														onValueChange={(value) => handleFrequencyChange(su.uid, value)}
 													>
 														<SelectTrigger
-															className={`w-[120px] bg-transparent ${su.isTwice
-																? 'border-green-300 text-green-700 hover:bg-green-100/50'
-																: 'border-gray-300 text-gray-700 hover:bg-gray-100/50'
-																}`}
+															className={`${styles.manageSelectTriggerBase} ${su.isTwice ? styles.manageSelectPositive : styles.manageSelectNeutral}`}
 														>
 															<SelectValue />
 														</SelectTrigger>
@@ -521,10 +519,7 @@ export default function ManageAdjustment() {
 														onValueChange={(value) => handleStatusChange(su.uid, value)}
 													>
 														<SelectTrigger
-															className={`w-[120px] bg-transparent ${su.isOpen
-																? 'border-green-300 text-green-700 hover:bg-green-100/50'
-																: 'border-gray-300 text-gray-700 hover:bg-gray-100/50'
-																}`}
+															className={`${styles.manageSelectTriggerBase} ${su.isOpen ? styles.manageSelectPositive : styles.manageSelectNeutral}`}
 														>
 															<SelectValue />
 														</SelectTrigger>
@@ -535,10 +530,10 @@ export default function ManageAdjustment() {
 													</Select>
 												</TableCell>
 												<TableCell>
-													<div className="flex gap-2">
+													<div className={styles.manageActionButtons}>
 														<Button
 															onClick={() => navigate('/admin/scheduleShift', { state: { shiftUid: su.uid } })}
-															className="bg-blue-600 hover:bg-blue-700"
+															className={styles.managePrimaryActionButton}
 														>
 															シフトを組む
 														</Button>
@@ -546,7 +541,7 @@ export default function ManageAdjustment() {
 															onClick={() => exportToCSV(su)}
 															disabled={exportingShiftUid === su.uid}
 															variant="outline"
-															className="border-green-600 text-green-600 hover:bg-green-50"
+															className={styles.manageCsvButton}
 														>
 															{exportingShiftUid === su.uid ? '出力中...' : 'CSV出力'}
 														</Button>
@@ -562,7 +557,7 @@ export default function ManageAdjustment() {
 				</div>
 
 				{/* ホームに戻るボタン */}
-				<div className="mt-8">
+				<div className={styles.homeButtonWrap}>
 					<HomeButton />
 				</div>
 			</div>

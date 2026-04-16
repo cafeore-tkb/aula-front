@@ -1,0 +1,1213 @@
+/* Used by: app/pages/general/{login,dashboard,shift-list,create-profile,adjustment}.tsx */
+.loadingWrap {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #f3f4f6;
+}
+
+.loadingInner {
+    text-align: center;
+}
+
+.loadingText {
+    color: #4b5563;
+}
+
+.profileSpinner {
+    width: 2rem;
+    height: 2rem;
+    margin: 0 0 1rem;
+    border-radius: 9999px;
+    border: 4px solid #3b82f6;
+    border-top-color: transparent;
+    animation: spin 1s linear infinite;
+}
+
+.tealSpinner {
+    width: 2rem;
+    height: 2rem;
+    margin: 0 auto 1rem;
+    border-radius: 9999px;
+    border: 4px solid #2dd4bf;
+    border-top-color: transparent;
+    animation: spin 1s linear infinite;
+}
+
+.loginLoadingContainer {
+    display: flex;
+    min-height: 100vh;
+    align-items: center;
+    justify-content: center;
+}
+
+.loginLoadingContent {
+    text-align: center;
+}
+
+.loginSpinner {
+    margin: 0 auto 1rem;
+    width: 2rem;
+    height: 2rem;
+    border-radius: 9999px;
+    border: 4px solid var(--color-blue-500);
+    border-top-color: transparent;
+    animation: spin 1s linear infinite;
+}
+
+.adjustmentPage {
+    background: #f8fafc;
+}
+
+.adjustmentPageMobile {
+    min-height: 100vh;
+    padding: 1rem;
+}
+
+.adjustmentPageDesktop {
+    padding: 1rem;
+}
+
+.adjustmentLayout {
+    display: flex;
+}
+
+.adjustmentLayoutMobile {
+    min-height: 100%;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.adjustmentLayoutTablet {
+    height: 100%;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.adjustmentLayoutDesktop {
+    height: 100%;
+    flex-direction: row;
+    gap: 0.75rem;
+}
+
+.adjustmentShiftInfoCard {
+    border-color: #ddd6fe;
+    background: #f5f3ff;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.adjustmentShiftInfoContentMobile {
+    padding: 0.75rem;
+}
+
+.adjustmentShiftInfoContentDesktop {
+    padding: 1rem;
+}
+
+.adjustmentShiftInfoRow {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.adjustmentShiftIconMobile {
+    font-size: 1.25rem;
+}
+
+.adjustmentShiftIconDesktop {
+    font-size: 1.5rem;
+}
+
+.adjustmentShiftInfoTitle {
+    margin: 0;
+    font-weight: 700;
+    color: #4c1d95;
+}
+
+.adjustmentShiftInfoTitleMobile {
+    font-size: 0.75rem;
+}
+
+.adjustmentShiftInfoTitleTablet {
+    font-size: 0.875rem;
+}
+
+.adjustmentShiftInfoTitleDesktop {
+    font-size: 1rem;
+}
+
+.adjustmentGridPaneDefault {
+    width: 100%;
+}
+
+.adjustmentGridPaneDesktop {
+    height: 100%;
+    width: 75%;
+    flex: 1;
+    overflow: hidden;
+}
+
+.adjustmentGridWrapMobile {
+    display: flex;
+    flex-direction: column;
+}
+
+.adjustmentGridWrapDesktop {
+    display: flex;
+    height: 100%;
+    flex-direction: column;
+}
+
+.adjustmentScheduleGrid {
+    display: grid;
+    border: 1px solid #e2e8f0;
+    border-radius: 0.75rem;
+    background: #fff;
+    box-shadow: 0 10px 15px rgba(0, 0, 0, 0.1);
+}
+
+.adjustmentScheduleGridMobile {
+    grid-template-columns: repeat(8, minmax(0, 1fr));
+    gap: 0.125rem;
+    padding: 0.25rem;
+}
+
+.adjustmentScheduleGridTablet {
+    flex: 1;
+    grid-template-columns: repeat(8, minmax(0, 1fr));
+    gap: 0.25rem;
+    padding: 0.5rem;
+}
+
+.adjustmentScheduleGridDesktop {
+    flex: 1;
+    grid-template-columns: repeat(8, minmax(0, 1fr));
+    gap: 0.5rem;
+    padding: 0.75rem;
+}
+
+.adjustmentDayHeaderCard {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 0.5rem;
+    background: #3b82f6;
+    color: #fff;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.06);
+}
+
+.adjustmentDayHeaderCardEditable {
+    cursor: pointer;
+}
+
+.adjustmentDayHeaderCardEditable:hover {
+    background: #2563eb;
+}
+
+.adjustmentDayHeaderCardReadonly {
+    cursor: default;
+    opacity: 0.75;
+}
+
+.adjustmentDayHeaderText {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    height: 100%;
+    margin: 0;
+    padding: 0;
+    text-align: center;
+    font-weight: 600;
+}
+
+.adjustmentDayHeaderTextMobile {
+    font-size: 0.75rem;
+}
+
+.adjustmentDayHeaderTextTablet {
+    font-size: 0.75rem;
+}
+
+.adjustmentDayHeaderTextDesktop {
+    font-size: 0.875rem;
+}
+
+.adjustmentTimeHeaderCard {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid #e2e8f0;
+    border-radius: 0.5rem;
+    background: #f1f5f9;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.06);
+}
+
+.adjustmentTimeHeaderCardEditable {
+    cursor: pointer;
+}
+
+.adjustmentTimeHeaderCardEditable:hover {
+    background: #e2e8f0;
+}
+
+.adjustmentTimeHeaderCardReadonly {
+    cursor: default;
+    opacity: 0.75;
+}
+
+.adjustmentTimeHeaderContent {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    height: 100%;
+    margin: 0;
+    padding: 0;
+    text-align: center;
+    font-weight: 500;
+}
+
+.adjustmentTimeHeaderContentMobile {
+    font-size: 0.75rem;
+}
+
+.adjustmentTimeHeaderContentTablet {
+    font-size: 0.875rem;
+}
+
+.adjustmentTimeHeaderContentDesktop {
+    font-size: 0.875rem;
+}
+
+.adjustmentPeriodTextMobile {
+    font-size: 0.75rem;
+}
+
+.adjustmentPeriodTextDesktop {
+    font-size: 0.875rem;
+}
+
+.adjustmentPeriodMain {
+    font-weight: 600;
+    color: #334155;
+}
+
+.adjustmentPeriodSub {
+    white-space: nowrap;
+    font-size: 0.75rem;
+    color: #64748b;
+}
+
+.adjustmentPeriodSubResponsiveOnly {
+    display: none;
+}
+
+@media (min-width: 640px) and (max-width: 1023px) {
+    .adjustmentPeriodSubResponsiveOnly {
+        display: inline;
+    }
+}
+
+.adjustmentSlotButtonBase {
+    align-self: stretch;
+    min-height: 100%;
+    height: 100%;
+    width: 100%;
+    padding: 0;
+    border-radius: 0.5rem;
+    border: 1px solid #e2e8f0;
+    line-height: 1;
+    font-weight: 600;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.08);
+    transition: all 0.3s;
+}
+
+.adjustmentSlotButtonBase:hover {
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.adjustmentSlotButtonMobile {
+    font-size: 0.75rem;
+}
+
+.adjustmentSlotButtonTablet {
+    font-size: 0.875rem;
+}
+
+.adjustmentSlotButtonDesktop {
+    font-size: 1rem;
+}
+
+.adjustmentSlotButtonSelected {
+    background: #10b981;
+    color: #fff;
+}
+
+.adjustmentSlotButtonSelected:hover {
+    background: #059669;
+}
+
+.adjustmentSlotButtonUnselected {
+    color: #475569;
+}
+
+.adjustmentSlotButtonUnselected:hover {
+    background: #e5e7eb;
+    color: #1e293b;
+}
+
+.adjustmentSlotButtonReadonly {
+    cursor: default;
+    opacity: 0.75;
+}
+
+.adjustmentSidePane {
+    display: flex;
+    flex-direction: column;
+}
+
+.adjustmentSidePaneMobile {
+    margin-top: 1rem;
+    width: 100%;
+}
+
+.adjustmentSidePaneTablet {
+    margin-top: 1rem;
+    width: 100%;
+}
+
+.adjustmentSidePaneDesktop {
+    margin-top: 0;
+    height: 100%;
+    width: 25%;
+}
+
+.adjustmentSideStack {
+    display: flex;
+    flex-direction: column;
+}
+
+.adjustmentSideStackMobile {
+    gap: 0.5rem;
+}
+
+.adjustmentSideStackTablet {
+    gap: 0.75rem;
+}
+
+.adjustmentSideStackDesktop {
+    height: 100%;
+    gap: 0.75rem;
+}
+
+.adjustmentUserCard {
+    border-color: #bae6fd;
+    background: #f0f9ff;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.adjustmentUserCardContentMobile {
+    padding: 0.5rem;
+}
+
+.adjustmentUserCardContentDesktop {
+    padding: 0.75rem;
+}
+
+.adjustmentUserRow {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.adjustmentAvatarCircle {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 9999px;
+    background: #0ea5e9;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+}
+
+.adjustmentAvatarCircleMobile {
+    width: 1.5rem;
+    height: 1.5rem;
+}
+
+.adjustmentAvatarCircleDesktop {
+    width: 2rem;
+    height: 2rem;
+}
+
+.adjustmentAvatarInitial {
+    font-weight: 700;
+    color: #fff;
+}
+
+.adjustmentAvatarInitialMobile {
+    font-size: 0.75rem;
+}
+
+.adjustmentAvatarInitialDesktop {
+    font-size: 0.875rem;
+}
+
+.adjustmentUserLoginLabel {
+    margin: 0;
+    font-size: 0.75rem;
+    color: #0284c7;
+}
+
+.adjustmentUserLoginName {
+    margin: 0;
+    font-weight: 600;
+    color: #0c4a6e;
+}
+
+.adjustmentUserLoginNameMobile {
+    font-size: 0.75rem;
+}
+
+.adjustmentUserLoginNameDesktop {
+    font-size: 0.875rem;
+}
+
+.adjustmentFormCard {
+    border: 1px solid #e2e8f0;
+    border-radius: 0.75rem;
+    background: #fff;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.adjustmentFormCardContentMobile {
+    padding: 0.75rem;
+}
+
+.adjustmentFormCardContentDesktop {
+    padding: 1rem;
+}
+
+.adjustmentFormLabel {
+    margin-bottom: 0.5rem;
+    display: flex;
+    align-items: center;
+    font-weight: 600;
+    color: #334155;
+}
+
+.adjustmentFormLabelMobile {
+    font-size: 0.75rem;
+}
+
+.adjustmentFormLabelDesktop {
+    font-size: 0.875rem;
+}
+
+.adjustmentFormLabelIconMobile {
+    margin-right: 0.5rem;
+    font-size: 1rem;
+}
+
+.adjustmentFormLabelIconDesktop {
+    margin-right: 0.5rem;
+    font-size: 1.125rem;
+}
+
+.adjustmentCommentInput {
+    width: 100%;
+    resize: none;
+    border: 1px solid #cbd5e1;
+    border-radius: 0.5rem;
+    transition: all 0.2s;
+}
+
+.adjustmentCommentInput:focus {
+    outline: none;
+    border-color: transparent;
+    box-shadow: 0 0 0 2px #2dd4bf;
+}
+
+.adjustmentCommentInputMobile {
+    padding: 0.5rem;
+    font-size: 0.75rem;
+}
+
+.adjustmentCommentInputDesktop {
+    padding: 0.75rem;
+    font-size: 0.875rem;
+}
+
+.adjustmentFrequencyGroupMobile {
+    display: flex;
+    flex-direction: column;
+    gap: 0.375rem;
+}
+
+.adjustmentFrequencyGroupDesktop {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.adjustmentFrequencyOption {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    border: 1px solid #e2e8f0;
+    border-radius: 0.5rem;
+    background: #f8fafc;
+    transition: all 0.2s;
+}
+
+.adjustmentFrequencyOption:hover {
+    border-color: #5eead4;
+    background: #f0fdfa;
+}
+
+.adjustmentFrequencyOptionMobile {
+    padding: 0.5rem;
+}
+
+.adjustmentFrequencyOptionDesktop {
+    padding: 0.75rem;
+}
+
+.adjustmentFrequencyOptionDisabled {
+    opacity: 0.6;
+}
+
+.adjustmentFrequencyRadio {
+    color: #0d9488;
+}
+
+.adjustmentFrequencyLabel {
+    flex: 1;
+    font-weight: 500;
+    color: #1e293b;
+}
+
+.adjustmentFrequencyLabelMobile {
+    font-size: 0.75rem;
+}
+
+.adjustmentFrequencyLabelDesktop {
+    font-size: 0.875rem;
+}
+
+.adjustmentFrequencyLabelClickable {
+    cursor: pointer;
+}
+
+.adjustmentFrequencyLabelReadonly {
+    cursor: default;
+}
+
+.adjustmentActionRow {
+    display: flex;
+    gap: 0.75rem;
+}
+
+.adjustmentEditButton,
+.adjustmentSaveButton {
+    flex: 1;
+    border-radius: 0.5rem;
+    font-weight: 700;
+    color: #fff;
+    box-shadow: 0 10px 15px rgba(0, 0, 0, 0.12);
+    transition: all 0.3s;
+}
+
+.adjustmentEditButton {
+    background: #f59e0b;
+}
+
+.adjustmentEditButton:hover {
+    transform: scale(1.05);
+    background: #d97706;
+}
+
+.adjustmentSaveButton {
+    background: #0d9488;
+}
+
+.adjustmentSaveButton:hover {
+    transform: scale(1.05);
+    background: #0f766e;
+}
+
+.adjustmentSaveButton:disabled {
+    opacity: 0.5;
+}
+
+.adjustmentSaveButton:disabled:hover {
+    transform: none;
+}
+
+.adjustmentActionButtonMobile {
+    padding-top: 0.5rem;
+    padding-bottom: 0.5rem;
+}
+
+.adjustmentActionButtonDesktop {
+    padding-top: 0.75rem;
+    padding-bottom: 0.75rem;
+}
+
+.adjustmentActionButtonInner {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+}
+
+.adjustmentActionButtonTextMobile {
+    font-size: 0.75rem;
+}
+
+.adjustmentActionButtonTextDesktop {
+    font-size: 0.875rem;
+}
+
+.adjustmentSaveSpinnerMobile {
+    width: 0.75rem;
+    height: 0.75rem;
+    border-radius: 9999px;
+    border: 2px solid #fff;
+    border-top-color: transparent;
+    animation: spin 1s linear infinite;
+}
+
+.adjustmentSaveSpinnerDesktop {
+    width: 1rem;
+    height: 1rem;
+    border-radius: 9999px;
+    border: 2px solid #fff;
+    border-top-color: transparent;
+    animation: spin 1s linear infinite;
+}
+
+@media (min-width: 1024px) {
+    .adjustmentPageDesktop {
+        height: 100vh;
+        overflow: hidden;
+        padding: 1.5rem;
+    }
+}
+
+@media (min-width: 1280px) {
+    .adjustmentLayoutDesktop {
+        gap: 1.5rem;
+    }
+}
+
+.dashboardPage {
+    min-height: 100vh;
+    background: #f3f4f6;
+    padding: 2rem 0;
+}
+
+.dashboardContainer {
+    width: 100%;
+    max-width: 72rem;
+    margin: 0 auto;
+    padding: 0 1rem;
+}
+
+.dashboardTitle {
+    margin: 0 0 1.5rem;
+    font-weight: 700;
+    color: #111827;
+}
+
+.dashboardTitleMobile {
+    font-size: 1.5rem;
+}
+
+.dashboardTitleDesktop {
+    font-size: 1.875rem;
+}
+
+.dashboardGrid {
+    display: grid;
+    gap: 1.5rem;
+}
+
+.dashboardGridMobile {
+    grid-template-columns: repeat(1, minmax(0, 1fr));
+}
+
+.dashboardGridDesktop {
+    grid-template-columns: repeat(1, minmax(0, 1fr));
+}
+
+@media (min-width: 768px) {
+    .dashboardGridDesktop {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+}
+
+.profileColumn {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+}
+
+.profileColumnDesktop {
+    grid-column: span 1 / span 1;
+}
+
+.mainColumn {
+    display: flex;
+    flex-direction: column;
+}
+
+.mainColumnMobile {
+    gap: 1rem;
+}
+
+.mainColumnDesktop {
+    gap: 1.5rem;
+    grid-column: span 2 / span 2;
+}
+
+.quickActionCard {
+    border-radius: 0.5rem;
+    background: #fff;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.quickActionCardMobile {
+    padding: 1rem;
+}
+
+.quickActionCardDesktop {
+    padding: 1.5rem;
+}
+
+.quickActionTitle {
+    margin: 0 0 0.75rem;
+    font-weight: 600;
+    color: #111827;
+}
+
+.quickActionTitleMobile {
+    font-size: 1rem;
+}
+
+.quickActionTitleDesktop {
+    font-size: 1.125rem;
+}
+
+.quickActionGrid {
+    display: grid;
+    gap: 0.75rem;
+}
+
+.quickActionGridMobile {
+    grid-template-columns: repeat(1, minmax(0, 1fr));
+}
+
+.quickActionGridDesktop {
+    grid-template-columns: repeat(1, minmax(0, 1fr));
+}
+
+@media (min-width: 640px) {
+    .quickActionGridDesktop {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
+
+.actionLink {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    border-radius: 0.5rem;
+    text-decoration: none;
+    transition: background-color 0.2s;
+}
+
+.actionLinkMobile {
+    padding: 0.75rem;
+    font-size: 0.875rem;
+}
+
+.actionLinkDesktop {
+    padding: 0.75rem;
+}
+
+.actionLinkBlue {
+    background: #eff6ff;
+    color: #2563eb;
+}
+
+.actionLinkBlue:hover {
+    background: #dbeafe;
+}
+
+.actionLinkRed {
+    background: #fef2f2;
+    color: #dc2626;
+}
+
+.actionLinkRed:hover {
+    background: #fee2e2;
+}
+
+.actionIcon {
+    width: 1.25rem;
+    height: 1.25rem;
+}
+
+.profilePage {
+    min-height: 100vh;
+    background: #f3f4f6;
+    padding: 2rem 0;
+}
+
+.profileContainer {
+    margin: 0 auto;
+    padding: 0 1rem;
+}
+
+.profileContainerMobile {
+    max-width: 100%;
+}
+
+.profileContainerTablet {
+    max-width: 42rem;
+}
+
+.profileContainerDesktop {
+    max-width: 56rem;
+}
+
+.profileCard {
+    border-radius: 0.5rem;
+    background: #fff;
+    padding: 2rem;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.profileHeader {
+    margin-bottom: 1.5rem;
+    text-align: center;
+}
+
+.profileTitle {
+    margin: 0 0 0.5rem;
+    font-weight: 700;
+    color: #111827;
+}
+
+.profileTitleMobile {
+    font-size: 1.25rem;
+}
+
+.profileTitleTablet {
+    font-size: 1.5rem;
+}
+
+.profileTitleDesktop {
+    font-size: 1.875rem;
+}
+
+.profileDescription {
+    padding-top: 0.75rem;
+    color: #374151;
+}
+
+.profileDescriptionMobile {
+    font-size: 0.875rem;
+}
+
+.profileDescriptionDesktop {
+    font-size: 1.125rem;
+}
+
+.profileUserSection {
+    margin-bottom: 1.5rem;
+}
+
+.profileUserCard {
+    margin-bottom: 1.5rem;
+    display: flex;
+    align-items: center;
+    border-radius: 0.5rem;
+    background: #f9fafb;
+    padding: 1rem;
+}
+
+.profileUserCardMobile {
+    flex-direction: column;
+    gap: 0.75rem;
+    text-align: center;
+}
+
+.profileUserCardDesktop {
+    gap: 1rem;
+}
+
+.profileAvatarMobile {
+    width: 5rem;
+    height: 5rem;
+    border-radius: 9999px;
+}
+
+.profileAvatarDesktop {
+    width: 4rem;
+    height: 4rem;
+    border-radius: 9999px;
+}
+
+.profileUserInfo {
+    flex: 1;
+}
+
+.profileUserName {
+    margin: 0;
+    font-weight: 600;
+    color: #111827;
+}
+
+.profileUserNameMobile {
+    font-size: 1rem;
+}
+
+.profileUserNameDesktop {
+    font-size: 1.125rem;
+}
+
+.profileUserEmail {
+    margin: 0;
+    color: #4b5563;
+}
+
+.profileUserEmailMobile {
+    font-size: 0.75rem;
+}
+
+.profileUserEmailDesktop {
+    font-size: 0.875rem;
+}
+
+.profileFormGridDesktop {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 1.5rem;
+}
+
+.profileFormStack {
+    display: flex;
+    flex-direction: column;
+    gap: 1.25rem;
+}
+
+.profileLabel {
+    display: block;
+    margin-bottom: 0.5rem;
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: #374151;
+}
+
+.profileRequired {
+    color: #ef4444;
+}
+
+.profileInputFull {
+    width: 100%;
+}
+
+.profileHelperText {
+    margin-top: 0.25rem;
+    font-size: 0.75rem;
+    color: #6b7280;
+}
+
+.profileErrorBox {
+    margin-bottom: 1rem;
+    border-radius: 0.5rem;
+    background: #fef2f2;
+    padding: 0.75rem;
+}
+
+.profileErrorText {
+    margin: 0;
+    color: #dc2626;
+}
+
+.profileErrorTextMobile {
+    font-size: 0.75rem;
+}
+
+.profileErrorTextDesktop {
+    font-size: 0.875rem;
+}
+
+.profileSubmitButton {
+    width: 100%;
+    border: 0;
+    border-radius: 0.5rem;
+    background: #2563eb;
+    padding-left: 1rem;
+    padding-right: 1rem;
+    font-weight: 600;
+    color: #fff;
+    transition: background-color 0.2s;
+}
+
+.profileSubmitButton:hover {
+    background: #1d4ed8;
+}
+
+.profileSubmitButton:focus {
+    outline: none;
+    box-shadow: 0 0 0 2px #3b82f6;
+}
+
+.profileSubmitButton:disabled {
+    cursor: not-allowed;
+    opacity: 0.5;
+}
+
+.profileSubmitButtonMobile {
+    padding-top: 0.625rem;
+    padding-bottom: 0.625rem;
+    font-size: 0.875rem;
+}
+
+.profileSubmitButtonDesktop {
+    padding-top: 0.75rem;
+    padding-bottom: 0.75rem;
+    font-size: 1rem;
+}
+
+.profileSubmitButtonInner {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.profileSubmitSpinner {
+    width: 1rem;
+    height: 1rem;
+    margin-right: 0.5rem;
+    border-radius: 9999px;
+    border: 2px solid #fff;
+    border-top-color: transparent;
+    animation: spin 1s linear infinite;
+}
+
+.profileSignOutWrap {
+    margin-top: 1rem;
+    text-align: center;
+}
+
+.profileSignOutButton {
+    border: 0;
+    background: transparent;
+    color: #6b7280;
+    font-size: 0.875rem;
+}
+
+.profileSignOutButton:hover {
+    color: #374151;
+}
+
+.shiftListPage {
+    min-height: 100vh;
+    background: #f8fafc;
+    padding: 2rem 0;
+}
+
+.shiftListContainer {
+    width: 100%;
+    max-width: 72rem;
+    margin: 0 auto;
+    padding: 0 1rem;
+}
+
+.shiftListHeader {
+    margin-bottom: 1.5rem;
+}
+
+.shiftListTitle {
+    margin: 0 0 0.5rem;
+    font-size: 1.875rem;
+    font-weight: 700;
+    color: #1e293b;
+}
+
+.shiftListSubtitle {
+    margin: 0;
+    color: #475569;
+}
+
+.shiftListLoadingWrap {
+    text-align: center;
+}
+
+.shiftListEmptyContent {
+    padding-top: 3rem;
+    padding-bottom: 3rem;
+    text-align: center;
+}
+
+.shiftListEmptyText {
+    color: #64748b;
+}
+
+.shiftListListWrap {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+}
+
+.shiftListCard {
+    border-color: #99f6e4;
+    background: #f0fdfa;
+    transition: box-shadow 0.2s;
+}
+
+.shiftListCard:hover {
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+}
+
+.shiftListCardTitle {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.shiftListContent {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+
+.shiftListActionRow {
+    display: flex;
+    gap: 0.5rem;
+    padding-top: 0.5rem;
+}
+
+.shiftListAnswerButton {
+    background: #14b8a6;
+}
+
+.shiftListAnswerButton:hover {
+    background: #0d9488;
+    color: #fff;
+}
+
+.shiftListHomeButtonWrap {
+    margin-top: 2rem;
+}
+
+@keyframes spin {
+    to {
+        transform: rotate(360deg);
+    }
+}

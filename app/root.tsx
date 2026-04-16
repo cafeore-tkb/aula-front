@@ -10,7 +10,8 @@ import {
 } from 'react-router';
 
 import { AuthProvider, useAuth } from './lib/auth-context';
-import './tailwind.css';
+import './styles/app.scss';
+import styles from './root.module.scss';
 
 export const links = () => [
 	{ rel: 'preconnect', href: 'https://fonts.googleapis.com' },
@@ -51,10 +52,10 @@ function AppGuard() {
 	// ローディング中
 	if (loading) {
 		return (
-			<div className="flex min-h-screen items-center justify-center">
-				<div className="text-center">
-					<div className="mx-auto mb-4 h-8 w-8 animate-spin rounded-full border-4 border-blue-500 border-t-transparent" />
-					<p className="text-gray-600">読み込み中...</p>
+			<div className={styles.loadingWrap}>
+				<div className={styles.loadingInner}>
+					<div className={styles.loadingSpinner} />
+					<p className={styles.loadingText}>読み込み中...</p>
 				</div>
 			</div>
 		);
@@ -107,11 +108,11 @@ export function ErrorBoundary({ error }: { error: Error }) {
 	}
 
 	return (
-		<main className="container mx-auto p-4 pt-16">
+		<main className={styles.errorMain}>
 			<h1>{message}</h1>
 			<p>{details}</p>
 			{stack && (
-				<pre className="w-full overflow-x-auto p-4">
+				<pre className={styles.errorPre}>
 					<code>{stack}</code>
 				</pre>
 			)}

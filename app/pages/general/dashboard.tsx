@@ -3,6 +3,7 @@ import { useMediaQuery } from 'react-responsive';
 import { Link, useNavigate } from 'react-router';
 import { UserProfile } from '../../components/user-profile';
 import { useAuth } from '../../lib/auth-context';
+import styles from './general-pages.module.scss';
 
 export function meta() {
 	return [
@@ -41,10 +42,10 @@ export default function Home() {
 	// ローディング中またはプロファイル読み込み中
 	if (loading || (user && !userProfile)) {
 		return (
-			<div className="flex min-h-screen items-center justify-center bg-gray-100">
-				<div className="text-center">
-					<div className="mb-4 h-8 w-8 animate-spin rounded-full border-4 border-blue-500 border-t-transparent"></div>
-					<p className="text-gray-600">読み込み中...</p>
+			<div className={styles.loadingWrap}>
+				<div className={styles.loadingInner}>
+					<div className={styles.profileSpinner}></div>
+					<p className={styles.loadingText}>読み込み中...</p>
 				</div>
 			</div>
 		);
@@ -57,37 +58,37 @@ export default function Home() {
 
 	// ログイン済みユーザーのダッシュボード
 	return (
-		<div className="min-h-screen bg-gray-100 py-8">
-			<div className="mx-auto max-w-6xl px-4">
-				<h1 className={`mb-6 font-bold text-gray-900 ${isMobile ? 'text-2xl' : 'text-3xl'}`}>
+		<div className={styles.dashboardPage}>
+			<div className={styles.dashboardContainer}>
+				<h1 className={`${styles.dashboardTitle} ${isMobile ? styles.dashboardTitleMobile : styles.dashboardTitleDesktop}`}>
 					ホーム
 				</h1>
 
-				<div className={`grid ${isMobile ? 'grid-cols-1 gap-6' : 'grid-cols-1 gap-6 md:grid-cols-3'}`}>
+				<div className={`${styles.dashboardGrid} ${isMobile ? styles.dashboardGridMobile : styles.dashboardGridDesktop}`}>
 					{/* ユーザープロフィールカード */}
-					<div className={`${isMobile ? 'space-y-6' : 'space-y-6 md:col-span-1'}`}>
+					<div className={`${styles.profileColumn} ${isMobile ? styles.profileColumnMobile : styles.profileColumnDesktop}`}>
 						<UserProfile user={user} userProfile={userProfile} />
 					</div>
 
 					{/* メインコンテンツ */}
-					<div className={`${isMobile ? 'space-y-4' : 'space-y-6 md:col-span-2'}`}>
+					<div className={`${styles.mainColumn} ${isMobile ? styles.mainColumnMobile : styles.mainColumnDesktop}`}>
 						<div
-							className={`rounded-lg bg-white shadow-md ${isMobile ? 'p-4' : 'p-6'}`}
+							className={`${styles.quickActionCard} ${isMobile ? styles.quickActionCardMobile : styles.quickActionCardDesktop}`}
 						>
 							<h3
-								className={`mb-3 font-semibold text-gray-900 ${isMobile ? 'text-base' : 'text-lg'}`}
+								className={`${styles.quickActionTitle} ${isMobile ? styles.quickActionTitleMobile : styles.quickActionTitleDesktop}`}
 							>
 								クイックアクション
 							</h3>
 							<div
-								className={`grid ${isMobile ? 'grid-cols-1 gap-3' : 'grid-cols-1 gap-3 sm:grid-cols-2'}`}
+								className={`${styles.quickActionGrid} ${isMobile ? styles.quickActionGridMobile : styles.quickActionGridDesktop}`}
 							>
 								<Link
 									to="/shiftList"
-									className={`flex items-center gap-3 rounded-lg bg-blue-50 text-blue-600 transition-colors hover:bg-blue-100 ${isMobile ? 'p-3 text-sm' : 'p-3'}`}
+									className={`${styles.actionLink} ${styles.actionLinkBlue} ${isMobile ? styles.actionLinkMobile : styles.actionLinkDesktop}`}
 								>
 									<svg
-										className="h-5 w-5"
+										className={styles.actionIcon}
 										fill="none"
 										stroke="currentColor"
 										viewBox="0 0 24 24"
@@ -105,10 +106,10 @@ export default function Home() {
 								{userProfile?.isAdmin && (
 									<Link
 										to="/admin"
-										className={`flex items-center gap-3 rounded-lg bg-red-50 text-red-600 transition-colors hover:bg-red-100 ${isMobile ? 'p-3 text-sm' : 'p-3'}`}
+										className={`${styles.actionLink} ${styles.actionLinkRed} ${isMobile ? styles.actionLinkMobile : styles.actionLinkDesktop}`}
 									>
 										<svg
-											className="h-5 w-5"
+											className={styles.actionIcon}
 											fill="none"
 											stroke="currentColor"
 											viewBox="0 0 24 24"

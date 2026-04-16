@@ -27,6 +27,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '~/components/ui/tabs';
 import { HomeButton } from '../../components/home-button';
 import { useAuth } from '../../lib/auth-context';
 import type { UserProfile } from '../../lib/firebase';
+import styles from './admin-pages.module.scss';
 
 export function meta() {
 	return [
@@ -116,10 +117,10 @@ export default function Admin() {
 	// ローディング中の表示
 	if (loading) {
 		return (
-			<div className="flex min-h-screen items-center justify-center bg-gray-100">
-				<div className="text-center">
-					<div className="mb-4 h-8 w-8 animate-spin rounded-full border-4 border-red-500 border-t-transparent"></div>
-					<p className="text-gray-600">権限を確認中...</p>
+			<div className={styles.loadingWrap}>
+				<div className={styles.loadingInner}>
+					<div className={styles.spinner}></div>
+					<p className={styles.loadingText}>権限を確認中...</p>
 				</div>
 			</div>
 		);
@@ -133,10 +134,10 @@ export default function Admin() {
 	// ユーザープロフィールが未読み込みの場合
 	if (!userProfile) {
 		return (
-			<div className="flex min-h-screen items-center justify-center bg-gray-100">
-				<div className="text-center">
-					<div className="mb-4 h-8 w-8 animate-spin rounded-full border-4 border-red-500 border-t-transparent"></div>
-					<p className="text-gray-600">プロフィール情報を読み込み中...</p>
+			<div className={styles.loadingWrap}>
+				<div className={styles.loadingInner}>
+					<div className={styles.spinner}></div>
+					<p className={styles.loadingText}>プロフィール情報を読み込み中...</p>
 				</div>
 			</div>
 		);
@@ -149,58 +150,58 @@ export default function Admin() {
 
 	// 管理者ページのメインコンテンツ
 	return (
-		<div className="min-h-screen bg-gray-100 py-8">
-			<div className="mx-auto max-w-6xl px-4">
-				<div className="mb-6 flex items-center justify-between">
-					<h1 className="font-bold text-3xl text-gray-900">
+		<div className={styles.page}>
+			<div className={styles.container}>
+				<div className={styles.header}>
+					<h1 className={styles.title}>
 						管理者ページ-メンバー管理
 					</h1>
-					<div className="flex items-center space-x-2">
-						<span className="rounded-full bg-red-100 px-3 py-1 font-medium text-red-600 text-sm">
+					<div className={styles.userMeta}>
+						<span className={styles.badge}>
 							管理者
 						</span>
-						<span className="text-gray-600 text-sm">
+						<span className={styles.userName}>
 							{userProfile.name || user.displayName || 'ユーザー'}
 						</span>
 					</div>
 				</div>
 
 				{loadingUsers ? (
-					<div className="py-8 text-center">
-						<p className="text-gray-500 text-sm">読み込み中...</p>
+					<div className={styles.loadingUsersWrap}>
+						<p className={styles.loadingUsersText}>読み込み中...</p>
 					</div>
 				) : (
-					<Tabs defaultValue="view" className="w-full">
-						<TabsList className="mb-6 inline-grid max-w-lg grid-cols-2 gap-1 rounded-lg bg-gray-200 p-0.5">
+					<Tabs defaultValue="view" className={styles.tabsRoot}>
+						<TabsList className={styles.tabsList}>
 							<TabsTrigger
 								value="view"
-								className="flex items-center justify-center gap-1 rounded py-2 text-xs data-[state=active]:bg-white data-[state=active]:text-gray-900 data-[state=active]:shadow-sm"
+								className={styles.tabsTrigger}
 							>
-								<Eye className="h-4 w-4" />
+								<Eye className={styles.tabsIcon} />
 								<span>閲覧モード</span>
 							</TabsTrigger>
 							<TabsTrigger
 								value="edit"
-								className="flex items-center justify-center gap-1 rounded py-2 text-xs data-[state=active]:bg-white data-[state=active]:text-gray-900 data-[state=active]:shadow-sm"
+								className={styles.tabsTrigger}
 							>
-								<Edit2 className="h-4 w-4" />
+								<Edit2 className={styles.tabsIcon} />
 								<span>編集モード</span>
 							</TabsTrigger>
 						</TabsList>
 
-						<TabsContent value="view" className="mt-6">
-							<div className="overflow-hidden rounded-lg border border-gray-200 shadow-sm">
-								<div className="max-h-[500px] overflow-y-auto">
-									<Table className="[&_*]:border-collapse">
-										<TableHeader className="bg-gray-100 sticky top-0 z-20">
-											<TableRow className="border-b border-gray-200">
-												<TableHead className="px-6 py-3 font-semibold text-gray-700">
+						<TabsContent value="view" className={styles.tabsContent}>
+							<div className={styles.tableShell}>
+								<div className={styles.tableScrollView}>
+									<Table className={styles.tableCollapsed}>
+										<TableHeader className={styles.tableHeaderSticky}>
+											<TableRow className={styles.tableHeaderRow}>
+												<TableHead className={styles.tableHead}>
 													表示名
 												</TableHead>
-												<TableHead className="px-6 py-3 font-semibold text-gray-700">
+												<TableHead className={styles.tableHead}>
 													入学年度
 												</TableHead>
-												<TableHead className="px-6 py-3 font-semibold text-gray-700">
+												<TableHead className={styles.tableHead}>
 													珈琲・俺ステータス
 												</TableHead>
 											</TableRow>
@@ -218,13 +219,13 @@ export default function Admin() {
 												return (
 													<TableRow
 														key={u.uid}
-														className={`border-b border-gray-100 hover:bg-gray-50 transition-colors ${index % 2 === 0 ? 'bg-white' : 'bg-gray-50'}`}
+														className={`${styles.tableRowBase} ${index % 2 === 0 ? styles.tableRowEven : styles.tableRowOdd}`}
 													>
-														<TableCell className="px-6 py-3 font-medium text-gray-900">
+														<TableCell className={styles.tableCellStrong}>
 															{u.name}
 														</TableCell>
-														<TableCell className="px-6 py-3 text-gray-700">{`${u.year.toString().slice(2)}生`}</TableCell>
-														<TableCell className="px-6 py-3 text-gray-700">
+														<TableCell className={styles.tableCell}>{`${u.year.toString().slice(2)}生`}</TableCell>
+														<TableCell className={styles.tableCell}>
 															{status}
 														</TableCell>
 													</TableRow>
@@ -236,19 +237,19 @@ export default function Admin() {
 							</div>
 						</TabsContent>
 
-						<TabsContent value="edit" className="mt-6">
-							<div className="overflow-hidden rounded-lg border border-gray-200 shadow-sm">
-								<div className="max-h-[400px] overflow-y-auto">
-									<Table className="[&_*]:border-collapse">
-										<TableHeader className="bg-gray-100 sticky top-0 z-20">
-											<TableRow className="border-b border-gray-200">
-												<TableHead className="px-6 py-3 font-semibold text-gray-700">
+						<TabsContent value="edit" className={styles.tabsContent}>
+							<div className={styles.tableShell}>
+								<div className={styles.tableScrollEdit}>
+									<Table className={styles.tableCollapsed}>
+										<TableHeader className={styles.tableHeaderSticky}>
+											<TableRow className={styles.tableHeaderRow}>
+												<TableHead className={styles.tableHead}>
 													表示名
 												</TableHead>
-												<TableHead className="px-6 py-3 font-semibold text-gray-700">
+												<TableHead className={styles.tableHead}>
 													入学年度
 												</TableHead>
-												<TableHead className="px-6 py-3 font-semibold text-gray-700">
+												<TableHead className={styles.tableHead}>
 													珈琲・俺ステータス
 												</TableHead>
 											</TableRow>
@@ -266,18 +267,18 @@ export default function Admin() {
 												return (
 													<TableRow
 														key={u.uid}
-														className={`border-b border-gray-100 hover:bg-gray-50 transition-colors ${index % 2 === 0 ? 'bg-white' : 'bg-gray-50'}`}
+														className={`${styles.tableRowBase} ${index % 2 === 0 ? styles.tableRowEven : styles.tableRowOdd}`}
 													>
-														<TableCell className="px-6 py-3 font-medium text-gray-900">
+														<TableCell className={styles.tableCellStrong}>
 															{u.name}
 														</TableCell>
-														<TableCell className="px-6 py-3 text-gray-700">{`${u.year.toString().slice(2)}生`}</TableCell>
-														<TableCell className="px-6 py-3">
+														<TableCell className={styles.tableCell}>{`${u.year.toString().slice(2)}生`}</TableCell>
+														<TableCell className={styles.tableCell}>
 															<Select
 																value={statusValue}
 																onValueChange={(value) => handleStatusChange(u.uid, value)}
 															>
-																<SelectTrigger className="w-[180px]">
+																<SelectTrigger className={styles.selectTrigger}>
 																	<SelectValue />
 																</SelectTrigger>
 																<SelectContent>
@@ -300,7 +301,7 @@ export default function Admin() {
 				)}
 
 				{/* ホームに戻るボタン */}
-				<div className="mt-8">
+				<div className={styles.homeButtonWrap}>
 					<HomeButton />
 				</div>
 			</div>
