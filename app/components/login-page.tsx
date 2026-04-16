@@ -43,7 +43,7 @@ export function LoginPage() {
 			if (isRegistration) {
 				// 新規登録時は秘密のパスワードを確認
 				const envPassword = import.meta.env.VITE_REGISTRATION_PASSWORD;
-				
+
 				if (!envPassword) {
 					setError('新規登録は現在無効になっています。管理者にお問い合わせください。');
 					setLoading(false);
