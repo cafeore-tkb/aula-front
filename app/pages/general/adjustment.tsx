@@ -9,6 +9,7 @@ import {
 	where,
 } from 'firebase/firestore';
 import type { Timestamp } from 'firebase/firestore';
+import { FileSpreadsheet } from 'lucide-react';
 import React, { useEffect, useId, useState } from 'react';
 import { useMediaQuery } from 'react-responsive';
 import { useLocation } from 'react-router';
@@ -314,7 +315,11 @@ export default function Adjustment() {
 					<Card className={styles.adjustmentShiftInfoCard}>
 						<CardContent className={styles.adjustmentShiftInfoContentMobile}>
 							<div className={styles.adjustmentShiftInfoRow}>
-								<span className={styles.adjustmentShiftIconMobile}>📋</span>
+								<FileSpreadsheet
+									className={styles.adjustmentShiftIconMobile}
+									size={20}
+									aria-hidden="true"
+								/>
 								<div>
 									<h2 className={styles.adjustmentShiftInfoTitleMobile}>
 										{shiftInfo.year}年度 {shiftInfo.semester === 'spring' ? '春' : '秋'}
@@ -457,7 +462,11 @@ export default function Adjustment() {
 							<Card className={styles.adjustmentShiftInfoCard}>
 								<CardContent className={isMobile ? styles.adjustmentShiftInfoContentMobile : styles.adjustmentShiftInfoContentDesktop}>
 									<div className={styles.adjustmentShiftInfoRow}>
-										<span className={isMobile ? styles.adjustmentShiftIconMobile : styles.adjustmentShiftIconDesktop}>📋</span>
+										<FileSpreadsheet
+											className={isMobile ? styles.adjustmentShiftIconMobile : styles.adjustmentShiftIconDesktop}
+											size={isMobile ? 20 : 24}
+											aria-hidden="true"
+										/>
 										<div>
 											<h2
 												className={`${styles.adjustmentShiftInfoTitle} ${
@@ -517,9 +526,11 @@ export default function Adjustment() {
 										isMobile ? styles.adjustmentFormLabelMobile : styles.adjustmentFormLabelDesktop
 									}`}
 								>
-									<span className={isMobile ? styles.adjustmentFormLabelIconMobile : styles.adjustmentFormLabelIconDesktop}>
-										💬
-									</span>
+									<FileSpreadsheet
+										className={isMobile ? styles.adjustmentFormLabelIconMobile : styles.adjustmentFormLabelIconDesktop}
+										size={isMobile ? 16 : 18}
+										aria-hidden="true"
+									/>
 									コメント
 								</label>
 								<textarea
@@ -545,9 +556,11 @@ export default function Adjustment() {
 											isMobile ? styles.adjustmentFormLabelMobile : styles.adjustmentFormLabelDesktop
 										}`}
 									>
-										<span className={isMobile ? styles.adjustmentFormLabelIconMobile : styles.adjustmentFormLabelIconDesktop}>
-											📊
-										</span>
+											<FileSpreadsheet
+												className={isMobile ? styles.adjustmentFormLabelIconMobile : styles.adjustmentFormLabelIconDesktop}
+												size={isMobile ? 16 : 18}
+												aria-hidden="true"
+											/>
 										希望頻度
 									</h3>
 									<RadioGroup
@@ -621,7 +634,8 @@ export default function Adjustment() {
 									<span
 										className={`${styles.adjustmentActionButtonInner} ${isMobile ? styles.adjustmentActionButtonTextMobile : styles.adjustmentActionButtonTextDesktop}`}
 									>
-										📝 編集する
+										<FileSpreadsheet size={isMobile ? 14 : 16} aria-hidden="true" />
+										編集する
 									</span>
 								</Button>
 							) : (
@@ -645,7 +659,8 @@ export default function Adjustment() {
 										<span
 											className={`${styles.adjustmentActionButtonInner} ${isMobile ? styles.adjustmentActionButtonTextMobile : styles.adjustmentActionButtonTextDesktop}`}
 										>
-											💾 保存する
+											<FileSpreadsheet size={isMobile ? 14 : 16} aria-hidden="true" />
+											保存する
 										</span>
 									)}
 								</Button>
