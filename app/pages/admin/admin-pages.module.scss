@@ -1,45 +1,45 @@
-.page {
-    background: #f8fafc;
+/* Used by: app/pages/admin/{admin,manage-adjustment,member,schedule-shift,settings}.tsx */
+.loadingWrap {
     min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #f3f4f6;
 }
 
-.pageMobile {
-    padding: 0.75rem 0;
+.loadingInner {
+    text-align: center;
 }
 
-.pageTablet {
-    padding: 1.5rem 0;
+.spinner {
+    width: 2rem;
+    height: 2rem;
+    margin: 0 0 1rem;
+    border-radius: 9999px;
+    border: 4px solid #ef4444;
+    border-top-color: transparent;
+    animation: spin 1s linear infinite;
 }
 
-.pageDesktop {
-    padding: 1rem 0;
+.loadingText {
+    color: #4b5563;
+}
+
+.page {
+    min-height: 100vh;
+    background: #f3f4f6;
+    padding: 2rem 0;
 }
 
 .container {
+    width: 100%;
+    max-width: 72rem;
     margin: 0 auto;
-}
-
-.containerMobile {
-    max-width: 100%;
-    padding: 0 0.5rem;
-}
-
-.containerTablet {
-    max-width: 97vw;
-    padding: 0 0.75rem;
-}
-
-.containerDesktop {
-    max-width: 98vw;
     padding: 0 1rem;
 }
 
 .header {
     margin-bottom: 1.5rem;
-}
-
-.headerRow {
-    width: 100%;
     display: flex;
     align-items: center;
     justify-content: space-between;
@@ -47,26 +47,464 @@
 
 .title {
     margin: 0;
+    color: #111827;
+    font-size: 1.875rem;
+    font-weight: 700;
+}
+
+.userMeta {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.badge {
+    border-radius: 9999px;
+    background: #fee2e2;
+    padding: 0.25rem 0.75rem;
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: #dc2626;
+}
+
+.userName {
+    color: #4b5563;
+    font-size: 0.875rem;
+}
+
+.homeButtonWrap {
+    margin-top: 2rem;
+}
+
+.cardsGrid {
+    display: grid;
+    grid-template-columns: repeat(1, minmax(0, 1fr));
+    gap: 1.5rem;
+}
+
+@media (min-width: 768px) {
+    .cardsGrid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
+
+@media (min-width: 1024px) {
+    .cardsGrid {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+}
+
+.card {
+    border-radius: 0.5rem;
+    background: #fff;
+    padding: 1.5rem;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.cardHeader {
+    margin-bottom: 1rem;
+    display: flex;
+    align-items: center;
+}
+
+.cardIcon {
+    width: 2rem;
+    height: 2rem;
+    margin-right: 0.75rem;
+}
+
+.iconBlue {
+    color: #2563eb;
+}
+
+.iconPurple {
+    color: #9333ea;
+}
+
+.iconGreen {
+    color: #16a34a;
+}
+
+.cardTitle {
+    margin: 0;
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: #111827;
+}
+
+.cardText {
+    margin: 0 0 1rem;
+    font-size: 0.875rem;
+    color: #4b5563;
+}
+
+.actionButton {
+    width: 100%;
+    border: 0;
+    border-radius: 0.5rem;
+    padding: 0.5rem 1rem;
+    color: #fff;
+    transition: background-color 0.2s;
+}
+
+.actionButtonBlue {
+    background: #2563eb;
+}
+
+.actionButtonBlue:hover {
+    background: #1d4ed8;
+}
+
+.actionButtonPurple {
+    background: #9333ea;
+}
+
+.actionButtonPurple:hover {
+    background: #7e22ce;
+}
+
+.actionButtonGreen {
+    background: #16a34a;
+}
+
+.actionButtonGreen:hover {
+    background: #15803d;
+}
+
+.loadingUsersWrap {
+    padding: 2rem 0;
+    text-align: center;
+}
+
+.loadingUsersText {
+    font-size: 0.875rem;
+    color: #6b7280;
+}
+
+.tabsRoot {
+    width: 100%;
+}
+
+.tabsList {
+    margin-bottom: 1.5rem;
+    display: inline-grid;
+    max-width: 32rem;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.25rem;
+    border-radius: 0.5rem;
+    background: #e5e7eb;
+    padding: 0.125rem;
+}
+
+.tabsTrigger {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.25rem;
+    border-radius: 0.25rem;
+    padding: 0.5rem 0;
+    font-size: 0.75rem;
+}
+
+.tabsIcon {
+    width: 1rem;
+    height: 1rem;
+}
+
+.tabsContent {
+    margin-top: 1.5rem;
+}
+
+.tableShell {
+    overflow: hidden;
+    border: 1px solid #e5e7eb;
+    border-radius: 0.5rem;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+}
+
+.tableScrollView {
+    max-height: 500px;
+    overflow-y: auto;
+}
+
+.tableScrollEdit {
+    max-height: 400px;
+    overflow-y: auto;
+}
+
+.tableCollapsed {
+    border-collapse: collapse;
+}
+
+.tableHeaderSticky {
+    position: sticky;
+    top: 0;
+    z-index: 20;
+    background: #f3f4f6;
+}
+
+.tableHeaderRow {
+    border-bottom: 1px solid #e5e7eb;
+}
+
+.tableHead {
+    padding: 0.75rem 1.5rem;
+    font-weight: 600;
+    color: #374151;
+}
+
+.tableRowBase {
+    border-bottom: 1px solid #f3f4f6;
+    transition: background-color 0.2s;
+}
+
+.tableRowBase:hover {
+    background: #f9fafb;
+}
+
+.tableRowEven {
+    background: #fff;
+}
+
+.tableRowOdd {
+    background: #f9fafb;
+}
+
+.tableCell {
+    padding: 0.75rem 1.5rem;
+    color: #374151;
+}
+
+.tableCellStrong {
+    padding: 0.75rem 1.5rem;
+    font-weight: 500;
+    color: #111827;
+}
+
+.selectTrigger {
+    width: 180px;
+}
+
+.manageUserInfo {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.manageAdminBadge {
+    border-radius: 9999px;
+    background: var(--color-red-100);
+    padding: 0.25rem 0.75rem;
+    font-size: 0.875rem;
+    line-height: 1.25rem;
+    font-weight: 500;
+    color: var(--color-red-600);
+}
+
+.manageSectionHeading {
+    margin-bottom: 1rem;
+    font-size: 1.125rem;
+    line-height: 1.75rem;
+    font-weight: 500;
+    color: var(--color-gray-900);
+}
+
+.manageFormCard {
+    margin-bottom: 1.5rem;
+    border-radius: 0.5rem;
+    background: var(--color-white);
+    padding: 1.5rem;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+}
+
+.manageFormTitle {
+    margin-bottom: 1rem;
+    font-size: 1.125rem;
+    line-height: 1.75rem;
+    font-weight: 600;
+    color: var(--color-gray-900);
+}
+
+.manageFormGrid {
+    display: grid;
+    grid-template-columns: repeat(1, minmax(0, 1fr));
+    gap: 1rem;
+}
+
+.manageLabel {
+    display: block;
+    margin-bottom: 0.5rem;
+    font-size: 0.875rem;
+    line-height: 1.25rem;
+    color: var(--color-gray-700);
+}
+
+.manageAddButtonWrap {
+    display: flex;
+    align-items: flex-end;
+}
+
+.manageAddButton {
+    width: 100%;
+    padding: 0.5rem 1.5rem;
+    font-weight: 600;
+    background: var(--color-blue-600);
+    color: var(--color-white);
+
+    &:hover {
+        background: var(--color-blue-700);
+    }
+
+    &:disabled {
+        opacity: 0.5;
+    }
+}
+
+.manageLoadingWrap {
+    padding: 2rem 0;
+    text-align: center;
+}
+
+.manageLoadingText {
+    font-size: 0.875rem;
+    line-height: 1.25rem;
+    color: var(--color-gray-500);
+}
+
+.manageTableCard {
+    border-radius: 0.5rem;
+    background: var(--color-white);
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+}
+
+.manageTableText {
+    font-size: 1.25rem;
+    line-height: 1.75rem;
+}
+
+.manageRowOpen {
+    background: var(--color-green-200);
+}
+
+.manageRowClosed {
+    background: var(--color-gray-200);
+}
+
+.manageSelectTriggerBase {
+    width: 120px;
+    background: transparent;
+}
+
+.manageSelectPositive {
+    border-color: var(--color-green-300);
+    color: var(--color-green-700);
+
+    &:hover {
+        background: color-mix(in oklab, var(--color-green-100) 50%, transparent);
+    }
+}
+
+.manageSelectNeutral {
+    border-color: var(--color-gray-300);
+    color: var(--color-gray-700);
+
+    &:hover {
+        background: color-mix(in oklab, var(--color-gray-100) 50%, transparent);
+    }
+}
+
+.manageActionButtons {
+    display: flex;
+    gap: 0.5rem;
+}
+
+.managePrimaryActionButton {
+    background: var(--color-blue-600);
+    color: var(--color-white);
+
+    &:hover {
+        background: var(--color-blue-700);
+    }
+}
+
+.manageCsvButton {
+    border-color: var(--color-green-600);
+    color: var(--color-green-600);
+
+    &:hover {
+        background: var(--color-green-50);
+    }
+}
+
+.schedulePage {
+    background: #f8fafc;
+    min-height: 100vh;
+}
+
+.schedulePageMobile {
+    padding: 0.75rem 0;
+}
+
+.schedulePageTablet {
+    padding: 1.5rem 0;
+}
+
+.schedulePageDesktop {
+    padding: 1rem 0;
+}
+
+.scheduleContainer {
+    margin: 0 auto;
+}
+
+.scheduleContainerMobile {
+    max-width: 100%;
+    padding: 0 0.5rem;
+}
+
+.scheduleContainerTablet {
+    max-width: 97vw;
+    padding: 0 0.75rem;
+}
+
+.scheduleContainerDesktop {
+    max-width: 98vw;
+    padding: 0 1rem;
+}
+
+.scheduleHeader {
+    margin-bottom: 1.5rem;
+}
+
+.scheduleHeaderRow {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.scheduleTitle {
+    margin: 0;
     font-weight: 700;
     color: #1e293b;
 }
 
-.titleMobile {
+.scheduleTitleMobile {
     font-size: 1.5rem;
 }
 
-.titleDesktop {
+.scheduleTitleDesktop {
     font-size: 1.875rem;
 }
 
-.loadingUsers {
+.scheduleLoadingUsers {
     margin-top: 0.5rem;
     display: flex;
     align-items: center;
     gap: 0.5rem;
 }
 
-.loadingUsersSpinner {
+.scheduleLoadingUsersSpinner {
     width: 1rem;
     height: 1rem;
     border-radius: 9999px;
@@ -75,7 +513,7 @@
     animation: spin 1s linear infinite;
 }
 
-.loadingUsersText {
+.scheduleLoadingUsersText {
     color: #64748b;
     font-size: 0.875rem;
 }
@@ -573,6 +1011,12 @@
 .emptyStaffText {
     font-size: 0.875rem;
     color: #64748b;
+}
+
+@media (min-width: 768px) {
+    .manageFormGrid {
+        grid-template-columns: repeat(5, minmax(0, 1fr));
+    }
 }
 
 @keyframes pulse {

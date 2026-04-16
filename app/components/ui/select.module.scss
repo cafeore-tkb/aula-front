@@ -1,3 +1,4 @@
+/* Used by: app/components/ui/select.tsx */
 .selectTrigger {
     display: flex;
     height: 2.5rem;
@@ -29,6 +30,7 @@
 .selectTrigger>span {
     overflow: hidden;
     display: -webkit-box;
+    line-clamp: 1;
     -webkit-line-clamp: 1;
     -webkit-box-orient: vertical;
 }
