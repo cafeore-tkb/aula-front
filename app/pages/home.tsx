@@ -1,7 +1,7 @@
 import { useNavigate } from 'react-router';
 import { useAuth } from '../lib/auth-context';
 import { useEffect } from 'react';
-import styles from './home.module.scss';
+import styles from './general/general-pages.module.scss';
 
 export function meta() {
 	return [
@@ -40,7 +40,7 @@ export default function Home() {
 	return (
 		<div className={styles.loadingWrap}>
 			<div className={styles.loadingInner}>
-				<div className={styles.spinner}></div>
+				<div className={styles.profileSpinner}></div>
 				<p className={styles.loadingText}>読み込み中...</p>
 			</div>
 		</div>
