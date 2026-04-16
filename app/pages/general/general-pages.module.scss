@@ -188,6 +188,9 @@
 }
 
 .adjustmentDayHeaderCard {
+    display: flex;
+    align-items: center;
+    justify-content: center;
     border-radius: 0.5rem;
     background: #3b82f6;
     color: #fff;
@@ -208,26 +211,33 @@
 }
 
 .adjustmentDayHeaderText {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    height: 100%;
+    margin: 0;
+    padding: 0;
     text-align: center;
     font-weight: 600;
 }
 
 .adjustmentDayHeaderTextMobile {
-    padding: 0.125rem;
     font-size: 0.75rem;
 }
 
 .adjustmentDayHeaderTextTablet {
-    padding: 0.25rem;
     font-size: 0.75rem;
 }
 
 .adjustmentDayHeaderTextDesktop {
-    padding: 0.5rem;
     font-size: 0.875rem;
 }
 
 .adjustmentTimeHeaderCard {
+    display: flex;
+    align-items: center;
+    justify-content: center;
     border: 1px solid #e2e8f0;
     border-radius: 0.5rem;
     background: #f1f5f9;
@@ -248,20 +258,27 @@
 }
 
 .adjustmentTimeHeaderContent {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    height: 100%;
+    margin: 0;
+    padding: 0;
     text-align: center;
     font-weight: 500;
 }
 
 .adjustmentTimeHeaderContentMobile {
-    padding: 0.125rem;
+    font-size: 0.75rem;
 }
 
 .adjustmentTimeHeaderContentTablet {
-    padding: 0.25rem;
+    font-size: 0.875rem;
 }
 
 .adjustmentTimeHeaderContentDesktop {
-    padding: 0.625rem;
+    font-size: 0.875rem;
 }
 
 .adjustmentPeriodTextMobile {
@@ -294,10 +311,14 @@
 }
 
 .adjustmentSlotButtonBase {
+    align-self: stretch;
+    min-height: 100%;
     height: 100%;
     width: 100%;
+    padding: 0;
     border-radius: 0.5rem;
     border: 1px solid #e2e8f0;
+    line-height: 1;
     font-weight: 600;
     box-shadow: 0 1px 2px rgba(0, 0, 0, 0.08);
     transition: all 0.3s;
@@ -706,6 +727,137 @@
 
 .dashboardTitleDesktop {
     font-size: 1.875rem;
+}
+
+.dashboardGrid {
+    display: grid;
+    gap: 1.5rem;
+}
+
+.dashboardGridMobile {
+    grid-template-columns: repeat(1, minmax(0, 1fr));
+}
+
+.dashboardGridDesktop {
+    grid-template-columns: repeat(1, minmax(0, 1fr));
+}
+
+@media (min-width: 768px) {
+    .dashboardGridDesktop {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+}
+
+.profileColumn {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+}
+
+.profileColumnDesktop {
+    grid-column: span 1 / span 1;
+}
+
+.mainColumn {
+    display: flex;
+    flex-direction: column;
+}
+
+.mainColumnMobile {
+    gap: 1rem;
+}
+
+.mainColumnDesktop {
+    gap: 1.5rem;
+    grid-column: span 2 / span 2;
+}
+
+.quickActionCard {
+    border-radius: 0.5rem;
+    background: #fff;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.quickActionCardMobile {
+    padding: 1rem;
+}
+
+.quickActionCardDesktop {
+    padding: 1.5rem;
+}
+
+.quickActionTitle {
+    margin: 0 0 0.75rem;
+    font-weight: 600;
+    color: #111827;
+}
+
+.quickActionTitleMobile {
+    font-size: 1rem;
+}
+
+.quickActionTitleDesktop {
+    font-size: 1.125rem;
+}
+
+.quickActionGrid {
+    display: grid;
+    gap: 0.75rem;
+}
+
+.quickActionGridMobile {
+    grid-template-columns: repeat(1, minmax(0, 1fr));
+}
+
+.quickActionGridDesktop {
+    grid-template-columns: repeat(1, minmax(0, 1fr));
+}
+
+@media (min-width: 640px) {
+    .quickActionGridDesktop {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
+
+.actionLink {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    border-radius: 0.5rem;
+    text-decoration: none;
+    transition: background-color 0.2s;
+}
+
+.actionLinkMobile {
+    padding: 0.75rem;
+    font-size: 0.875rem;
+}
+
+.actionLinkDesktop {
+    padding: 0.75rem;
+}
+
+.actionLinkBlue {
+    background: #eff6ff;
+    color: #2563eb;
+}
+
+.actionLinkBlue:hover {
+    background: #dbeafe;
+}
+
+.actionLinkRed {
+    background: #fef2f2;
+    color: #dc2626;
+}
+
+.actionLinkRed:hover {
+    background: #fee2e2;
+}
+
+.actionIcon {
+    width: 1.25rem;
+    height: 1.25rem;
 }
 
 .profilePage {

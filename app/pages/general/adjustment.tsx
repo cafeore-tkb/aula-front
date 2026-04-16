@@ -421,17 +421,17 @@ export default function Adjustment() {
 											<Button
 												key={`${period}-${dayName}`}
 												variant={isSelected ? 'default' : 'ghost'}
-												className={`${styles.slotButtonBase} ${
+												className={`${styles.adjustmentSlotButtonBase} ${
 													isMobile
-														? styles.slotButtonMobile
+															? styles.adjustmentSlotButtonMobile
 														: isTablet
-															? styles.slotButtonTablet
-															: styles.slotButtonDesktop
+																? styles.adjustmentSlotButtonTablet
+																: styles.adjustmentSlotButtonDesktop
 												} ${
 													isSelected
-														? styles.slotButtonSelected
-														: styles.slotButtonUnselected
-												} ${!isEditMode ? styles.slotButtonReadonly : ''}`}
+															? styles.adjustmentSlotButtonSelected
+															: styles.adjustmentSlotButtonUnselected
+													} ${!isEditMode ? styles.adjustmentSlotButtonReadonly : ''}`}
 												onClick={() => isEditMode && toggleCell(periodIndex, dayIndex)}
 												disabled={!isEditMode}
 											>
@@ -447,25 +447,25 @@ export default function Adjustment() {
 
 				{/* 右側：入力欄 (1/4の幅) */}
 				<div
-					className={`${styles.sidePane} ${isMobile ? styles.sidePaneMobile : isTablet ? styles.sidePaneTablet : styles.sidePaneDesktop}`}
+					className={`${styles.adjustmentSidePane} ${isMobile ? styles.adjustmentSidePaneMobile : isTablet ? styles.adjustmentSidePaneTablet : styles.adjustmentSidePaneDesktop}`}
 				>
 					<div
-						className={`${styles.sideStack} ${isMobile ? styles.sideStackMobile : isTablet ? styles.sideStackTablet : styles.sideStackDesktop}`}
+						className={`${styles.adjustmentSideStack} ${isMobile ? styles.adjustmentSideStackMobile : isTablet ? styles.adjustmentSideStackTablet : styles.adjustmentSideStackDesktop}`}
 					>
 						{/* シフト情報表示（タブレット・デスクトップのみ） */}
 						{!isMobile && shiftInfo && (
-							<Card className={styles.shiftInfoCard}>
-								<CardContent className={isMobile ? styles.shiftInfoContentMobile : styles.shiftInfoContentDesktop}>
-									<div className={styles.shiftInfoRow}>
-										<span className={isMobile ? styles.shiftIconMobile : styles.shiftIconDesktop}>📋</span>
+							<Card className={styles.adjustmentShiftInfoCard}>
+								<CardContent className={isMobile ? styles.adjustmentShiftInfoContentMobile : styles.adjustmentShiftInfoContentDesktop}>
+									<div className={styles.adjustmentShiftInfoRow}>
+										<span className={isMobile ? styles.adjustmentShiftIconMobile : styles.adjustmentShiftIconDesktop}>📋</span>
 										<div>
 											<h2
-												className={`${styles.shiftInfoTitle} ${
+												className={`${styles.adjustmentShiftInfoTitle} ${
 													isMobile
-														? styles.shiftInfoTitleMobile
+														? styles.adjustmentShiftInfoTitleMobile
 														: isTablet
-															? styles.shiftInfoTitleTablet
-															: styles.shiftInfoTitleDesktop
+															? styles.adjustmentShiftInfoTitleTablet
+															: styles.adjustmentShiftInfoTitleDesktop
 												}`}
 											>
 												{shiftInfo.year}年度 {shiftInfo.semester === 'spring' ? '春' : '秋'}
@@ -479,26 +479,26 @@ export default function Adjustment() {
 
 						{/* ユーザー名表示 */}
 						{user && (
-							<Card className={styles.userCard}>
-								<CardContent className={isMobile ? styles.userCardContentMobile : styles.userCardContentDesktop}>
-									<div className={styles.userRow}>
+							<Card className={styles.adjustmentUserCard}>
+								<CardContent className={isMobile ? styles.adjustmentUserCardContentMobile : styles.adjustmentUserCardContentDesktop}>
+									<div className={styles.adjustmentUserRow}>
 										<div
-											className={`${styles.avatarCircle} ${
-												isMobile ? styles.avatarCircleMobile : styles.avatarCircleDesktop
+											className={`${styles.adjustmentAvatarCircle} ${
+												isMobile ? styles.adjustmentAvatarCircleMobile : styles.adjustmentAvatarCircleDesktop
 											}`}
 										>
 											<span
-												className={`${styles.avatarInitial} ${isMobile ? styles.avatarInitialMobile : styles.avatarInitialDesktop}`}
+												className={`${styles.adjustmentAvatarInitial} ${isMobile ? styles.adjustmentAvatarInitialMobile : styles.adjustmentAvatarInitialDesktop}`}
 											>
 												{(user.displayName || user.email || 'U').charAt(0).toUpperCase()}
 											</span>
 										</div>
 										<div>
-											<p className={styles.userLoginLabel}>
+											<p className={styles.adjustmentUserLoginLabel}>
 												ログイン中
 											</p>
 											<p
-												className={`${styles.userLoginName} ${isMobile ? styles.userLoginNameMobile : styles.userLoginNameDesktop}`}
+												className={`${styles.adjustmentUserLoginName} ${isMobile ? styles.adjustmentUserLoginNameMobile : styles.adjustmentUserLoginNameDesktop}`}
 											>
 												{user.displayName || user.email || 'ユーザー'}
 											</p>
@@ -509,15 +509,15 @@ export default function Adjustment() {
 						)}
 
 						{/* コメント欄 */}
-						<Card className={styles.formCard}>
-							<CardContent className={isMobile ? styles.formCardContentMobile : styles.formCardContentDesktop}>
+						<Card className={styles.adjustmentFormCard}>
+							<CardContent className={isMobile ? styles.adjustmentFormCardContentMobile : styles.adjustmentFormCardContentDesktop}>
 								<label
 									htmlFor={subjectNameId}
-									className={`${styles.formLabel} ${
-										isMobile ? styles.formLabelMobile : styles.formLabelDesktop
+									className={`${styles.adjustmentFormLabel} ${
+										isMobile ? styles.adjustmentFormLabelMobile : styles.adjustmentFormLabelDesktop
 									}`}
 								>
-									<span className={isMobile ? styles.formLabelIconMobile : styles.formLabelIconDesktop}>
+									<span className={isMobile ? styles.adjustmentFormLabelIconMobile : styles.adjustmentFormLabelIconDesktop}>
 										💬
 									</span>
 									コメント
@@ -527,8 +527,8 @@ export default function Adjustment() {
 									value={comment}
 									onChange={(e) => setComment(e.target.value)}
 									rows={isMobile ? 2 : 3}
-									className={`${styles.commentInput} ${
-										isMobile ? styles.commentInputMobile : styles.commentInputDesktop
+									className={`${styles.adjustmentCommentInput} ${
+										isMobile ? styles.adjustmentCommentInputMobile : styles.adjustmentCommentInputDesktop
 									}`}
 									placeholder="ご要望やコメントがあればお書きください..."
 									disabled={!isEditMode}
@@ -538,14 +538,14 @@ export default function Adjustment() {
 
 						{/* 希望頻度 */}
 						{shiftInfo?.isTwice && (
-							<Card className={styles.formCard}>
-								<CardContent className={isMobile ? styles.formCardContentMobile : styles.formCardContentDesktop}>
+							<Card className={styles.adjustmentFormCard}>
+								<CardContent className={isMobile ? styles.adjustmentFormCardContentMobile : styles.adjustmentFormCardContentDesktop}>
 									<h3
-										className={`${styles.formLabel} ${
-											isMobile ? styles.formLabelMobile : styles.formLabelDesktop
+										className={`${styles.adjustmentFormLabel} ${
+											isMobile ? styles.adjustmentFormLabelMobile : styles.adjustmentFormLabelDesktop
 										}`}
 									>
-										<span className={isMobile ? styles.formLabelIconMobile : styles.formLabelIconDesktop}>
+										<span className={isMobile ? styles.adjustmentFormLabelIconMobile : styles.adjustmentFormLabelIconDesktop}>
 											📊
 										</span>
 										希望頻度
@@ -553,53 +553,53 @@ export default function Adjustment() {
 									<RadioGroup
 										value={frequency}
 										onValueChange={setFrequency}
-										className={isMobile ? styles.frequencyGroupMobile : styles.frequencyGroupDesktop}
+										className={isMobile ? styles.adjustmentFrequencyGroupMobile : styles.adjustmentFrequencyGroupDesktop}
 										disabled={!isEditMode}
 									>
 										<div
-											className={`${styles.frequencyOption} ${isMobile ? styles.frequencyOptionMobile : styles.frequencyOptionDesktop} ${!isEditMode ? styles.frequencyOptionDisabled : ''}`}
+											className={`${styles.adjustmentFrequencyOption} ${isMobile ? styles.adjustmentFrequencyOptionMobile : styles.adjustmentFrequencyOptionDesktop} ${!isEditMode ? styles.adjustmentFrequencyOptionDisabled : ''}`}
 										>
 											<RadioGroupItem
 												value="週1回"
 												id={weekly1Id}
-												className={styles.frequencyRadio}
+												className={styles.adjustmentFrequencyRadio}
 												disabled={!isEditMode}
 											/>
 											<label
 												htmlFor={weekly1Id}
-												className={`${styles.frequencyLabel} ${isMobile ? styles.frequencyLabelMobile : styles.frequencyLabelDesktop} ${isEditMode ? styles.frequencyLabelClickable : styles.frequencyLabelReadonly}`}
+												className={`${styles.adjustmentFrequencyLabel} ${isMobile ? styles.adjustmentFrequencyLabelMobile : styles.adjustmentFrequencyLabelDesktop} ${isEditMode ? styles.adjustmentFrequencyLabelClickable : styles.adjustmentFrequencyLabelReadonly}`}
 											>
 												週1回
 											</label>
 										</div>
 										<div
-											className={`${styles.frequencyOption} ${isMobile ? styles.frequencyOptionMobile : styles.frequencyOptionDesktop} ${!isEditMode ? styles.frequencyOptionDisabled : ''}`}
+											className={`${styles.adjustmentFrequencyOption} ${isMobile ? styles.adjustmentFrequencyOptionMobile : styles.adjustmentFrequencyOptionDesktop} ${!isEditMode ? styles.adjustmentFrequencyOptionDisabled : ''}`}
 										>
 											<RadioGroupItem
 												value="週2回"
 												id={weekly2Id}
-												className={styles.frequencyRadio}
+												className={styles.adjustmentFrequencyRadio}
 												disabled={!isEditMode}
 											/>
 											<label
 												htmlFor={weekly2Id}
-												className={`${styles.frequencyLabel} ${isMobile ? styles.frequencyLabelMobile : styles.frequencyLabelDesktop} ${isEditMode ? styles.frequencyLabelClickable : styles.frequencyLabelReadonly}`}
+												className={`${styles.adjustmentFrequencyLabel} ${isMobile ? styles.adjustmentFrequencyLabelMobile : styles.adjustmentFrequencyLabelDesktop} ${isEditMode ? styles.adjustmentFrequencyLabelClickable : styles.adjustmentFrequencyLabelReadonly}`}
 											>
 												週2回
 											</label>
 										</div>
 										<div
-											className={`${styles.frequencyOption} ${isMobile ? styles.frequencyOptionMobile : styles.frequencyOptionDesktop} ${!isEditMode ? styles.frequencyOptionDisabled : ''}`}
+											className={`${styles.adjustmentFrequencyOption} ${isMobile ? styles.adjustmentFrequencyOptionMobile : styles.adjustmentFrequencyOptionDesktop} ${!isEditMode ? styles.adjustmentFrequencyOptionDisabled : ''}`}
 										>
 											<RadioGroupItem
 												value="試験官"
 												id={examId}
-												className={styles.frequencyRadio}
+												className={styles.adjustmentFrequencyRadio}
 												disabled={!isEditMode}
 											/>
 											<label
 												htmlFor={examId}
-												className={`${styles.frequencyLabel} ${isMobile ? styles.frequencyLabelMobile : styles.frequencyLabelDesktop} ${isEditMode ? styles.frequencyLabelClickable : styles.frequencyLabelReadonly}`}
+												className={`${styles.adjustmentFrequencyLabel} ${isMobile ? styles.adjustmentFrequencyLabelMobile : styles.adjustmentFrequencyLabelDesktop} ${isEditMode ? styles.adjustmentFrequencyLabelClickable : styles.adjustmentFrequencyLabelReadonly}`}
 											>
 												試験官
 											</label>
@@ -610,40 +610,40 @@ export default function Adjustment() {
 						)}
 
 						{/* ボタン */}
-						<div className={styles.actionRow}>
+						<div className={styles.adjustmentActionRow}>
 							{!isEditMode ? (
 								<Button
-									className={`${styles.editButton} ${
-										isMobile ? styles.actionButtonMobile : styles.actionButtonDesktop
+									className={`${styles.adjustmentEditButton} ${
+										isMobile ? styles.adjustmentActionButtonMobile : styles.adjustmentActionButtonDesktop
 									}`}
 									onClick={() => setIsEditMode(true)}
 								>
 									<span
-										className={`${styles.actionButtonInner} ${isMobile ? styles.actionButtonTextMobile : styles.actionButtonTextDesktop}`}
+										className={`${styles.adjustmentActionButtonInner} ${isMobile ? styles.adjustmentActionButtonTextMobile : styles.adjustmentActionButtonTextDesktop}`}
 									>
 										📝 編集する
 									</span>
 								</Button>
 							) : (
 								<Button
-									className={`${styles.saveButton} ${
-										isMobile ? styles.actionButtonMobile : styles.actionButtonDesktop
+									className={`${styles.adjustmentSaveButton} ${
+										isMobile ? styles.adjustmentActionButtonMobile : styles.adjustmentActionButtonDesktop
 									}`}
 									onClick={handleSave}
 									disabled={isSaving}
 								>
 									{isSaving ? (
 										<span
-											className={`${styles.actionButtonInner} ${isMobile ? styles.actionButtonTextMobile : styles.actionButtonTextDesktop}`}
+											className={`${styles.adjustmentActionButtonInner} ${isMobile ? styles.adjustmentActionButtonTextMobile : styles.adjustmentActionButtonTextDesktop}`}
 										>
 											<div
-												className={isMobile ? styles.saveSpinnerMobile : styles.saveSpinnerDesktop}
+												className={isMobile ? styles.adjustmentSaveSpinnerMobile : styles.adjustmentSaveSpinnerDesktop}
 											/>
 											保存中...
 										</span>
 									) : (
 										<span
-											className={`${styles.actionButtonInner} ${isMobile ? styles.actionButtonTextMobile : styles.actionButtonTextDesktop}`}
+											className={`${styles.adjustmentActionButtonInner} ${isMobile ? styles.adjustmentActionButtonTextMobile : styles.adjustmentActionButtonTextDesktop}`}
 										>
 											💾 保存する
 										</span>
