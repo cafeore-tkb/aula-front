@@ -1,7 +1,7 @@
 import { Navigate, useLocation } from 'react-router';
 import { LoginPage } from '../../components/login-page';
 import { useAuth } from '../../lib/auth-context';
-import styles from './login.module.scss';
+import styles from './general-pages.module.scss';
 
 export function meta() {
 	return [
@@ -28,9 +28,9 @@ export default function Login() {
 	// ローディング中
 	if (loading) {
 		return (
-			<div className={styles.loadingContainer}>
-				<div className={styles.loadingContent}>
-					<div className={styles.spinner} />
+			<div className={styles.loginLoadingContainer}>
+				<div className={styles.loginLoadingContent}>
+					<div className={styles.loginSpinner} />
 					<p className={styles.loadingText}>読み込み中...</p>
 				</div>
 			</div>

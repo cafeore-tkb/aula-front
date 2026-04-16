@@ -3,7 +3,7 @@ import { useMediaQuery } from 'react-responsive';
 import { Link, useNavigate } from 'react-router';
 import { UserProfile } from '../../components/user-profile';
 import { useAuth } from '../../lib/auth-context';
-import styles from './dashboard.module.scss';
+import styles from './general-pages.module.scss';
 
 export function meta() {
 	return [
@@ -44,7 +44,7 @@ export default function Home() {
 		return (
 			<div className={styles.loadingWrap}>
 				<div className={styles.loadingInner}>
-					<div className={styles.spinner}></div>
+					<div className={styles.profileSpinner}></div>
 					<p className={styles.loadingText}>読み込み中...</p>
 				</div>
 			</div>
@@ -58,9 +58,9 @@ export default function Home() {
 
 	// ログイン済みユーザーのダッシュボード
 	return (
-		<div className={styles.page}>
-			<div className={styles.container}>
-				<h1 className={`${styles.title} ${isMobile ? styles.titleMobile : styles.titleDesktop}`}>
+		<div className={styles.dashboardPage}>
+			<div className={styles.dashboardContainer}>
+				<h1 className={`${styles.dashboardTitle} ${isMobile ? styles.dashboardTitleMobile : styles.dashboardTitleDesktop}`}>
 					ホーム
 				</h1>
 

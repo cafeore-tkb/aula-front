@@ -2,7 +2,7 @@ import { useEffect } from 'react';
 import { useNavigate } from 'react-router';
 import { HomeButton } from '../../components/home-button';
 import { useAuth } from '../../lib/auth-context';
-import styles from './admin.module.scss';
+import styles from './admin-pages.module.scss';
 
 export function meta() {
 	return [

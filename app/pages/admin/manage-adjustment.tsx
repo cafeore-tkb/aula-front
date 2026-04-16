@@ -28,7 +28,7 @@ import {
 } from '../../components/ui/table';
 import { useAuth } from '../../lib/auth-context';
 import type { ShiftUsual } from '../../lib/firebase';
-import styles from './manage-adjustment.module.scss';
+import styles from './admin-pages.module.scss';
 
 export function meta() {
 	return [
@@ -362,8 +362,8 @@ export default function ManageAdjustment() {
 			<div className={styles.container}>
 				<div className={styles.header}>
 					<h1 className={styles.title}>管理者ページ</h1>
-					<div className={styles.userInfo}>
-						<span className={styles.adminBadge}>
+					<div className={styles.manageUserInfo}>
+						<span className={styles.manageAdminBadge}>
 							管理者
 						</span>
 						<span className={styles.userName}>
@@ -372,20 +372,20 @@ export default function ManageAdjustment() {
 					</div>
 				</div>
 				<div>
-					<div className={styles.sectionHeading}>
+					<div className={styles.manageSectionHeading}>
 						シフト通常設定一覧
 					</div>
 
 					{/* 新規追加フォーム */}
-					<div className={styles.formCard}>
-						<h2 className={styles.formTitle}>
+					<div className={styles.manageFormCard}>
+						<h2 className={styles.manageFormTitle}>
 							新規シフト追加
 						</h2>
-						<div className={styles.formGrid}>
+						<div className={styles.manageFormGrid}>
 							<div>
 								<label
 									htmlFor={yearInputId}
-									className={styles.label}
+									className={styles.manageLabel}
 								>
 									年度
 								</label>
@@ -401,7 +401,7 @@ export default function ManageAdjustment() {
 							<div>
 								<label
 									htmlFor={semesterSelectId}
-									className={styles.label}
+									className={styles.manageLabel}
 								>
 									学期
 								</label>
@@ -418,7 +418,7 @@ export default function ManageAdjustment() {
 							<div>
 								<label
 									htmlFor={moduleSelectId}
-									className={styles.label}
+									className={styles.manageLabel}
 								>
 									モジュール
 								</label>
@@ -436,7 +436,7 @@ export default function ManageAdjustment() {
 							<div>
 								<label
 									htmlFor={isTwiceSelectId}
-									className={styles.label}
+									className={styles.manageLabel}
 								>
 									頻度
 								</label>
@@ -450,11 +450,11 @@ export default function ManageAdjustment() {
 									</SelectContent>
 								</Select>
 							</div>
-							<div className={styles.addButtonWrap}>
+							<div className={styles.manageAddButtonWrap}>
 								<Button
 									onClick={handleAddShift}
 									disabled={isAdding}
-									className={styles.addButton}
+									className={styles.manageAddButton}
 								>
 									{isAdding ? '追加中...' : '✓ 追加'}
 								</Button>
@@ -463,20 +463,20 @@ export default function ManageAdjustment() {
 					</div>
 
 					{loadingShiftUsual ? (
-						<div className={styles.loadingWrap}>
-							<p className={styles.loadingText}>シフト通常設定を読み込み中...</p>
+						<div className={styles.manageLoadingWrap}>
+							<p className={styles.manageLoadingText}>シフト通常設定を読み込み中...</p>
 						</div>
 					) : (
-						<div className={styles.tableCard}>
+						<div className={styles.manageTableCard}>
 							<Table>
 								<TableHeader>
 									<TableRow>
-										<TableHead className={styles.tableText}>年度</TableHead>
-										<TableHead className={styles.tableText}>学期</TableHead>
-										<TableHead className={styles.tableText}>モジュール</TableHead>
-										<TableHead className={styles.tableText}>頻度</TableHead>
-										<TableHead className={styles.tableText}>公開設定</TableHead>
-										<TableHead className={styles.tableText}>シフト作成</TableHead>
+										<TableHead className={styles.manageTableText}>年度</TableHead>
+										<TableHead className={styles.manageTableText}>学期</TableHead>
+										<TableHead className={styles.manageTableText}>モジュール</TableHead>
+										<TableHead className={styles.manageTableText}>頻度</TableHead>
+										<TableHead className={styles.manageTableText}>公開設定</TableHead>
+										<TableHead className={styles.manageTableText}>シフト作成</TableHead>
 									</TableRow>
 								</TableHeader>
 								<TableBody>
@@ -492,18 +492,18 @@ export default function ManageAdjustment() {
 										return (
 											<TableRow
 												key={su.year + su.semester + su.module}
-												className={su.isOpen ? styles.rowOpen : styles.rowClosed}
+												className={su.isOpen ? styles.manageRowOpen : styles.manageRowClosed}
 											>
-												<TableCell className={styles.tableText}>{su.year}</TableCell>
-												<TableCell className={styles.tableText}>{semesterJa}</TableCell>
-												<TableCell className={styles.tableText}>{su.module}</TableCell>
+												<TableCell className={styles.manageTableText}>{su.year}</TableCell>
+												<TableCell className={styles.manageTableText}>{semesterJa}</TableCell>
+												<TableCell className={styles.manageTableText}>{su.module}</TableCell>
 												<TableCell>
 													<Select
 														value={su.isTwice ? 'true' : 'false'}
 														onValueChange={(value) => handleFrequencyChange(su.uid, value)}
 													>
 														<SelectTrigger
-															className={`${styles.selectTriggerBase} ${su.isTwice ? styles.selectPositive : styles.selectNeutral}`}
+															className={`${styles.manageSelectTriggerBase} ${su.isTwice ? styles.manageSelectPositive : styles.manageSelectNeutral}`}
 														>
 															<SelectValue />
 														</SelectTrigger>
@@ -519,7 +519,7 @@ export default function ManageAdjustment() {
 														onValueChange={(value) => handleStatusChange(su.uid, value)}
 													>
 														<SelectTrigger
-															className={`${styles.selectTriggerBase} ${su.isOpen ? styles.selectPositive : styles.selectNeutral}`}
+															className={`${styles.manageSelectTriggerBase} ${su.isOpen ? styles.manageSelectPositive : styles.manageSelectNeutral}`}
 														>
 															<SelectValue />
 														</SelectTrigger>
@@ -530,10 +530,10 @@ export default function ManageAdjustment() {
 													</Select>
 												</TableCell>
 												<TableCell>
-													<div className={styles.actionButtons}>
+													<div className={styles.manageActionButtons}>
 														<Button
 															onClick={() => navigate('/admin/scheduleShift', { state: { shiftUid: su.uid } })}
-															className={styles.primaryActionButton}
+															className={styles.managePrimaryActionButton}
 														>
 															シフトを組む
 														</Button>
@@ -541,7 +541,7 @@ export default function ManageAdjustment() {
 															onClick={() => exportToCSV(su)}
 															disabled={exportingShiftUid === su.uid}
 															variant="outline"
-															className={styles.csvButton}
+															className={styles.manageCsvButton}
 														>
 															{exportingShiftUid === su.uid ? '出力中...' : 'CSV出力'}
 														</Button>

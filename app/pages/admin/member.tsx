@@ -27,7 +27,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '~/components/ui/tabs';
 import { HomeButton } from '../../components/home-button';
 import { useAuth } from '../../lib/auth-context';
 import type { UserProfile } from '../../lib/firebase';
-import styles from './member.module.scss';
+import styles from './admin-pages.module.scss';
 
 export function meta() {
 	return [

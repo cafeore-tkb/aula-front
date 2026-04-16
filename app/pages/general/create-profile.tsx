@@ -5,7 +5,7 @@ import { Input } from '~/components/ui/input';
 import { StatusSelecter } from '../../components/status-selecter';
 import { useAuth } from '../../lib/auth-context';
 import { createUserProfileWithData } from '../../lib/firebase';
-import styles from './create-profile.module.scss';
+import styles from './general-pages.module.scss';
 export function meta() {
 	return [
 		{ title: 'プロフィール作成 - Aula' },
@@ -112,7 +112,7 @@ export default function CreateProfile() {
 		return (
 			<div className={styles.loadingWrap}>
 				<div className={styles.loadingInner}>
-					<div className={styles.spinner}></div>
+					<div className={styles.profileSpinner}></div>
 					<p className={styles.loadingText}>プロフィール情報を確認中...</p>
 				</div>
 			</div>
@@ -130,24 +130,24 @@ export default function CreateProfile() {
 	}
 
 	return (
-		<div className={styles.page}>
+		<div className={styles.profilePage}>
 			<div
-				className={`${styles.container} ${
-					isMobile ? styles.containerMobile : isTablet ? styles.containerTablet : styles.containerDesktop
+				className={`${styles.profileContainer} ${
+					isMobile ? styles.profileContainerMobile : isTablet ? styles.profileContainerTablet : styles.profileContainerDesktop
 				}`}
 			>
-				<div className={styles.card}>
-					<div className={styles.header}>
+				<div className={styles.profileCard}>
+					<div className={styles.profileHeader}>
 						<h1
-							className={`${styles.title} ${
-								isMobile ? styles.titleMobile : isTablet ? styles.titleTablet : styles.titleDesktop
+							className={`${styles.profileTitle} ${
+								isMobile ? styles.profileTitleMobile : isTablet ? styles.profileTitleTablet : styles.profileTitleDesktop
 							}`}
 							style={{ fontFamily: 'var(--font-rounded)' }}
 						>
 							プロフィール作成
 						</h1>
 						<div
-							className={`${styles.description} ${isMobile ? styles.descriptionMobile : styles.descriptionDesktop}`}
+							className={`${styles.profileDescription} ${isMobile ? styles.profileDescriptionMobile : styles.profileDescriptionDesktop}`}
 							style={{ fontFamily: 'var(--font-rounded)' }}
 						>
 							<p>Aulaサービスを利用するには、プロフィール情報の登録が必要です。</p>
@@ -157,51 +157,51 @@ export default function CreateProfile() {
 						</div>
 					</div>{' '}
 					{/* ユーザー情報の表示 */}
-					<div className={styles.userSection}>
+					<div className={styles.profileUserSection}>
 						<div
-							className={`${styles.userCard} ${
-								isMobile ? styles.userCardMobile : styles.userCardDesktop
+							className={`${styles.profileUserCard} ${
+								isMobile ? styles.profileUserCardMobile : styles.profileUserCardDesktop
 							}`}
 						>
 							{user.photoURL && (
 								<img
 									src={user.photoURL}
 									alt={user.displayName || 'ユーザー'}
-									className={isMobile ? styles.avatarMobile : styles.avatarDesktop}
+									className={isMobile ? styles.profileAvatarMobile : styles.profileAvatarDesktop}
 								/>
 							)}
-							<div className={styles.userInfo}>
+							<div className={styles.profileUserInfo}>
 								<h3
-									className={`${styles.userName} ${
-										isMobile ? styles.userNameMobile : styles.userNameDesktop
+									className={`${styles.profileUserName} ${
+										isMobile ? styles.profileUserNameMobile : styles.profileUserNameDesktop
 									}`}
 								>
 									{user.displayName || 'ユーザー'}
 								</h3>
-								<p className={`${styles.userEmail} ${isMobile ? styles.userEmailMobile : styles.userEmailDesktop}`}>
+								<p className={`${styles.profileUserEmail} ${isMobile ? styles.profileUserEmailMobile : styles.profileUserEmailDesktop}`}>
 									{user.email}
 								</p>
 							</div>
 						</div>
 
 						{/* プロフィール入力フォーム */}
-						<div className={isDesktop ? styles.formGridDesktop : styles.formStack}>
+						<div className={isDesktop ? styles.profileFormGridDesktop : styles.profileFormStack}>
 							<div>
 								<label
 									htmlFor={displayNameId}
-									className={styles.label}
+									className={styles.profileLabel}
 								>
-									表示名 <span className={styles.required}>*</span>
+									表示名 <span className={styles.profileRequired}>*</span>
 								</label>
 								<Input
 									id={displayNameId}
 									type="text"
 									placeholder="例: 山田 太郎"
-									className={styles.inputFull}
+									className={styles.profileInputFull}
 									value={displayName}
 									onChange={(e) => setDisplayName(e.target.value)}
 								/>
-								<p className={styles.helperText}>
+								<p className={styles.profileHelperText}>
 									他のメンバーに表示される名前です
 								</p>
 							</div>
@@ -209,20 +209,20 @@ export default function CreateProfile() {
 							<div>
 								<label
 									htmlFor={yearId}
-									className={styles.label}
+									className={styles.profileLabel}
 								>
-									筑波大学入学年度 <span className={styles.required}>*</span>
+									筑波大学入学年度 <span className={styles.profileRequired}>*</span>
 								</label>
 								<Input
 									id={yearId}
 									type="number"
 									placeholder="例: 2025"
 									min="2000"
-									className={styles.inputFull}
+									className={styles.profileInputFull}
 									value={year}
 									onChange={(e) => setYear(e.target.value)}
 								/>
-								<p className={styles.helperText}>
+								<p className={styles.profileHelperText}>
 									あなたが筑波大学に入学した年度を入力してください
 								</p>
 							</div>
@@ -230,16 +230,16 @@ export default function CreateProfile() {
 							<div>
 								<label
 									htmlFor={statusId}
-									className={styles.label}
+									className={styles.profileLabel}
 								>
-									珈琲・俺ステータス <span className={styles.required}>*</span>
+									珈琲・俺ステータス <span className={styles.profileRequired}>*</span>
 								</label>
 								<StatusSelecter
 									status={status}
 									setStatus={setStatus}
 									statusId={statusId}
 								/>
-								<p className={styles.helperText}>
+								<p className={styles.profileHelperText}>
 									現在の珈琲・俺での役割を選択してください
 								</p>
 							</div>
@@ -247,8 +247,8 @@ export default function CreateProfile() {
 					</div>
 					{/* エラーメッセージ */}
 					{error && (
-						<div className={styles.errorBox}>
-							<p className={`${styles.errorText} ${isMobile ? styles.errorTextMobile : styles.errorTextDesktop}`}>
+						<div className={styles.profileErrorBox}>
+							<p className={`${styles.profileErrorText} ${isMobile ? styles.profileErrorTextMobile : styles.profileErrorTextDesktop}`}>
 								{error}
 							</p>
 						</div>
@@ -258,13 +258,13 @@ export default function CreateProfile() {
 						type="button"
 						onClick={handleCreateProfile}
 						disabled={isCreating}
-						className={`${styles.submitButton} ${
-							isMobile ? styles.submitButtonMobile : styles.submitButtonDesktop
+						className={`${styles.profileSubmitButton} ${
+							isMobile ? styles.profileSubmitButtonMobile : styles.profileSubmitButtonDesktop
 						}`}
 					>
 						{isCreating ? (
-							<span className={styles.submitButtonInner}>
-								<div className={styles.submitSpinner}></div>
+							<span className={styles.profileSubmitButtonInner}>
+								<div className={styles.profileSubmitSpinner}></div>
 								プロフィール作成中...
 							</span>
 						) : (
@@ -272,7 +272,7 @@ export default function CreateProfile() {
 						)}
 					</button>
 					{/* ログアウトボタン */}
-					<div className={styles.signOutWrap}>
+					<div className={styles.profileSignOutWrap}>
 						<button
 							type="button"
 							onClick={async () => {
@@ -291,7 +291,7 @@ export default function CreateProfile() {
 									navigate('/login');
 								}
 							}}
-							className={styles.signOutButton}
+							className={styles.profileSignOutButton}
 						>
 							別のアカウントでログイン
 						</button>

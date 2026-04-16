@@ -6,7 +6,7 @@ import { Button } from '../../components/ui/button';
 import { Card, CardContent } from '../../components/ui/card';
 import { useAuth } from '../../lib/auth-context';
 import type { ShiftListItem, UserProfile } from '../../lib/firebase';
-import styles from './schedule-shift.module.scss';
+import styles from './admin-pages.module.scss';
 
 /**
  * スタッフメンバーの情報を表すインターフェース
@@ -537,23 +537,23 @@ export default function ScheduleShift() {
 
 	return (
 		<div
-			className={`${styles.page} ${isMobile ? styles.pageMobile : isTablet ? styles.pageTablet : styles.pageDesktop}`}
+			className={`${styles.schedulePage} ${isMobile ? styles.schedulePageMobile : isTablet ? styles.schedulePageTablet : styles.schedulePageDesktop}`}
 		>
 			<div
-				className={`${styles.container} ${isMobile ? styles.containerMobile : isTablet ? styles.containerTablet : styles.containerDesktop}`}
+				className={`${styles.scheduleContainer} ${isMobile ? styles.scheduleContainerMobile : isTablet ? styles.scheduleContainerTablet : styles.scheduleContainerDesktop}`}
 			>
 				{/* ヘッダー */}
-				<div className={styles.header}>
-					<div className={styles.headerRow}>
+				<div className={styles.scheduleHeader}>
+					<div className={styles.scheduleHeaderRow}>
 						<h1
-							className={`${styles.title} ${isMobile ? styles.titleMobile : styles.titleDesktop}`}
+							className={`${styles.scheduleTitle} ${isMobile ? styles.scheduleTitleMobile : styles.scheduleTitleDesktop}`}
 						>
 							シフト作成
 						</h1>
 						{loadingUsers ? (
-							<div className={styles.loadingUsers}>
-								<div className={styles.loadingUsersSpinner} />
-								<span className={styles.loadingUsersText}>読み込み中...</span>
+							<div className={styles.scheduleLoadingUsers}>
+								<div className={styles.scheduleLoadingUsersSpinner} />
+								<span className={styles.scheduleLoadingUsersText}>読み込み中...</span>
 							</div>
 						) : shiftData ? (
 							<div className={styles.shiftMeta}>

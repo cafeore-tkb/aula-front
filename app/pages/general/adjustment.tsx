@@ -6,9 +6,9 @@ import {
 	query,
 	serverTimestamp,
 	setDoc,
-	Timestamp,
 	where,
 } from 'firebase/firestore';
+import type { Timestamp } from 'firebase/firestore';
 import React, { useEffect, useId, useState } from 'react';
 import { useMediaQuery } from 'react-responsive';
 import { useLocation } from 'react-router';
@@ -18,8 +18,7 @@ import { Card, CardContent } from '../../components/ui/card';
 import { RadioGroup, RadioGroupItem } from '../../components/ui/radio-group';
 import { useAuth } from '../../lib/auth-context';
 import { db } from '../../lib/firebase';
-import { List } from 'lucide-react';
-import styles from './adjustment.module.scss';
+import styles from './general-pages.module.scss';
 
 export function meta() {
 	return [
@@ -296,7 +295,7 @@ export default function Adjustment() {
 		return (
 			<div className={styles.loadingWrap}>
 				<div className={styles.loadingInner}>
-					<div className={styles.spinner} />
+					<div className={styles.tealSpinner} />
 					<p className={styles.loadingText}>データを読み込み中...</p>
 				</div>
 			</div>
@@ -305,19 +304,19 @@ export default function Adjustment() {
 
 	return (
 		<div
-			className={`${styles.page} ${isMobile ? styles.pageMobile : styles.pageDesktop}`}
+			className={`${styles.adjustmentPage} ${isMobile ? styles.adjustmentPageMobile : styles.adjustmentPageDesktop}`}
 		>
 			<div
-				className={`${styles.layout} ${isMobile ? styles.layoutMobile : isTablet ? styles.layoutTablet : styles.layoutDesktop}`}
+				className={`${styles.adjustmentLayout} ${isMobile ? styles.adjustmentLayoutMobile : isTablet ? styles.adjustmentLayoutTablet : styles.adjustmentLayoutDesktop}`}
 			>
 				{/* モバイル時：シフト情報を一番上に表示 */}
 				{isMobile && shiftInfo && (
-					<Card className={styles.shiftInfoCard}>
-						<CardContent className={styles.shiftInfoContentMobile}>
-							<div className={styles.shiftInfoRow}>
-								<span className={styles.shiftIconMobile}>📋</span>
+					<Card className={styles.adjustmentShiftInfoCard}>
+						<CardContent className={styles.adjustmentShiftInfoContentMobile}>
+							<div className={styles.adjustmentShiftInfoRow}>
+								<span className={styles.adjustmentShiftIconMobile}>📋</span>
 								<div>
-									<h2 className={styles.shiftInfoTitleMobile}>
+									<h2 className={styles.adjustmentShiftInfoTitleMobile}>
 										{shiftInfo.year}年度 {shiftInfo.semester === 'spring' ? '春' : '秋'}
 										学期 {shiftInfo.module}モジュール
 									</h2>
@@ -329,27 +328,27 @@ export default function Adjustment() {
 
 				{/* 左側：時間割表 */}
 				<div
-					className={isDesktop ? styles.gridPaneDesktop : styles.gridPaneDefault}
+					className={isDesktop ? styles.adjustmentGridPaneDesktop : styles.adjustmentGridPaneDefault}
 				>
-					<div className={isMobile ? styles.gridWrapMobile : styles.gridWrapDesktop}>
+					<div className={isMobile ? styles.adjustmentGridWrapMobile : styles.adjustmentGridWrapDesktop}>
 						<div
-							className={`${styles.scheduleGrid} ${
+							className={`${styles.adjustmentScheduleGrid} ${
 								isMobile
-									? styles.scheduleGridMobile
+									? styles.adjustmentScheduleGridMobile
 									: isTablet
-										? styles.scheduleGridTablet
-										: styles.scheduleGridDesktop
+										? styles.adjustmentScheduleGridTablet
+										: styles.adjustmentScheduleGridDesktop
 							}`}
 						>
 							{/* ヘッダー行 */}
-							<Card className={styles.dayHeaderCard}>
+							<Card className={styles.adjustmentDayHeaderCard}>
 								<CardContent
-									className={`${styles.dayHeaderText} ${
+									className={`${styles.adjustmentDayHeaderText} ${
 										isMobile
-											? styles.dayHeaderTextMobile
+											? styles.adjustmentDayHeaderTextMobile
 											: isTablet
-												? styles.dayHeaderTextTablet
-												: styles.dayHeaderTextDesktop
+												? styles.adjustmentDayHeaderTextTablet
+												: styles.adjustmentDayHeaderTextDesktop
 									}`}
 								>
 									時限
@@ -358,18 +357,18 @@ export default function Adjustment() {
 							{day.map((dayName, index) => (
 								<Card
 									key={dayName}
-									className={`${styles.dayHeaderCard} ${
-										isEditMode ? styles.dayHeaderCardEditable : styles.dayHeaderCardReadonly
+									className={`${styles.adjustmentDayHeaderCard} ${
+										isEditMode ? styles.adjustmentDayHeaderCardEditable : styles.adjustmentDayHeaderCardReadonly
 									}`}
 									onClick={() => isEditMode && toggleColumnAll(index)}
 								>
 									<CardContent
-										className={`${styles.dayHeaderText} ${
+										className={`${styles.adjustmentDayHeaderText} ${
 											isMobile
-												? styles.dayHeaderTextMobile
+												? styles.adjustmentDayHeaderTextMobile
 												: isTablet
-													? styles.dayHeaderTextTablet
-													: styles.dayHeaderTextDesktop
+													? styles.adjustmentDayHeaderTextTablet
+													: styles.adjustmentDayHeaderTextDesktop
 										}`}
 									>
 										{isMobile ? dayName : `${dayName}曜日`}
@@ -382,30 +381,30 @@ export default function Adjustment() {
 								<React.Fragment key={period}>
 									{/* 時限・時間表示 */}
 									<Card
-										className={`${styles.timeHeaderCard} ${
-											isEditMode ? styles.timeHeaderCardEditable : styles.timeHeaderCardReadonly
+										className={`${styles.adjustmentTimeHeaderCard} ${
+											isEditMode ? styles.adjustmentTimeHeaderCardEditable : styles.adjustmentTimeHeaderCardReadonly
 										}`}
 										onClick={() => isEditMode && toggleRowAll(periodIndex)}
 									>
 										<CardContent
-											className={`${styles.timeHeaderContent} ${
+											className={`${styles.adjustmentTimeHeaderContent} ${
 												isMobile
-													? styles.timeHeaderContentMobile
+													? styles.adjustmentTimeHeaderContentMobile
 													: isTablet
-														? styles.timeHeaderContentTablet
-														: styles.timeHeaderContentDesktop
+														? styles.adjustmentTimeHeaderContentTablet
+														: styles.adjustmentTimeHeaderContentDesktop
 											}`}
 										>
-											<div className={isMobile ? styles.periodTextMobile : styles.periodTextDesktop}>
-												<div className={styles.periodMain}>{period}限</div>
+											<div className={isMobile ? styles.adjustmentPeriodTextMobile : styles.adjustmentPeriodTextDesktop}>
+												<div className={styles.adjustmentPeriodMain}>{period}限</div>
 												{!isMobile && (
-													<div className={styles.periodSub}>
+													<div className={styles.adjustmentPeriodSub}>
 														{isDesktop ? (
 															`${startTimes[periodIndex]}-${endTimes[periodIndex]}`
 														) : isTablet ? (
 															startTimes[periodIndex]
 														) : (
-															<span className={styles.periodSubResponsiveOnly}>
+															<span className={styles.adjustmentPeriodSubResponsiveOnly}>
 																{startTimes[periodIndex]}
 															</span>
 														)}

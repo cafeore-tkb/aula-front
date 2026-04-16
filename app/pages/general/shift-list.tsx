@@ -11,7 +11,7 @@ import {
 } from '../../components/ui/card';
 import { useAuth } from '../../lib/auth-context';
 import { db, type ShiftUsual } from '../../lib/firebase';
-import styles from './shift-list.module.scss';
+import styles from './general-pages.module.scss';
 
 export function meta() {
 	return [
@@ -70,7 +70,7 @@ export default function ShiftList() {
 		return (
 			<div className={styles.loadingWrap}>
 				<div className={styles.loadingInner}>
-					<div className={styles.spinner} />
+					<div className={styles.tealSpinner} />
 					<p className={styles.loadingText}>読み込み中...</p>
 				</div>
 			</div>
@@ -78,28 +78,28 @@ export default function ShiftList() {
 	}
 
 	return (
-		<div className={styles.page}>
-			<div className={styles.container}>
+		<div className={styles.shiftListPage}>
+			<div className={styles.shiftListContainer}>
 				{/* ヘッダー */}
-				<div className={styles.header}>
-					<h1 className={styles.title}>シフト一覧</h1>
-					<p className={styles.subtitle}>公開されているシフトの募集一覧です</p>
+				<div className={styles.shiftListHeader}>
+					<h1 className={styles.shiftListTitle}>シフト一覧</h1>
+					<p className={styles.shiftListSubtitle}>公開されているシフトの募集一覧です</p>
 				</div>
 
 				{/* シフト一覧 */}
 				{loadingShifts ? (
-					<div className={styles.listLoadingWrap}>
-						<div className={styles.spinner} />
+					<div className={styles.shiftListLoadingWrap}>
+						<div className={styles.tealSpinner} />
 						<p className={styles.loadingText}>シフトを読み込み中...</p>
 					</div>
 				) : shifts.length === 0 ? (
 					<Card>
-						<CardContent className={styles.emptyContent}>
-							<p className={styles.emptyText}>現在公開されているシフトはありません</p>
+						<CardContent className={styles.shiftListEmptyContent}>
+							<p className={styles.shiftListEmptyText}>現在公開されているシフトはありません</p>
 						</CardContent>
 					</Card>
 				) : (
-					<div className={styles.listWrap}>
+					<div className={styles.shiftListListWrap}>
 						{shifts.map((shift) => {
 							// 学期の日本語変換
 							const semesterJa =
@@ -117,19 +117,19 @@ export default function ShiftList() {
 							return (
 								<Card
 									key={shift.uid}
-									className={styles.shiftCard}
+									className={styles.shiftListCard}
 								>
 									<CardHeader>
-										<CardTitle className={styles.shiftTitle}>
+										<CardTitle className={styles.shiftListCardTitle}>
 											<span>
 												{shift.year}年度 {semesterJa}学期 {shift.module}モジュール
 											</span>
 										</CardTitle>
 									</CardHeader>
 									<CardContent>
-										<div className={styles.shiftContent}>
+										<div className={styles.shiftListContent}>
 											{/* ボタン */}
-											<div className={styles.actionRow}>
+											<div className={styles.shiftListActionRow}>
 												<Button
 													onClick={() =>
 														navigate('/adjustment', {
@@ -142,7 +142,7 @@ export default function ShiftList() {
 															},
 														})
 													}
-													className={styles.answerButton}
+													className={styles.shiftListAnswerButton}
 												>
 													シフトを回答する
 												</Button>
@@ -156,7 +156,7 @@ export default function ShiftList() {
 				)}
 
 				{/* ホームに戻るボタン */}
-				<div className={styles.homeButtonWrap}>
+				<div className={styles.shiftListHomeButtonWrap}>
 					<HomeButton />
 				</div>
 			</div>
