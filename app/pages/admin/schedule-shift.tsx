@@ -535,9 +535,24 @@ export default function ScheduleShift() {
 		setSelectedStaff(null); // スタッフ選択を解除
 	};
 
+	/**
+	 * ページの空白部分クリック時の処理
+	 * ボタン以外をクリックした場合は選択状態を解除
+	 */
+	const handlePageClickCapture = useCallback((event: React.MouseEvent<HTMLDivElement>) => {
+		const target = event.target as HTMLElement;
+		if (target.closest('button')) {
+			return;
+		}
+
+		setSelectedCell(null);
+		setSelectedStaff(null);
+	}, []);
+
 	return (
 		<div
 			className={`${styles.schedulePage} ${isMobile ? styles.schedulePageMobile : isTablet ? styles.schedulePageTablet : styles.schedulePageDesktop}`}
+			onClickCapture={handlePageClickCapture}
 		>
 			<div
 				className={`${styles.scheduleContainer} ${isMobile ? styles.scheduleContainerMobile : isTablet ? styles.scheduleContainerTablet : styles.scheduleContainerDesktop}`}
