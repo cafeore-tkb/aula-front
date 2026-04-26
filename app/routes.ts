@@ -6,8 +6,8 @@ export default [
 	index('pages/home.tsx'),
 
 	// 認証関連
-	route('login', 'pages/login/login.tsx'),
-	route('createProfile', 'pages/login/create-profile.tsx'),
+	route('login', 'pages/auth/login.tsx'),
+	route('createProfile', 'pages/auth/create-profile.tsx'),
 
 	// 一般機能
 	route('dashboard', 'pages/general/dashboard.tsx'),
