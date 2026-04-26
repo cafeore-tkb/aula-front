@@ -11,7 +11,7 @@ import {
 } from '../../components/ui/card';
 import { useAuth } from '../../lib/auth-context';
 import { db, type ShiftUsual } from '../../lib/firebase';
-import styles from './general-pages.module.scss';
+import styles from './shift-list.module.scss';
 
 export function meta() {
 	return [
@@ -68,10 +68,10 @@ export default function ShiftList() {
 	// ローディング中
 	if (loading || !userProfile) {
 		return (
-			<div className={styles.loadingWrap}>
-				<div className={styles.loadingInner}>
-					<div className={styles.tealSpinner} />
-					<p className={styles.loadingText}>読み込み中...</p>
+			<div className={"common-loading-wrap"}>
+				<div className={"common-loading-inner"}>
+					<div className={"common-loading-spinner-teal"} />
+					<p className={"common-loading-text"}>読み込み中...</p>
 				</div>
 			</div>
 		);
@@ -89,8 +89,8 @@ export default function ShiftList() {
 				{/* シフト一覧 */}
 				{loadingShifts ? (
 					<div className={styles.shiftListLoadingWrap}>
-						<div className={styles.tealSpinner} />
-						<p className={styles.loadingText}>シフトを読み込み中...</p>
+						<div className={"common-loading-spinner-teal"} />
+						<p className={"common-loading-text"}>シフトを読み込み中...</p>
 					</div>
 				) : shifts.length === 0 ? (
 					<Card>

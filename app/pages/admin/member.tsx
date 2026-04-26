@@ -27,7 +27,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '~/components/ui/tabs';
 import { HomeButton } from '../../components/home-button';
 import { useAuth } from '../../lib/auth-context';
 import type { UserProfile } from '../../lib/firebase';
-import styles from './admin-pages.module.scss';
+import styles from './member.module.scss';
 
 export function meta() {
 	return [
@@ -117,10 +117,10 @@ export default function Admin() {
 	// ローディング中の表示
 	if (loading) {
 		return (
-			<div className={styles.loadingWrap}>
-				<div className={styles.loadingInner}>
-					<div className={styles.spinner}></div>
-					<p className={styles.loadingText}>権限を確認中...</p>
+			<div className={"common-loading-wrap"}>
+				<div className={"common-loading-inner"}>
+					<div className={"common-loading-spinner-red"}></div>
+					<p className={"common-loading-text"}>権限を確認中...</p>
 				</div>
 			</div>
 		);
@@ -134,10 +134,10 @@ export default function Admin() {
 	// ユーザープロフィールが未読み込みの場合
 	if (!userProfile) {
 		return (
-			<div className={styles.loadingWrap}>
-				<div className={styles.loadingInner}>
-					<div className={styles.spinner}></div>
-					<p className={styles.loadingText}>プロフィール情報を読み込み中...</p>
+			<div className={"common-loading-wrap"}>
+				<div className={"common-loading-inner"}>
+					<div className={"common-loading-spinner-red"}></div>
+					<p className={"common-loading-text"}>プロフィール情報を読み込み中...</p>
 				</div>
 			</div>
 		);

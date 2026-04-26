@@ -3,7 +3,7 @@ import { useMediaQuery } from 'react-responsive';
 import { Link, useNavigate } from 'react-router';
 import { UserProfile } from '../../components/user-profile';
 import { useAuth } from '../../lib/auth-context';
-import styles from './general-pages.module.scss';
+import styles from './dashboard.module.scss';
 
 export function meta() {
 	return [
@@ -42,10 +42,10 @@ export default function Home() {
 	// ローディング中またはプロファイル読み込み中
 	if (loading || (user && !userProfile)) {
 		return (
-			<div className={styles.loadingWrap}>
-				<div className={styles.loadingInner}>
-					<div className={styles.profileSpinner}></div>
-					<p className={styles.loadingText}>読み込み中...</p>
+			<div className={"common-loading-wrap"}>
+				<div className={"common-loading-inner"}>
+					<div className={"common-loading-spinner-blue"}></div>
+					<p className={"common-loading-text"}>読み込み中...</p>
 				</div>
 			</div>
 		);

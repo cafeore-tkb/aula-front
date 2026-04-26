@@ -128,3 +128,56 @@ textarea {
     font: inherit;
     color: inherit;
 }
+
+/* Shared loading utilities used by multiple page components */
+.common-loading-wrap {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #f3f4f6;
+}
+
+.common-loading-inner {
+    text-align: center;
+}
+
+.common-loading-text {
+    color: #4b5563;
+}
+
+.common-loading-spinner-red {
+    width: 2rem;
+    height: 2rem;
+    margin: 0 auto 1rem;
+    border-radius: 9999px;
+    border: 4px solid #ef4444;
+    border-top-color: transparent;
+    animation: common-spin 1s linear infinite;
+}
+
+.common-loading-spinner-blue {
+    width: 2rem;
+    height: 2rem;
+    margin: 0 auto 1rem;
+    border-radius: 9999px;
+    border: 4px solid #3b82f6;
+    border-top-color: transparent;
+    animation: common-spin 1s linear infinite;
+}
+
+.common-loading-spinner-teal {
+    width: 2rem;
+    height: 2rem;
+    margin: 0 auto 1rem;
+    border-radius: 9999px;
+    border: 4px solid #2dd4bf;
+    border-top-color: transparent;
+    animation: common-spin 1s linear infinite;
+}
+
+@keyframes common-spin {
+    to {
+        transform: rotate(360deg);
+    }
+}

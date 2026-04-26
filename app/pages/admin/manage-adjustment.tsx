@@ -28,7 +28,7 @@ import {
 } from '../../components/ui/table';
 import { useAuth } from '../../lib/auth-context';
 import type { ShiftUsual } from '../../lib/firebase';
-import styles from './admin-pages.module.scss';
+import styles from './manage-adjustment.module.scss';
 
 export function meta() {
 	return [

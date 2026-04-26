@@ -1,7 +1,6 @@
 import { useNavigate } from 'react-router';
 import { useAuth } from '../lib/auth-context';
 import { useEffect } from 'react';
-import styles from './general/general-pages.module.scss';
 
 export function meta() {
 	return [
@@ -38,10 +37,10 @@ export default function Home() {
 
 	// リダイレクト中の表示
 	return (
-		<div className={styles.loadingWrap}>
-			<div className={styles.loadingInner}>
-				<div className={styles.profileSpinner}></div>
-				<p className={styles.loadingText}>読み込み中...</p>
+		<div className="common-loading-wrap">
+			<div className="common-loading-inner">
+				<div className="common-loading-spinner-blue"></div>
+				<p className="common-loading-text">読み込み中...</p>
 			</div>
 		</div>
 	);

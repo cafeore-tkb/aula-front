@@ -1,0 +1,193 @@
+/* Used by: app/pages/admin/manage-adjustment.tsx */
+.page {
+min-height: 100vh;
+    background: #f3f4f6;
+    padding: 2rem 0;
+}
+
+.container {
+width: 100%;
+    max-width: 72rem;
+    margin: 0 auto;
+    padding: 0 1rem;
+}
+
+.header {
+margin-bottom: 1.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.title {
+margin: 0;
+    color: #111827;
+    font-size: 1.875rem;
+    font-weight: 700;
+}
+
+.userName {
+color: #4b5563;
+    font-size: 0.875rem;
+}
+
+.homeButtonWrap {
+margin-top: 2rem;
+}
+
+.manageUserInfo {
+display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.manageAdminBadge {
+border-radius: 9999px;
+    background: var(--color-red-100);
+    padding: 0.25rem 0.75rem;
+    font-size: 0.875rem;
+    line-height: 1.25rem;
+    font-weight: 500;
+    color: var(--color-red-600);
+}
+
+.manageSectionHeading {
+margin-bottom: 1rem;
+    font-size: 1.125rem;
+    line-height: 1.75rem;
+    font-weight: 500;
+    color: var(--color-gray-900);
+}
+
+.manageFormCard {
+margin-bottom: 1.5rem;
+    border-radius: 0.5rem;
+    background: var(--color-white);
+    padding: 1.5rem;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+}
+
+.manageFormTitle {
+margin-bottom: 1rem;
+    font-size: 1.125rem;
+    line-height: 1.75rem;
+    font-weight: 600;
+    color: var(--color-gray-900);
+}
+
+.manageFormGrid {
+display: grid;
+    grid-template-columns: repeat(1, minmax(0, 1fr));
+    gap: 1rem;
+}
+
+.manageLabel {
+display: block;
+    margin-bottom: 0.5rem;
+    font-size: 0.875rem;
+    line-height: 1.25rem;
+    color: var(--color-gray-700);
+}
+
+.manageAddButtonWrap {
+display: flex;
+    align-items: flex-end;
+}
+
+.manageAddButton {
+width: 100%;
+    padding: 0.5rem 1.5rem;
+    font-weight: 600;
+    background: var(--color-blue-600);
+    color: var(--color-white);
+
+    &:hover {
+        background: var(--color-blue-700);
+    }
+
+    &:disabled {
+        opacity: 0.5;
+    }
+}
+
+.manageLoadingWrap {
+padding: 2rem 0;
+    text-align: center;
+}
+
+.manageLoadingText {
+font-size: 0.875rem;
+    line-height: 1.25rem;
+    color: var(--color-gray-500);
+}
+
+.manageTableCard {
+border-radius: 0.5rem;
+    background: var(--color-white);
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+}
+
+.manageTableText {
+font-size: 1.25rem;
+    line-height: 1.75rem;
+}
+
+.manageRowOpen {
+background: var(--color-green-200);
+}
+
+.manageRowClosed {
+background: var(--color-gray-200);
+}
+
+.manageSelectTriggerBase {
+width: 120px;
+    background: transparent;
+}
+
+.manageSelectPositive {
+border-color: var(--color-green-300);
+    color: var(--color-green-700);
+
+    &:hover {
+        background: color-mix(in oklab, var(--color-green-100) 50%, transparent);
+    }
+}
+
+.manageSelectNeutral {
+border-color: var(--color-gray-300);
+    color: var(--color-gray-700);
+
+    &:hover {
+        background: color-mix(in oklab, var(--color-gray-100) 50%, transparent);
+    }
+}
+
+.manageActionButtons {
+display: flex;
+    gap: 0.5rem;
+}
+
+.managePrimaryActionButton {
+background: var(--color-blue-600);
+    color: var(--color-white);
+
+    &:hover {
+        background: var(--color-blue-700);
+    }
+}
+
+.manageCsvButton {
+border-color: var(--color-green-600);
+    color: var(--color-green-600);
+
+    &:hover {
+        background: var(--color-green-50);
+    }
+}
+
+@media (min-width: 768px) {
+.manageFormGrid {
+grid-template-columns: repeat(5, minmax(0, 1fr));
+}
+}

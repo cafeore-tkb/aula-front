@@ -5,7 +5,7 @@ import { Input } from '~/components/ui/input';
 import { StatusSelecter } from '../../components/status-selecter';
 import { useAuth } from '../../lib/auth-context';
 import { createUserProfileWithData } from '../../lib/firebase';
-import styles from './general-pages.module.scss';
+import styles from './create-profile.module.scss';
 export function meta() {
 	return [
 		{ title: 'プロフィール作成 - Aula' },
@@ -110,10 +110,10 @@ export default function CreateProfile() {
 	// ローディング中の表示
 	if (loading) {
 		return (
-			<div className={styles.loadingWrap}>
-				<div className={styles.loadingInner}>
-					<div className={styles.profileSpinner}></div>
-					<p className={styles.loadingText}>プロフィール情報を確認中...</p>
+			<div className={"common-loading-wrap"}>
+				<div className={"common-loading-inner"}>
+					<div className={"common-loading-spinner-blue"}></div>
+					<p className={"common-loading-text"}>プロフィール情報を確認中...</p>
 				</div>
 			</div>
 		);

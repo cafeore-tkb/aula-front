@@ -6,7 +6,7 @@ import { Button } from '../../components/ui/button';
 import { Card, CardContent } from '../../components/ui/card';
 import { useAuth } from '../../lib/auth-context';
 import type { ShiftListItem, UserProfile } from '../../lib/firebase';
-import styles from './admin-pages.module.scss';
+import styles from './schedule-shift.module.scss';
 
 /**
  * スタッフメンバーの情報を表すインターフェース
@@ -701,13 +701,7 @@ export default function ScheduleShift() {
 																	))}
 																</div>
 															) : (
-																<div className={styles.slotNamesList}>
-																	{timeSlot.trainees.map((trainee, idx) => (
-																		<div key={trainee.userId} className={styles.slotNameStrong}>
-																			練{idx + 1}: {trainee.name}
-																		</div>
-																	))}
-																</div>
+																<div className={styles.slotNameStrong}>練習生:</div>
 															)}
 														</div>
 														<div className={styles.slotTextCol}>
@@ -720,12 +714,7 @@ export default function ScheduleShift() {
 																	))}
 																</div>
 															) : (
-																<div className={styles.slotNamesList}>
-																	{timeSlot.examiners.map((examiner, idx) => (
-																		<div key={examiner.userId} className={styles.slotNameNormal}>
-																			試{idx + 1}: {examiner.name}
-																		</div>
-																	))}
+																<div>
 																</div>
 															)}
 														</div>

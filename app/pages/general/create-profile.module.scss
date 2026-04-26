@@ -1,0 +1,261 @@
+/* Used by: app/pages/general/create-profile.tsx */
+.profilePage {
+min-height: 100vh;
+    background: #f3f4f6;
+    padding: 2rem 0;
+}
+
+.profileContainer {
+margin: 0 auto;
+    padding: 0 1rem;
+}
+
+.profileContainerMobile {
+max-width: 100%;
+}
+
+.profileContainerTablet {
+max-width: 42rem;
+}
+
+.profileContainerDesktop {
+max-width: 56rem;
+}
+
+.profileCard {
+border-radius: 0.5rem;
+    background: #fff;
+    padding: 2rem;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.profileHeader {
+margin-bottom: 1.5rem;
+    text-align: center;
+}
+
+.profileTitle {
+margin: 0 0 0.5rem;
+    font-weight: 700;
+    color: #111827;
+}
+
+.profileTitleMobile {
+font-size: 1.25rem;
+}
+
+.profileTitleTablet {
+font-size: 1.5rem;
+}
+
+.profileTitleDesktop {
+font-size: 1.875rem;
+}
+
+.profileDescription {
+padding-top: 0.75rem;
+    color: #374151;
+}
+
+.profileDescriptionMobile {
+font-size: 0.875rem;
+}
+
+.profileDescriptionDesktop {
+font-size: 1.125rem;
+}
+
+.profileUserSection {
+margin-bottom: 1.5rem;
+}
+
+.profileUserCard {
+margin-bottom: 1.5rem;
+    display: flex;
+    align-items: center;
+    border-radius: 0.5rem;
+    background: #f9fafb;
+    padding: 1rem;
+}
+
+.profileUserCardMobile {
+flex-direction: column;
+    gap: 0.75rem;
+    text-align: center;
+}
+
+.profileUserCardDesktop {
+gap: 1rem;
+}
+
+.profileAvatarMobile {
+width: 5rem;
+    height: 5rem;
+    border-radius: 9999px;
+}
+
+.profileAvatarDesktop {
+width: 4rem;
+    height: 4rem;
+    border-radius: 9999px;
+}
+
+.profileUserInfo {
+flex: 1;
+}
+
+.profileUserName {
+margin: 0;
+    font-weight: 600;
+    color: #111827;
+}
+
+.profileUserNameMobile {
+font-size: 1rem;
+}
+
+.profileUserNameDesktop {
+font-size: 1.125rem;
+}
+
+.profileUserEmail {
+margin: 0;
+    color: #4b5563;
+}
+
+.profileUserEmailMobile {
+font-size: 0.75rem;
+}
+
+.profileUserEmailDesktop {
+font-size: 0.875rem;
+}
+
+.profileFormGridDesktop {
+display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 1.5rem;
+}
+
+.profileFormStack {
+display: flex;
+    flex-direction: column;
+    gap: 1.25rem;
+}
+
+.profileLabel {
+display: block;
+    margin-bottom: 0.5rem;
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: #374151;
+}
+
+.profileRequired {
+color: #ef4444;
+}
+
+.profileInputFull {
+width: 100%;
+}
+
+.profileHelperText {
+margin-top: 0.25rem;
+    font-size: 0.75rem;
+    color: #6b7280;
+}
+
+.profileErrorBox {
+margin-bottom: 1rem;
+    border-radius: 0.5rem;
+    background: #fef2f2;
+    padding: 0.75rem;
+}
+
+.profileErrorText {
+margin: 0;
+    color: #dc2626;
+}
+
+.profileErrorTextMobile {
+font-size: 0.75rem;
+}
+
+.profileErrorTextDesktop {
+font-size: 0.875rem;
+}
+
+.profileSubmitButton {
+width: 100%;
+    border: 0;
+    border-radius: 0.5rem;
+    background: #2563eb;
+    padding-left: 1rem;
+    padding-right: 1rem;
+    font-weight: 600;
+    color: #fff;
+    transition: background-color 0.2s;
+}
+
+.profileSubmitButton:hover {
+background: #1d4ed8;
+}
+
+.profileSubmitButton:focus {
+outline: none;
+    box-shadow: 0 0 0 2px #3b82f6;
+}
+
+.profileSubmitButton:disabled {
+cursor: not-allowed;
+    opacity: 0.5;
+}
+
+.profileSubmitButtonMobile {
+padding-top: 0.625rem;
+    padding-bottom: 0.625rem;
+    font-size: 0.875rem;
+}
+
+.profileSubmitButtonDesktop {
+padding-top: 0.75rem;
+    padding-bottom: 0.75rem;
+    font-size: 1rem;
+}
+
+.profileSubmitButtonInner {
+display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.profileSubmitSpinner {
+width: 1rem;
+    height: 1rem;
+    margin-right: 0.5rem;
+    border-radius: 9999px;
+    border: 2px solid #fff;
+    border-top-color: transparent;
+    animation: spin 1s linear infinite;
+}
+
+.profileSignOutWrap {
+margin-top: 1rem;
+    text-align: center;
+}
+
+.profileSignOutButton {
+border: 0;
+    background: transparent;
+    color: #6b7280;
+    font-size: 0.875rem;
+}
+
+.profileSignOutButton:hover {
+color: #374151;
+}
+@keyframes spin {
+to {
+        transform: rotate(360deg);
+    }
+}

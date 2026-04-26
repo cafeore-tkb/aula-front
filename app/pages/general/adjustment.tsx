@@ -19,7 +19,7 @@ import { Card, CardContent } from '../../components/ui/card';
 import { RadioGroup, RadioGroupItem } from '../../components/ui/radio-group';
 import { useAuth } from '../../lib/auth-context';
 import { db } from '../../lib/firebase';
-import styles from './general-pages.module.scss';
+import styles from './adjustment.module.scss';
 
 export function meta() {
 	return [
@@ -294,10 +294,10 @@ export default function Adjustment() {
 	// ローディング中の表示
 	if (isLoading) {
 		return (
-			<div className={styles.loadingWrap}>
-				<div className={styles.loadingInner}>
-					<div className={styles.tealSpinner} />
-					<p className={styles.loadingText}>データを読み込み中...</p>
+			<div className={"common-loading-wrap"}>
+				<div className={"common-loading-inner"}>
+					<div className={"common-loading-spinner-teal"} />
+					<p className={"common-loading-text"}>データを読み込み中...</p>
 				</div>
 			</div>
 		);
