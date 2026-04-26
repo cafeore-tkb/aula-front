@@ -1,4 +1,5 @@
 import { useEffect } from 'react';
+import { Users } from 'lucide-react';
 import { useNavigate } from 'react-router';
 import { HomeButton } from '../../components/home-button';
 import { useAuth } from '../../lib/auth-context';
@@ -86,20 +87,7 @@ export default function Admin() {
 					{/* ユーザー管理 */}
 					<div className={styles.card}>
 						<div className={styles.cardHeader}>
-							<svg
-								className={`${styles.cardIcon} ${styles.iconBlue}`}
-								fill="none"
-								stroke="currentColor"
-								viewBox="0 0 24 24"
-							>
-								<title>ユーザー管理</title>
-								<path
-									strokeLinecap="round"
-									strokeLinejoin="round"
-									strokeWidth={2}
-									d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197m13.5-9a2.5 2.5 0 11-5 0 2.5 2.5 0 015 0z"
-								/>
-							</svg>
+							<Users className={`${styles.cardIcon} ${styles.iconBlue}`} aria-label="ユーザー管理" />
 							<h2 className={styles.cardTitle}>ユーザー管理</h2>
 						</div>
 						<p className={styles.cardText}>

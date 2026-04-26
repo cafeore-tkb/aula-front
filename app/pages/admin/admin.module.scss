@@ -72,6 +72,8 @@ grid-template-columns: repeat(3, minmax(0, 1fr));
 border-radius: 0.5rem;
     background: #fff;
     padding: 1.5rem;
+    display: flex;
+    flex-direction: column;
     box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
 }
 
@@ -114,6 +116,11 @@ margin: 0 0 1rem;
 
 .actionButton {
 width: 100%;
+    min-height: 2.75rem;
+    margin-top: auto;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
     border: 0;
     border-radius: 0.5rem;
     padding: 0.5rem 1rem;
