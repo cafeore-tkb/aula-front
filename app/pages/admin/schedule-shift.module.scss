@@ -31,7 +31,7 @@ max-width: 97vw;
 }
 
 .scheduleContainerDesktop {
-max-width: 98vw;
+max-width: 86rem;
     padding: 0 1rem;
 }
 
@@ -89,8 +89,9 @@ margin-top: 0.5rem;
 }
 
 .mainContentDesktop {
-display: flex;
-    align-items: flex-start;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 17rem;
+    align-items: start;
     gap: 1.5rem;
 }
 
@@ -102,6 +103,7 @@ display: flex;
 
 .leftPaneDesktop {
 flex: 1;
+    min-width: 0;
 }
 
 .leftPaneMobile {
@@ -121,6 +123,8 @@ display: flex;
 
 .scheduleGrid {
 display: grid;
+    width: 100%;
+    max-width: 100rem;
     border: 1px solid #e2e8f0;
     border-radius: 0.75rem;
     background: #fff;
@@ -133,6 +137,7 @@ grid-template-columns: repeat(8, minmax(0, 1fr));
 
 .scheduleGridDesktop {
 flex: 1;
+    width: 100%;
     grid-template-columns: repeat(8, minmax(0, 1fr));
 }
 
@@ -195,6 +200,11 @@ border: 1px solid #e2e8f0;
 .periodHeadContent {
 text-align: center;
     font-weight: 500;
+    display: flex;
+    width: 100%;
+    height: 100%;
+    align-items: center;
+    justify-content: center;
 }
 
 .periodHeadContentMobile {
@@ -211,15 +221,24 @@ padding: 0.625rem;
 
 .periodTextMobile {
 font-size: 0.75rem;
+    display: flex;
+    width: 100%;
+    align-items: center;
+    justify-content: center;
 }
 
 .periodTextDesktop {
 font-size: 0.875rem;
+    display: flex;
+    width: 100%;
+    align-items: center;
+    justify-content: center;
 }
 
 .periodMain {
-font-weight: 600;
+    font-weight: 600;
     color: #334155;
+    line-height: 1;
 }
 
 .slotButton {
@@ -267,6 +286,17 @@ cursor: pointer;
 .slotButtonAssignable:hover {
 background: #bfdbfe;
     box-shadow: 0 0 0 4px #60a5fa;
+}
+
+.slotButtonAvailableForSelectedStaff {
+    border-color: #2563eb;
+    background: #f8fbff;
+    box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.25);
+}
+
+.slotButtonAvailableForSelectedStaff:hover {
+    border-color: #1d4ed8;
+    background: #eff6ff;
 }
 
 .slotButtonComplete {
@@ -399,11 +429,15 @@ font-size: 0.875rem;
 }
 
 .rightPaneDesktop {
-width: 20rem;
+width: 17rem;
     position: sticky;
-    top: 1rem;
-    height: calc(100vh - 7rem);
+    top: 1.25rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    max-height: calc(100vh - 7rem);
     overflow: hidden;
+    align-self: start;
 }
 
 .rightPaneMobile {
@@ -411,6 +445,8 @@ width: 100%;
 }
 
 .staffCard {
+display: flex;
+    flex-direction: column;
 box-shadow: 0 10px 15px rgba(0, 0, 0, 0.1);
 }
 
@@ -423,7 +459,7 @@ flex: 1;
     min-height: 15rem;
     display: flex;
     flex-direction: column;
-    overflow: hidden;
+    overflow-y: auto;
     padding: 1.5rem;
 }
 
@@ -491,6 +527,26 @@ display: flex;
     gap: 0.5rem;
 }
 
+.saveButtonMockWrap {
+    flex-shrink: 0;
+}
+
+.saveButtonMock {
+    width: 100%;
+    background: #5dade2;
+    color: #fff;
+    box-shadow: 0 10px 15px rgba(0, 0, 0, 0.1);
+}
+
+.saveButtonMock:hover {
+    background: #3498db;
+}
+
+.saveButtonMock:disabled {
+    opacity: 1;
+    cursor: default;
+}
+
 .rightPaneDesktop .staffCard {
 height: 100%;
     display: flex;
@@ -517,13 +573,12 @@ height: auto !important;
 
 .staffItemSelected {
 transform: none;
-    background: #3b82f6;
+    background: #5dade2;
     color: #fff;
-    box-shadow: 0 10px 15px rgba(0, 0, 0, 0.12);
 }
 
 .staffItemSelected:hover {
-background: #2563eb;
+    background: #3498db;
 }
 
 .staffItemAssigned {
@@ -537,7 +592,7 @@ border-color: #22c55e;
 }
 
 .staffItemDefault {
-border-color: #cbd5e1;
+    border-color: #cbd5e1;
 }
 
 .staffItemDefault:hover {
@@ -604,6 +659,22 @@ color: #64748b;
 
 .staffItemCommentSelected {
 color: #dbeafe;
+}
+
+.availabilityWrap {
+    margin-top: 0.5rem;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.375rem;
+}
+
+.availabilityBadge {
+    border: 1px solid #93c5fd;
+    border-radius: 9999px;
+    background: #eff6ff;
+    padding: 0.125rem 0.5rem;
+    font-size: 0.75rem;
+    color: #1d4ed8;
 }
 
 .emptyStaffText {

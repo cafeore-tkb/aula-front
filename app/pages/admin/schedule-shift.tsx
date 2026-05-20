@@ -971,6 +971,12 @@ export default function ScheduleShift() {
 								</div>
 							</CardContent>
 						</Card>
+
+						<div className={styles.saveButtonMockWrap}>
+							<Button variant="default" className={styles.saveButtonMock} disabled>
+								シフトを保存
+							</Button>
+						</div>
 					</div>
 				</div>
 			</div>
