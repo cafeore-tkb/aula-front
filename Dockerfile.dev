@@ -2,20 +2,18 @@ FROM node:20-alpine
 
 WORKDIR /app
 
-# Install pnpm if using pnpm (based on pnpm-lock.yaml in the project)
-RUN npm install -g pnpm
+RUN corepack enable && corepack prepare pnpm@10.17.1 --activate
 
-# Copy package files
 COPY package.json pnpm-lock.yaml ./
 
-# Install dependencies (including dev dependencies)
 RUN pnpm install
 
-# Copy the entire project
 COPY . .
 
-# Expose the dev server port
+RUN chown -R node:node /app
+
+USER node
+
 EXPOSE 5173
 
-# Start the development server
 CMD ["pnpm", "dev"]
