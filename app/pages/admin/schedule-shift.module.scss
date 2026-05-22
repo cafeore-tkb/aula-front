@@ -475,12 +475,12 @@ flex: 1;
 }
 
 .staffToggleActive {
-background: #3b82f6;
+background: #2563eb;
     color: #fff;
 }
 
 .staffToggleActive:hover {
-background: #2563eb;
+background: #3b82f6;
 }
 
 .staffToggleInactive {
@@ -629,6 +629,10 @@ min-width: 0;
     white-space: normal;
     overflow-wrap: anywhere;
     word-break: break-word;
+}
+
+.staffItemNameSelected {
+    color: #fff;
 }
 
 .assignedBadge {
