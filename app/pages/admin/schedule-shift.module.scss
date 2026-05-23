@@ -355,6 +355,7 @@ display: flex;
 }
 
 .slotAssigneeBox {
+position: relative;
 display: flex;
     flex-direction: column;
     align-items: stretch;
@@ -366,6 +367,13 @@ display: flex;
     border-radius: 0.375rem;
     background: #fff;
     box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.75);
+}
+
+.slotAssigneeBox:hover .slotRemoveButton,
+.slotAssigneeBox:focus-within .slotRemoveButton {
+opacity: 1;
+    transform: translateY(0);
+    pointer-events: auto;
 }
 
 .slotAssigneeBoxTrainee {
@@ -392,6 +400,33 @@ font-size: 0.75rem;
     color: #0f172a;
     line-height: 1.2;
     word-break: break-word;
+}
+
+.slotRemoveButton {
+position: absolute;
+    top: 0.125rem;
+    right: 0.125rem;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 1.25rem;
+    height: 1.25rem;
+    padding: 0;
+    border: 0;
+    border-radius: 9999px;
+    background: rgba(15, 23, 42, 0.85);
+    color: #fff;
+    font-size: 0.75rem;
+    line-height: 1;
+    cursor: pointer;
+    opacity: 0;
+    transform: translateY(-0.125rem);
+    transition: opacity 0.15s ease, transform 0.15s ease, background-color 0.15s ease;
+    pointer-events: none;
+}
+
+.slotRemoveButton:hover {
+background: #dc2626;
 }
 
 .slotNameStrong {

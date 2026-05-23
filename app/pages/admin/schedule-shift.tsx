@@ -684,7 +684,7 @@ export default function ScheduleShift() {
 												<Button
 													key={`${period}-${dayName}`}
 													variant={slot.slotStatus === 'complete' ? 'default' : 'outline'}
-													disabled={!slot.isVacant}
+													disabled={!slot.isVacant && slot.assignedTrainees.length === 0 && slot.assignedExaminers.length === 0}
 													onClick={() => handleSlotClick(periodIndex, dayIndex)}
 													className={`${styles.slotButton} ${isMobile
 															? styles.slotButtonMobile
@@ -702,6 +702,17 @@ export default function ScheduleShift() {
 																			key={`${trainee.userId}-${idx}`}
 																			className={`${styles.slotAssigneeBox} ${styles.slotAssigneeBoxTrainee}`}
 																		>
+																			<button
+																				type="button"
+																				className={styles.slotRemoveButton}
+																				onClick={(event) => {
+																					event.stopPropagation();
+																					deleteStaffFromSlot(periodIndex, dayIndex, trainee, false);
+																				}}
+																				aria-label={`${trainee.name} の割り当てを解除`}
+																			>
+																				×
+																			</button>
 																			<div className={styles.slotAssigneeLabel}>練:{trainee.name}</div>
 																		</div>
 																	))}
@@ -718,6 +729,17 @@ export default function ScheduleShift() {
 																			key={`${examiner.userId}-${idx}`}
 																			className={`${styles.slotAssigneeBox} ${styles.slotAssigneeBoxExaminer}`}
 																		>
+																			<button
+																				type="button"
+																				className={styles.slotRemoveButton}
+																				onClick={(event) => {
+																					event.stopPropagation();
+																					deleteStaffFromSlot(periodIndex, dayIndex, examiner, true);
+																				}}
+																				aria-label={`${examiner.name} の割り当てを解除`}
+																			>
+																				×
+																			</button>
 																			<div className={styles.slotAssigneeLabel}>試{idx + 1}</div>
 																		</div>
 																	))}
