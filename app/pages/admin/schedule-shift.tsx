@@ -16,8 +16,9 @@ interface StaffMember {
 	name: string;
 	isExaminer: boolean;
 	scheduleData: { period: string; day: string; canBeAssigned: boolean }[];
-	gmail?: string;
 	comment: string;
+	isTwice?: boolean; // 週2回シフトを希望するかどうか
+	isAssigned?: boolean; // 割り当て済みフラグ
 }
 
 /**
@@ -26,9 +27,12 @@ interface StaffMember {
 interface TimeSlot {
 	assignedTrainees: StaffMember[];
 	assignedExaminers: StaffMember[];
-    slotStatus: 'unable' | 'idle' | 'incomplete' | 'complete'; // 割当不可/割当可能（未割当）/割当可能（途中）/割当確定
+	slotStatus: 'unable' | 'idle' | 'incomplete' | 'complete'; // 割当不可/割当可能（未割当）/割当可能（途中）/割当確定
 	isVacant: boolean;
 }
+
+const dedupeStaffMembers = (members: StaffMember[]) =>
+	Array.from(new Map(members.map((member) => [member.userId, member])).values());
 
 /**
  * ページメタデータを定義する関数
@@ -82,7 +86,7 @@ export default function ScheduleShift() {
 						slotStatus: 'idle',
 						isVacant: false,
 					})),
-		),
+			),
 	);
 
 	const getStorageKey = useCallback((shiftUid: string) => `schedule_shift_${shiftUid}`, []);
@@ -139,6 +143,22 @@ export default function ScheduleShift() {
 		const isDeselecting = selectedStaffUserId === staff.userId;
 		setSelectedStaffUserId(isDeselecting ? null : staff.userId);
 		updateVacancyBySelectedStaff(isDeselecting ? null : staff);
+	};
+
+	const handleSlotClick = (periodIndex: number, dayIndex: number) => {
+		if (!selectedStaffUserId) {
+			return;
+		}
+
+		const selectedStaff = [...trainees, ...examiners].find(
+			(staff) => staff.userId === selectedStaffUserId,
+		);
+
+		if (!selectedStaff) {
+			return;
+		}
+
+		assignStaffToSlot(periodIndex, dayIndex, selectedStaff, selectedStaff.isExaminer);
 	};
 
 	const getSlotButtonClassName = (slot: TimeSlot) => {
@@ -250,6 +270,7 @@ export default function ScheduleShift() {
 						userId?: string;
 						scheduleData?: Array<{ period?: number; day?: string; isSelected?: boolean; canBeAssigned?: boolean }>;
 						comment?: string;
+						isTwice?: boolean;
 					};
 
 					const userId = shiftResponseData.userId;
@@ -265,6 +286,10 @@ export default function ScheduleShift() {
 					}
 
 					const userData = userDoc.data() as UserProfile;
+					const userDataWithFlags = userDoc.data() as UserProfile & {
+						isTwice?: boolean;
+						isAssigned?: boolean;
+					};
 					console.log('User data:', {
 						userId,
 						name: userData.name,
@@ -283,6 +308,7 @@ export default function ScheduleShift() {
 							canBeAssigned: Boolean(slot.canBeAssigned ?? slot.isSelected),
 						})),
 						comment: shiftResponseData.comment || '',
+						isTwice: userDataWithFlags.isTwice ?? shiftResponseData.isTwice ?? false,
 					};
 
 					if (userData.isExaminer === true) {
@@ -328,13 +354,16 @@ export default function ScheduleShift() {
 											.map((userId) => examinerList.find((examiner) => examiner.userId === userId))
 											.filter(Boolean) as StaffMember[];
 
+										const uniqueRestoredTrainees = dedupeStaffMembers(restoredTrainees);
+										const uniqueRestoredExaminers = dedupeStaffMembers(restoredExaminers);
+
 										return {
-											assignedTrainees: restoredTrainees,
-											assignedExaminers: restoredExaminers,
+											assignedTrainees: uniqueRestoredTrainees,
+											assignedExaminers: uniqueRestoredExaminers,
 											slotStatus:
-												restoredTrainees.length > 0 && restoredExaminers.length >= 2
+												uniqueRestoredTrainees.length > 0 && uniqueRestoredExaminers.length >= 2
 													? 'complete'
-													: restoredTrainees.length > 0 || restoredExaminers.length > 0
+													: uniqueRestoredTrainees.length > 0 || uniqueRestoredExaminers.length > 0
 														? 'incomplete'
 														: 'idle',
 											isVacant: false,
@@ -449,105 +478,120 @@ export default function ScheduleShift() {
 		dayIndex: number,
 	) => {
 		// TODO: 中身を実装
-        setSchedule((prevSchedule) => {
-            const newSchedule = [...prevSchedule];
-            const slot = newSchedule[periodIndex][dayIndex];
+		setSchedule((prevSchedule) => {
+			const newSchedule = [...prevSchedule];
+			const slot = newSchedule[periodIndex][dayIndex];
 
-            if(slot.assignedTrainees.length === 0){
-                slot.slotStatus = 'idle';
-            } else if (slot.assignedTrainees.length > 0 && slot.assignedExaminers.length < 2) {
-                slot.slotStatus = 'incomplete';
-            } else if (slot.assignedTrainees.length > 0 && slot.assignedExaminers.length >= 2) {
-                slot.slotStatus = 'complete';
-            }
+			if (slot.assignedTrainees.length === 0) {
+				slot.slotStatus = 'idle';
+			} else if (slot.assignedTrainees.length > 0 && slot.assignedExaminers.length < 2) {
+				slot.slotStatus = 'incomplete';
+			} else if (slot.assignedTrainees.length > 0 && slot.assignedExaminers.length >= 2) {
+				slot.slotStatus = 'complete';
+			}
 
-            return newSchedule;
+			return newSchedule;
 
-        });
+		});
 	};
 
-    const assignStaffToSlot = (
-        periodIndex: number,
-        dayIndex: number,
-        staffMember: StaffMember,
-        isExaminer: boolean,
-    ) => {
-        setSchedule((prevSchedule) => {
-            const newSchedule = [...prevSchedule];
-            const slot = newSchedule[periodIndex][dayIndex];
+	const getSlotStatus = (slot: TimeSlot): TimeSlot['slotStatus'] => {
+		if (slot.assignedTrainees.length === 0) {
+			return 'idle';
+		}
 
-            if(isExaminer){
-                slot.assignedExaminers.push(staffMember);
-            } else {
-                slot.assignedTrainees.push(staffMember);
-            }
+		if (slot.assignedExaminers.length < 2) {
+			return 'incomplete';
+		}
 
-            // ステータス更新
-            updateSlotStatus(periodIndex, dayIndex);
+		return 'complete';
+	};
 
-            return newSchedule;
-        });
-    }
+	const assignStaffToSlot = (
+		periodIndex: number,
+		dayIndex: number,
+		staffMember: StaffMember,
+		isExaminer: boolean,
+	) => {
+		setSchedule((prevSchedule) => {
+			const newSchedule = [...prevSchedule];
+			const slot = newSchedule[periodIndex][dayIndex];
+			const alreadyAssigned = isExaminer
+				? slot.assignedExaminers.some((examiner) => examiner.userId === staffMember.userId)
+				: slot.assignedTrainees.some((trainee) => trainee.userId === staffMember.userId);
 
-    const deleteStaffFromSlot = (
-        periodIndex: number,
-        dayIndex: number,
-        staffMember: StaffMember,
-        isExaminer: boolean,
-    ) => {
-        setSchedule((prevSchedule) => {
-            const newSchedule = [...prevSchedule];
-            const slot = newSchedule[periodIndex][dayIndex];
+			if (alreadyAssigned) {
+				return prevSchedule;
+			}
 
-            if(isExaminer){
-                slot.assignedExaminers = slot.assignedExaminers.filter((examiner) => examiner.userId !== staffMember.userId);
-            } else {
-                slot.assignedTrainees = slot.assignedTrainees.filter((trainee) => trainee.userId !== staffMember.userId);
-            }
+			if (isExaminer) {
+				slot.assignedExaminers.push(staffMember);
+			} else {
+				slot.assignedTrainees.push(staffMember);
+			}
 
-            // ステータス更新
-            updateSlotStatus(periodIndex, dayIndex);
+			// ステータス更新
+			updateSlotStatus(periodIndex, dayIndex);
 
-            return newSchedule;
-        });
-    }
+			return newSchedule;
+		});
+	};
 
-    // prevent unused-variable compile errors
-    void assignStaffToSlot;
-    void deleteStaffFromSlot;;
+	const deleteStaffFromSlot = (
+		periodIndex: number,
+		dayIndex: number,
+		staffMember: StaffMember,
+		isExaminer: boolean,
+	) => {
+		setSchedule((prevSchedule) => {
+			const newSchedule = [...prevSchedule];
+			const slot = newSchedule[periodIndex][dayIndex];
 
-    // prevent unused-variable compile errors in template
-    void assignStaffToSlot;
-    void deleteStaffFromSlot;
+			if (isExaminer) {
+				slot.assignedExaminers = slot.assignedExaminers.filter((examiner) => examiner.userId !== staffMember.userId);
+			} else {
+				slot.assignedTrainees = slot.assignedTrainees.filter((trainee) => trainee.userId !== staffMember.userId);
+			}
+
+			slot.slotStatus = getSlotStatus(slot);
+
+			return newSchedule;
+		});
+	}
+
+	// prevent unused-variable compile errors
+	void assignStaffToSlot;
+	void deleteStaffFromSlot;;
+
+	// prevent unused-variable compile errors in template
+	void assignStaffToSlot;
+	void deleteStaffFromSlot;
 
 	// ===== JSXテンプレート =====
 
 	return (
 		<div
-			className={`${styles.schedulePage} ${
-				isMobile
+			className={`${styles.schedulePage} ${isMobile
 					? styles.schedulePageMobile
 					: isTablet
 						? styles.schedulePageTablet
 						: styles.schedulePageDesktop
-			}`}
+				}`}
 		>
 			<div
-				className={`${styles.scheduleContainer} ${
-					isMobile
+				className={`${styles.scheduleContainer} ${isMobile
 						? styles.scheduleContainerMobile
 						: isTablet
 							? styles.scheduleContainerTablet
 							: styles.scheduleContainerDesktop
-				}`}
+					}`}
 			>
 				{/* ヘッダー */}
 				<div className={styles.scheduleHeader}>
 					<div className={styles.scheduleHeaderRow}>
 						<h1
-							className={`${styles.scheduleTitle} ${
-								isMobile ? styles.scheduleTitleMobile : styles.scheduleTitleDesktop
-							}`}
+							className={`${styles.scheduleTitle} ${isMobile ? styles.scheduleTitleMobile : styles.scheduleTitleDesktop
+								}`}
 						>
 							シフト作成
 						</h1>
@@ -572,26 +616,23 @@ export default function ScheduleShift() {
 					<div className={isDesktop ? styles.leftPaneDesktop : styles.leftPaneMobile}>
 						<div className={isMobile ? styles.leftInnerMobile : styles.leftInnerDesktop}>
 							<div
-								className={`${styles.scheduleGrid} ${
-									isMobile ? styles.scheduleGridMobile : styles.scheduleGridDesktop
-								} ${
-									isMobile
+								className={`${styles.scheduleGrid} ${isMobile ? styles.scheduleGridMobile : styles.scheduleGridDesktop
+									} ${isMobile
 										? styles.scheduleGridGapMobile
 										: isTablet
 											? styles.scheduleGridGapTablet
 											: styles.scheduleGridGapDesktop
-								}`}
+									}`}
 							>
 								{/* ヘッダー行 */}
 								<Card className={styles.dayHeadCard}>
 									<CardContent
-										className={`${styles.dayHeadText} ${
-											isMobile
+										className={`${styles.dayHeadText} ${isMobile
 												? styles.dayHeadTextMobile
 												: isTablet
 													? styles.dayHeadTextTablet
 													: styles.dayHeadTextDesktop
-										}`}
+											}`}
 									>
 										時限
 									</CardContent>
@@ -599,13 +640,12 @@ export default function ScheduleShift() {
 								{day.map((dayName) => (
 									<Card key={dayName} className={styles.dayHeadCard}>
 										<CardContent
-											className={`${styles.dayHeadText} ${
-												isMobile
+											className={`${styles.dayHeadText} ${isMobile
 													? styles.dayHeadTextMobile
 													: isTablet
 														? styles.dayHeadTextTablet
 														: styles.dayHeadTextDesktop
-											}`}
+												}`}
 										>
 											{isMobile ? dayName : `${dayName}曜日`}
 										</CardContent>
@@ -618,13 +658,12 @@ export default function ScheduleShift() {
 										{/* 時限表示 */}
 										<Card className={styles.periodHeadCard}>
 											<CardContent
-												className={`${styles.periodHeadContent} ${
-													isMobile
+												className={`${styles.periodHeadContent} ${isMobile
 														? styles.periodHeadContentMobile
 														: isTablet
 															? styles.periodHeadContentTablet
 															: styles.periodHeadContentDesktop
-												}`}
+													}`}
 											>
 												<div
 													className={
@@ -646,40 +685,40 @@ export default function ScheduleShift() {
 													key={`${period}-${dayName}`}
 													variant={slot.slotStatus === 'complete' ? 'default' : 'outline'}
 													disabled={!slot.isVacant}
-													className={`${styles.slotButton} ${
-														isMobile
+													onClick={() => handleSlotClick(periodIndex, dayIndex)}
+													className={`${styles.slotButton} ${isMobile
 															? styles.slotButtonMobile
 															: isTablet
 																? styles.slotButtonTablet
 																: styles.slotButtonDesktop
-													} ${slotStateClassName}`}
+														} ${slotStateClassName}`}
 												>
 													<div className={styles.slotContentWrap}>
 														<div className={styles.slotTextCol}>
 															{slot.assignedTrainees.length > 0 ? (
-																<div className={styles.slotNamesList}>
+																<div className={styles.slotAssigneeStack}>
 																	{slot.assignedTrainees.map((trainee, idx) => (
 																		<div
-																			key={trainee.userId}
-																			className={styles.slotNameStrong}
+																			key={`${trainee.userId}-${idx}`}
+																			className={`${styles.slotAssigneeBox} ${styles.slotAssigneeBoxTrainee}`}
 																		>
-																			練{idx + 1}: {trainee.name}
+																			<div className={styles.slotAssigneeLabel}>練:{trainee.name}</div>
 																		</div>
 																	))}
 																</div>
 															) : (
-																<div className={styles.slotNameStrong}>練習生:</div>
+																<div />
 															)}
 														</div>
 														<div className={styles.slotTextCol}>
 															{slot.assignedExaminers.length > 0 ? (
-																<div className={styles.slotNamesList}>
-																		{slot.assignedExaminers.map((examiner, idx) => (
+																<div className={styles.slotAssigneeStack}>
+																	{slot.assignedExaminers.map((examiner, idx) => (
 																		<div
-																			key={examiner.userId}
-																			className={styles.slotNameNormal}
+																			key={`${examiner.userId}-${idx}`}
+																			className={`${styles.slotAssigneeBox} ${styles.slotAssigneeBoxExaminer}`}
 																		>
-																			試{idx + 1}: {examiner.name}
+																			<div className={styles.slotAssigneeLabel}>試{idx + 1}</div>
 																		</div>
 																	))}
 																</div>
@@ -713,18 +752,16 @@ export default function ScheduleShift() {
 								<div className={styles.staffToggleRow}>
 									<Button
 										variant={activeList === 'trainees' ? 'default' : 'outline'}
-										className={`${styles.staffToggleButton} ${
-											activeList === 'trainees' ? styles.staffToggleActive : styles.staffToggleInactive
-										}`}
+										className={`${styles.staffToggleButton} ${activeList === 'trainees' ? styles.staffToggleActive : styles.staffToggleInactive
+											}`}
 										onClick={() => setActiveList('trainees')}
 									>
 										練習生 ({trainees.length})
 									</Button>
 									<Button
 										variant={activeList === 'examiners' ? 'default' : 'outline'}
-										className={`${styles.staffToggleButton} ${
-											activeList === 'examiners' ? styles.staffToggleActive : styles.staffToggleInactive
-										}`}
+										className={`${styles.staffToggleButton} ${activeList === 'examiners' ? styles.staffToggleActive : styles.staffToggleInactive
+											}`}
 										onClick={() => setActiveList('examiners')}
 									>
 										試験官 ({examiners.length})
@@ -739,30 +776,27 @@ export default function ScheduleShift() {
 												<Button
 													key={trainee.userId}
 													variant="outline"
-													className={`${styles.staffItemButton} ${
-														selectedStaffUserId === trainee.userId
+													className={`${styles.staffItemButton} ${selectedStaffUserId === trainee.userId
 															? styles.staffItemSelected
 															: styles.staffItemDefault
-													}`}
+														}`}
 													onClick={() => handleStaffSelect(trainee)}
 												>
 													<div className={styles.staffItemHeader}>
 														<span
-															className={`${styles.staffItemName} ${
-																selectedStaffUserId === trainee.userId
+															className={`${styles.staffItemName} ${selectedStaffUserId === trainee.userId
 																	? styles.staffItemNameSelected
 																	: ''
-															}`}
+																}`}
 														>
 															{trainee.name}
 														</span>
 													</div>
 													<p
-														className={`${styles.staffItemComment} ${
-															selectedStaffUserId === trainee.userId
+														className={`${styles.staffItemComment} ${selectedStaffUserId === trainee.userId
 																? styles.staffItemCommentSelected
 																: styles.staffItemCommentDefault
-														}`}
+															}`}
 													>
 														{trainee.comment}
 													</p>
@@ -777,30 +811,27 @@ export default function ScheduleShift() {
 												<Button
 													key={examiner.userId}
 													variant="outline"
-													className={`${styles.staffItemButton} ${
-														selectedStaffUserId === examiner.userId
+													className={`${styles.staffItemButton} ${selectedStaffUserId === examiner.userId
 															? styles.staffItemSelected
 															: styles.staffItemDefault
-													}`}
+														}`}
 													onClick={() => handleStaffSelect(examiner)}
 												>
 													<div className={styles.staffItemHeader}>
 														<span
-															className={`${styles.staffItemName} ${
-																selectedStaffUserId === examiner.userId
+															className={`${styles.staffItemName} ${selectedStaffUserId === examiner.userId
 																	? styles.staffItemNameSelected
 																	: ''
-															}`}
+																}`}
 														>
 															{examiner.name}
 														</span>
 													</div>
 													<p
-														className={`${styles.staffItemComment} ${
-															selectedStaffUserId === examiner.userId
+														className={`${styles.staffItemComment} ${selectedStaffUserId === examiner.userId
 																? styles.staffItemCommentSelected
 																: styles.staffItemCommentDefault
-														}`}
+															}`}
 													>
 														{examiner.comment}
 													</p>
@@ -814,16 +845,16 @@ export default function ScheduleShift() {
 							</CardContent>
 						</Card>
 
-									{/* 保存ボタン */}
-									<div className={styles.saveButtonMockWrap}>
-										<Button
-											variant="default"
-											className={styles.saveButtonMock}
-											disabled
-										>
-											シフトを保存
-										</Button>
-									</div>
+						{/* 保存ボタン */}
+						<div className={styles.saveButtonMockWrap}>
+							<Button
+								variant="default"
+								className={styles.saveButtonMock}
+								disabled
+							>
+								シフトを保存
+							</Button>
+						</div>
 
 					</div>
 				</div>
