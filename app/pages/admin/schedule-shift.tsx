@@ -65,6 +65,15 @@ export default function ScheduleShift() {
 	// 定数
 	const day = ['月', '火', '水', '木', '金', '土', '日'];
 	const periods = ['1限', '2限', '3限', '4限', '5限', '6限', '7限', '8限'];
+	const dayEmojiByName: Record<string, string> = {
+		月: ':d_monday:',
+		火: ':d_tuesday:',
+		水: ':d_wednesday:',
+		木: ':d_thursday:',
+		金: ':d_friday:',
+		土: ':d_saturday:',
+		日: ':d_sunday:',
+	};
 
 	// スタッフリスト状態管理
 	const [trainees, setTrainees] = useState<StaffMember[]>([]);
@@ -74,6 +83,8 @@ export default function ScheduleShift() {
 	const [activeList, setActiveList] = useState<'trainees' | 'examiners'>('trainees');
 	const [selectedStaffUserId, setSelectedStaffUserId] = useState<string | null>(null);
 	const [isScheduleLoaded, setIsScheduleLoaded] = useState(false);
+	const [showOutputPopup, setShowOutputPopup] = useState(false);
+	const [copyResultMessage, setCopyResultMessage] = useState('');
 	const [schedule, setSchedule] = useState<TimeSlot[][]>(
 		Array(8)
 			.fill(null)
@@ -90,6 +101,74 @@ export default function ScheduleShift() {
 	);
 
 	const getStorageKey = useCallback((shiftUid: string) => `schedule_shift_${shiftUid}`, []);
+
+	const outputText = (() => {
+		const lines: string[] = [];
+
+		for (let dayIndex = 0; dayIndex < day.length; dayIndex += 1) {
+			for (let periodIndex = 0; periodIndex < periods.length; periodIndex += 1) {
+				const slot = schedule[periodIndex][dayIndex];
+
+				if (slot.slotStatus !== 'complete') {
+					continue;
+				}
+
+				const dayName = day[dayIndex];
+				const dayEmoji = dayEmojiByName[dayName] ?? `:${dayName}:`;
+				const periodEmoji = `:${periodIndex + 1}:`;
+				const traineesText =
+					slot.assignedTrainees.length > 0
+						? slot.assignedTrainees.map((trainee) => `@${trainee.name}`).join(' ')
+						: '-';
+				const examinersText =
+					slot.assignedExaminers.length > 0
+						? slot.assignedExaminers.map((examiner) => `@${examiner.name}`).join(' ')
+						: '-';
+
+				lines.push(`${dayEmoji} ${periodEmoji} ${traineesText} / ${examinersText}`);
+			}
+		}
+
+		return lines.join('\n');
+	})();
+
+	const openOutputPopup = () => {
+		setCopyResultMessage('');
+		setShowOutputPopup(true);
+	};
+
+	const closeOutputPopup = () => {
+		setShowOutputPopup(false);
+		setCopyResultMessage('');
+	};
+
+	const handleCopyOutputText = async () => {
+		if (!outputText) {
+			setCopyResultMessage('コピーする内容がありません');
+			return;
+		}
+
+		try {
+			if (navigator.clipboard?.writeText) {
+				await navigator.clipboard.writeText(outputText);
+			} else {
+				const textArea = document.createElement('textarea');
+				textArea.value = outputText;
+				textArea.style.position = 'fixed';
+				textArea.style.opacity = '0';
+				document.body.appendChild(textArea);
+				textArea.focus();
+				textArea.select();
+				document.execCommand('copy');
+				document.body.removeChild(textArea);
+			}
+
+			setCopyResultMessage('コピーしました');
+		} catch (error) {
+			console.error('Failed to copy output text:', error);
+			setCopyResultMessage('コピーに失敗しました');
+		}
+	};
 
 	const getPeriodIndexFromValue = (periodValue: string) => {
 		const normalized = periodValue.replace('限', '');
@@ -868,7 +947,7 @@ export default function ScheduleShift() {
 						</Card>
 
 						{/* 保存ボタン */}
-						{/* <div className={styles.saveButtonMockWrap}>
+						<div className={styles.saveButtonMockWrap}>
 							<Button
 								variant="default"
 								className={styles.saveButtonMock}
@@ -876,11 +955,78 @@ export default function ScheduleShift() {
 							>
 								シフトを保存
 							</Button>
-						</div> */}
+						</div>
+
+						{/* 出力ボタン */}
+						<div className={styles.outputButtonMockWrap}>
+							<Button
+								variant="default"
+								className={styles.outputButtonMock}
+								onClick={openOutputPopup}
+							>
+								シフトを出力
+							</Button>
+						</div>
 
 					</div>
 				</div>
 			</div>
+
+			{/* モーダルポップアップ */}
+			{/* eslint-disable-next-line jsx-a11y/click-events-have-key-events, jsx-a11y/no-static-element-interactions, react/no-array-index-key */}
+			{showOutputPopup && (
+				<dialog
+					className={styles.modalOverlay}
+					open
+					onClick={closeOutputPopup}
+					onKeyDown={(e: React.KeyboardEvent) => {
+						if (e.key === 'Escape') {
+							closeOutputPopup();
+						}
+					}}
+				>
+					<div
+						className={styles.modalContent}
+						onClick={(e) => e.stopPropagation()}
+						onKeyDown={(e: React.KeyboardEvent) => e.stopPropagation()}
+						role="dialog"
+						aria-modal="true"
+						tabIndex={-1}
+					>
+						<div className={styles.modalHeader}>
+							<h2 className={styles.modalTitle}>シフト出力</h2>
+							<button
+								type="button"
+								className={styles.modalCloseButton}
+								onClick={closeOutputPopup}
+								aria-label="閉じる"
+							>
+								×
+							</button>
+						</div>
+						<div className={styles.modalBody}>
+							<div className={styles.outputTextWrapper}>
+								<pre className={styles.outputText}>{outputText}</pre>
+							</div>
+						</div>
+						<div className={styles.modalFooter}>
+							{copyResultMessage ? <p className={styles.copyResultMessage}>{copyResultMessage}</p> : null}
+							<Button
+								variant="default"
+								onClick={handleCopyOutputText}
+							>
+								コピー
+							</Button>
+							<Button
+								variant="outline"
+								onClick={closeOutputPopup}
+							>
+								閉じる
+							</Button>
+						</div>
+					</div>
+				</dialog>
+			)}
 		</div>
 	);
 }
