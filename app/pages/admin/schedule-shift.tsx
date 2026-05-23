@@ -740,7 +740,7 @@ export default function ScheduleShift() {
 																			>
 																				×
 																			</button>
-																			<div className={styles.slotAssigneeLabel}>試{idx + 1}</div>
+																			<div className={styles.slotAssigneeLabel}>試:{examiner.name}</div>
 																		</div>
 																	))}
 																</div>
@@ -868,7 +868,7 @@ export default function ScheduleShift() {
 						</Card>
 
 						{/* 保存ボタン */}
-						<div className={styles.saveButtonMockWrap}>
+						{/* <div className={styles.saveButtonMockWrap}>
 							<Button
 								variant="default"
 								className={styles.saveButtonMock}
@@ -876,7 +876,7 @@ export default function ScheduleShift() {
 							>
 								シフトを保存
 							</Button>
-						</div>
+						</div> */}
 
 					</div>
 				</div>
