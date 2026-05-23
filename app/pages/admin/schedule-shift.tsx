@@ -246,7 +246,6 @@ export default function ScheduleShift() {
 
 	const handleSlotClick = (periodIndex: number, dayIndex: number) => {
 		if (!selectedStaffUserId) {
-			updateAvailabilityForSlot(periodIndex, dayIndex);
 			return;
 		}
 
@@ -786,6 +785,7 @@ export default function ScheduleShift() {
 													variant={slot.slotStatus === 'complete' ? 'default' : 'outline'}
 													//disabled={!slot.isVacant && slot.assignedTrainees.length === 0 && slot.assignedExaminers.length === 0}
 													onClick={() => handleSlotClick(periodIndex, dayIndex)}
+													onMouseEnter={() => updateAvailabilityForSlot(periodIndex, dayIndex)}
 													className={`${styles.slotButton} ${isMobile
 															? styles.slotButtonMobile
 															: isTablet
