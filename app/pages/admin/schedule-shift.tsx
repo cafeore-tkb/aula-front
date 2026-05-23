@@ -125,7 +125,7 @@ export default function ScheduleShift() {
 						? slot.assignedExaminers.map((examiner) => `@${examiner.name}`).join(' ')
 						: '-';
 
-				lines.push(`${dayEmoji} ${periodEmoji} ${traineesText} / ${examinersText}`);
+				lines.push(`${dayEmoji} ${periodEmoji} : ${traineesText} / ${examinersText}`);
 			}
 		}
 
@@ -947,7 +947,7 @@ export default function ScheduleShift() {
 						</Card>
 
 						{/* 保存ボタン */}
-						<div className={styles.saveButtonMockWrap}>
+						{/* <div className={styles.saveButtonMockWrap}>
 							<Button
 								variant="default"
 								className={styles.saveButtonMock}
@@ -955,7 +955,7 @@ export default function ScheduleShift() {
 							>
 								シフトを保存
 							</Button>
-						</div>
+						</div> */}
 
 						{/* 出力ボタン */}
 						<div className={styles.outputButtonMockWrap}>
