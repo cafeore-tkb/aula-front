@@ -1,0 +1,20 @@
+version: "3.8"
+
+services:
+  dev:
+    build:
+      context: .
+      dockerfile: Dockerfile.dev
+    container_name: aula-frontend-dev
+    ports:
+      - "${PORT:-5173}:5173"
+    volumes:
+      - .:/app
+      - /app/node_modules
+    environment:
+      - NODE_ENV=development
+      - PORT=5173
+    user: "${UID:-1000}:${GID:-1000}"
+    command: pnpm dev
+    stdin_open: true
+    tty: true

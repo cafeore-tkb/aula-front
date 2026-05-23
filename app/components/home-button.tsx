@@ -1,4 +1,5 @@
 import { useNavigate } from 'react-router';
+import styles from './home-button.module.scss';
 
 export function HomeButton() {
 	const navigate = useNavigate();
@@ -7,10 +8,10 @@ export function HomeButton() {
 		<button
 			type="button"
 			onClick={() => navigate('/dashboard')}
-			className="flex items-center space-x-2 rounded-lg border border-gray-300 bg-white px-4 py-2 text-gray-700 transition-colors hover:bg-gray-50"
+			className={styles.button}
 		>
 			<svg
-				className="h-5 w-5"
+				className={styles.icon}
 				fill="none"
 				stroke="currentColor"
 				viewBox="0 0 24 24"

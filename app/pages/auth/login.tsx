@@ -27,10 +27,10 @@ export default function Login() {
 	// ローディング中
 	if (loading) {
 		return (
-			<div className="flex min-h-screen items-center justify-center">
-				<div className="text-center">
-					<div className="mx-auto mb-4 h-8 w-8 animate-spin rounded-full border-4 border-blue-500 border-t-transparent" />
-					<p className="text-gray-600">読み込み中...</p>
+			<div className="common-loading-wrap">
+				<div className="common-loading-inner">
+					<div className="common-loading-spinner-blue" />
+					<p className="common-loading-text">読み込み中...</p>
 				</div>
 			</div>
 		);

@@ -5,6 +5,7 @@ import {
 	SelectTrigger,
 	SelectValue,
 } from '~/components/ui/select';
+import styles from './status-selecter.module.scss';
 
 interface StatusSelecterProps {
 	status: string;
@@ -19,28 +20,28 @@ export function StatusSelecter({
 }: StatusSelecterProps) {
 	return (
 		<Select value={status} onValueChange={setStatus}>
-			<SelectTrigger id={statusId} className="w-full">
+			<SelectTrigger id={statusId} className={styles.trigger}>
 				<SelectValue placeholder="ステータスを選択してください" />
 			</SelectTrigger>
 			<SelectContent>
 				<SelectItem value="first-trainee">
-					<div className="flex flex-col items-start">
-						<span className="font-medium">1年目練習生</span>
+					<div className={styles.optionWrap}>
+						<span className={styles.optionLabel}>1年目練習生</span>
 					</div>
 				</SelectItem>
 				<SelectItem value="second-trainee">
-					<div className="flex flex-col items-start">
-						<span className="font-medium">2年目練習生</span>
+					<div className={styles.optionWrap}>
+						<span className={styles.optionLabel}>2年目練習生</span>
 					</div>
 				</SelectItem>
 				<SelectItem value="first-examiner">
-					<div className="flex flex-col items-start">
-						<span className="font-medium">1年目試験官</span>
+					<div className={styles.optionWrap}>
+						<span className={styles.optionLabel}>1年目試験官</span>
 					</div>
 				</SelectItem>
 				<SelectItem value="second-examiner">
-					<div className="flex flex-col items-start">
-						<span className="font-medium">2年目試験官</span>
+					<div className={styles.optionWrap}>
+						<span className={styles.optionLabel}>2年目試験官</span>
 					</div>
 				</SelectItem>
 			</SelectContent>

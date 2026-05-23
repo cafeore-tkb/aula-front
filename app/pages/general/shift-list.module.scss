@@ -1,0 +1,90 @@
+/* Used by: app/pages/general/shift-list.tsx */
+.shiftListPage {
+min-height: 100vh;
+    background: #f8fafc;
+    padding: 2rem 0;
+}
+
+.shiftListContainer {
+width: 100%;
+    max-width: 72rem;
+    margin: 0 auto;
+    padding: 0 1rem;
+}
+
+.shiftListHeader {
+margin-bottom: 1.5rem;
+}
+
+.shiftListTitle {
+margin: 0 0 0.5rem;
+    font-size: 1.875rem;
+    font-weight: 700;
+    color: #1e293b;
+}
+
+.shiftListSubtitle {
+margin: 0;
+    color: #475569;
+}
+
+.shiftListLoadingWrap {
+text-align: center;
+}
+
+.shiftListEmptyContent {
+padding-top: 3rem;
+    padding-bottom: 3rem;
+    text-align: center;
+}
+
+.shiftListEmptyText {
+color: #64748b;
+}
+
+.shiftListListWrap {
+display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+}
+
+.shiftListCard {
+border-color: #99f6e4;
+    background: #f0fdfa;
+    transition: box-shadow 0.2s;
+}
+
+.shiftListCard:hover {
+box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+}
+
+.shiftListCardTitle {
+display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.shiftListContent {
+display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+
+.shiftListActionRow {
+display: flex;
+    gap: 0.5rem;
+    padding-top: 0.5rem;
+}
+
+.shiftListAnswerButton {
+background: #14b8a6;
+}
+
+.shiftListAnswerButton:hover {
+background: #0d9488;
+    color: #fff;
+}
+
+.shiftListHomeButtonWrap {
+margin-top: 2rem;
+}
