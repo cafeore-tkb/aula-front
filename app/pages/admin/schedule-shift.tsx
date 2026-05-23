@@ -1,4 +1,4 @@
-import { collection, getDocs, getFirestore } from 'firebase/firestore';
+import { collection, doc, getDocs, getFirestore, serverTimestamp, setDoc } from 'firebase/firestore';
 import React, { useCallback, useEffect, useState } from 'react';
 import { useMediaQuery } from 'react-responsive';
 import { useLocation, useNavigate } from 'react-router';
@@ -85,6 +85,7 @@ export default function ScheduleShift() {
 	const [isScheduleLoaded, setIsScheduleLoaded] = useState(false);
 	const [showOutputPopup, setShowOutputPopup] = useState(false);
 	const [copyResultMessage, setCopyResultMessage] = useState('');
+	const [saveResultMessage, setSaveResultMessage] = useState('');
 	const [schedule, setSchedule] = useState<TimeSlot[][]>(
 		Array(8)
 			.fill(null)
@@ -167,6 +168,53 @@ export default function ScheduleShift() {
 		} catch (error) {
 			console.error('Failed to copy output text:', error);
 			setCopyResultMessage('コピーに失敗しました');
+		}
+	};
+
+	const handleSaveSchedule = async () => {
+		if (!shiftData) {
+			setSaveResultMessage('シフトデータがありません');
+			return;
+		}
+
+		try {
+			setSaveResultMessage('保存中...');
+			const db = getFirestore();
+			const confirmedShiftCollection = collection(db, 'confirmed_shift');
+			const confirmedShiftDocId = `${shiftData.year}_${shiftData.semester}_${shiftData.module}`;
+			const confirmedShiftDoc = doc(confirmedShiftCollection, confirmedShiftDocId);
+
+			const confirmedSchedule = schedule.map((row, periodIndex) => ({
+				periodIndex,
+				periodLabel: periods[periodIndex],
+				slots: row.map((slot, dayIndex) => ({
+					dayIndex,
+					dayLabel: day[dayIndex],
+					slotStatus: slot.slotStatus,
+					assignedTrainees: slot.assignedTrainees.map((trainee) => ({
+						userId: trainee.userId,
+						name: trainee.name,
+					})),
+					assignedExaminers: slot.assignedExaminers.map((examiner) => ({
+						userId: examiner.userId,
+						name: examiner.name,
+					})),
+				})),
+			}));
+
+			await setDoc(confirmedShiftDoc, {
+				shiftUid: shiftData.uid,
+				year: shiftData.year,
+				semester: shiftData.semester,
+				module: shiftData.module,
+				confirmedSchedule,
+				updatedAt: serverTimestamp(),
+			}, { merge: true });
+
+			setSaveResultMessage('保存しました');
+		} catch (error) {
+			console.error('Failed to save confirmed shift:', error);
+			setSaveResultMessage('保存に失敗しました');
 		}
 	};
 
@@ -947,15 +995,17 @@ export default function ScheduleShift() {
 						</Card>
 
 						{/* 保存ボタン */}
-						{/* <div className={styles.saveButtonMockWrap}>
+						<div className={styles.saveButtonMockWrap}>
 							<Button
 								variant="default"
 								className={styles.saveButtonMock}
-								disabled
+								onClick={handleSaveSchedule}
+								disabled={!isScheduleLoaded || !shiftData}
 							>
 								シフトを保存
 							</Button>
-						</div> */}
+							{saveResultMessage ? <p className={styles.copyResultMessage}>{saveResultMessage}</p> : null}
+						</div>
 
 						{/* 出力ボタン */}
 						<div className={styles.outputButtonMockWrap}>
