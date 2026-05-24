@@ -19,6 +19,7 @@ interface StaffMember {
 	comment: string;
 	isTwice?: boolean; // 週2回シフトを希望するかどうか
 	isAssigned?: boolean; // 割り当て済みフラグ
+	isAvailable?: boolean; // 選択されたスロットに割り当て可能か
 }
 
 /**
@@ -216,6 +217,25 @@ export default function ScheduleShift() {
 				}),
 			),
 		);
+	};
+
+	const updateAvailabilityForSlot = (periodIndex: number, dayIndex: number) => {
+		const targetPeriod = String(periodIndex + 1);
+		const targetDay = day[dayIndex];
+
+		const applyAvailability = (staff: StaffMember[]) =>
+			staff.map((member) => ({
+				...member,
+				isAbailable: member.scheduleData.some(
+					(scheduleItem) =>
+						scheduleItem.period === targetPeriod &&
+						scheduleItem.day === targetDay &&
+						scheduleItem.canBeAssigned,
+				),
+			}));
+
+		setTrainees((prevTrainees) => applyAvailability(prevTrainees));
+		setExaminers((prevExaminers) => applyAvailability(prevExaminers));
 	};
 
 	const handleStaffSelect = (staff: StaffMember) => {
@@ -763,8 +783,9 @@ export default function ScheduleShift() {
 												<Button
 													key={`${period}-${dayName}`}
 													variant={slot.slotStatus === 'complete' ? 'default' : 'outline'}
-													disabled={!slot.isVacant && slot.assignedTrainees.length === 0 && slot.assignedExaminers.length === 0}
+													//disabled={!slot.isVacant && slot.assignedTrainees.length === 0 && slot.assignedExaminers.length === 0}
 													onClick={() => handleSlotClick(periodIndex, dayIndex)}
+													onMouseEnter={() => updateAvailabilityForSlot(periodIndex, dayIndex)}
 													className={`${styles.slotButton} ${isMobile
 															? styles.slotButtonMobile
 															: isTablet
@@ -877,10 +898,13 @@ export default function ScheduleShift() {
 												<Button
 													key={trainee.userId}
 													variant="outline"
-													className={`${styles.staffItemButton} ${selectedStaffUserId === trainee.userId
-															? styles.staffItemSelected
-															: styles.staffItemDefault
-														}`}
+													className={`${styles.staffItemButton} 
+																${selectedStaffUserId === trainee.userId
+																	? styles.staffItemSelected
+																	: styles.staffItemDefault
+																} 
+																${trainee.isAvailable ? styles.staffItemAvailable : null}
+														`}
 													onClick={() => handleStaffSelect(trainee)}
 												>
 													<div className={styles.staffItemHeader}>
@@ -915,7 +939,9 @@ export default function ScheduleShift() {
 													className={`${styles.staffItemButton} ${selectedStaffUserId === examiner.userId
 															? styles.staffItemSelected
 															: styles.staffItemDefault
-														}`}
+														}
+														${examiner.isAvailable ? styles.staffItemAvailable : null}
+														`}
 													onClick={() => handleStaffSelect(examiner)}
 												>
 													<div className={styles.staffItemHeader}>
