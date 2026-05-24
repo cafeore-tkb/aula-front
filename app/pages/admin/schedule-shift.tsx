@@ -19,7 +19,7 @@ interface StaffMember {
 	comment: string;
 	isTwice?: boolean; // 週2回シフトを希望するかどうか
 	isAssigned?: boolean; // 割り当て済みフラグ
-	isAbailable?: boolean; // 選択されたスロットに割り当て可能か
+	isAvailable?: boolean; // 選択されたスロットに割り当て可能か
 }
 
 /**
@@ -903,7 +903,7 @@ export default function ScheduleShift() {
 																	? styles.staffItemSelected
 																	: styles.staffItemDefault
 																} 
-																${trainee.isAbailable ? styles.staffItemAvailable : null}
+																${trainee.isAvailable ? styles.staffItemAvailable : null}
 														`}
 													onClick={() => handleStaffSelect(trainee)}
 												>
@@ -940,7 +940,7 @@ export default function ScheduleShift() {
 															? styles.staffItemSelected
 															: styles.staffItemDefault
 														}
-														${examiner.isAbailable ? styles.staffItemAvailable : null}
+														${examiner.isAvailable ? styles.staffItemAvailable : null}
 														`}
 													onClick={() => handleStaffSelect(examiner)}
 												>
