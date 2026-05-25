@@ -100,7 +100,7 @@ pnpm build
 2. デプロイ
 
 ```bash
-pnpm deploy
+pnpm run deploy
 ```
 
 または Hosting のみ:
