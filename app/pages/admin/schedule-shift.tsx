@@ -1,4 +1,11 @@
-import { collection, doc, getDocs, getFirestore, serverTimestamp, setDoc } from 'firebase/firestore';
+import {
+	collection,
+	doc,
+	getDocs,
+	getFirestore,
+	serverTimestamp,
+	setDoc,
+} from 'firebase/firestore';
 import React, { useCallback, useEffect, useState } from 'react';
 import { useMediaQuery } from 'react-responsive';
 import { useLocation, useNavigate } from 'react-router';
@@ -80,9 +87,14 @@ export default function ScheduleShift() {
 	const [examiners, setExaminers] = useState<StaffMember[]>([]);
 
 	// 右カラムで表示するリストの切替（'trainees' | 'examiners'）
-	const [activeList, setActiveList] = useState<'trainees' | 'examiners'>('trainees');
-	const [selectedStaffUserId, setSelectedStaffUserId] = useState<string | null>(null);
+	const [activeList, setActiveList] = useState<'trainees' | 'examiners'>(
+		'trainees',
+	);
+	const [selectedStaffUserId, setSelectedStaffUserId] = useState<string | null>(
+		null,
+	);
 	const [isScheduleLoaded, setIsScheduleLoaded] = useState(false);
+	const [isEditMode, setIsEditMode] = useState(true);
 	const [showOutputPopup, setShowOutputPopup] = useState(false);
 	const [copyResultMessage, setCopyResultMessage] = useState('');
 	const [saveResultMessage, setSaveResultMessage] = useState('');
@@ -101,7 +113,10 @@ export default function ScheduleShift() {
 			),
 	);
 
-	const getStorageKey = useCallback((shiftUid: string) => `schedule_shift_${shiftUid}`, []);
+	const getStorageKey = useCallback(
+		(shiftUid: string) => `schedule_shift_${shiftUid}`,
+		[],
+	);
 
 	const outputText = (() => {
 		const lines: string[] = [];
@@ -126,7 +141,9 @@ export default function ScheduleShift() {
 						? slot.assignedExaminers.map((examiner) => `@${examiner.name}`).join(' ')
 						: '-';
 
-				lines.push(`${dayEmoji} ${periodEmoji} : ${traineesText} / ${examinersText}`);
+				lines.push(
+					`${dayEmoji} ${periodEmoji} : ${traineesText} / ${examinersText}`,
+				);
 			}
 		}
 
@@ -202,16 +219,21 @@ export default function ScheduleShift() {
 				})),
 			}));
 
-			await setDoc(confirmedShiftDoc, {
-				shiftUid: shiftData.uid,
-				year: shiftData.year,
-				semester: shiftData.semester,
-				module: shiftData.module,
-				confirmedSchedule,
-				updatedAt: serverTimestamp(),
-			}, { merge: true });
+			await setDoc(
+				confirmedShiftDoc,
+				{
+					shiftUid: shiftData.uid,
+					year: shiftData.year,
+					semester: shiftData.semester,
+					module: shiftData.module,
+					confirmedSchedule,
+					updatedAt: serverTimestamp(),
+				},
+				{ merge: true },
+			);
 
 			setSaveResultMessage('保存しました');
+			setIsEditMode(false);
 		} catch (error) {
 			console.error('Failed to save confirmed shift:', error);
 			setSaveResultMessage('保存に失敗しました');
@@ -222,21 +244,27 @@ export default function ScheduleShift() {
 		const normalized = periodValue.replace('限', '');
 		const numericIndex = Number(normalized) - 1;
 
-		if (Number.isInteger(numericIndex) && numericIndex >= 0 && numericIndex < periods.length) {
+		if (
+			Number.isInteger(numericIndex) &&
+			numericIndex >= 0 &&
+			numericIndex < periods.length
+		) {
 			return numericIndex;
 		}
 
-		return periods.findIndex((periodLabel) => periodLabel === periodValue);
+		return periods.indexOf(periodValue);
 	};
 
 	const getDayIndexFromValue = (dayValue: string) => {
-		const labelIndex = day.findIndex((dayLabel) => dayLabel === dayValue);
+		const labelIndex = day.indexOf(dayValue);
 		if (labelIndex >= 0) {
 			return labelIndex;
 		}
 
 		const numericIndex = Number(dayValue);
-		return Number.isInteger(numericIndex) && numericIndex >= 0 && numericIndex < day.length
+		return Number.isInteger(numericIndex) &&
+			numericIndex >= 0 &&
+			numericIndex < day.length
 			? numericIndex
 			: -1;
 	};
@@ -267,12 +295,20 @@ export default function ScheduleShift() {
 	};
 
 	const handleStaffSelect = (staff: StaffMember) => {
+		if (!isEditMode) {
+			return;
+		}
+
 		const isDeselecting = selectedStaffUserId === staff.userId;
 		setSelectedStaffUserId(isDeselecting ? null : staff.userId);
 		updateVacancyBySelectedStaff(isDeselecting ? null : staff);
 	};
 
 	const handleSlotClick = (periodIndex: number, dayIndex: number) => {
+		if (!isEditMode) {
+			return;
+		}
+
 		if (!selectedStaffUserId) {
 			return;
 		}
@@ -285,7 +321,12 @@ export default function ScheduleShift() {
 			return;
 		}
 
-		assignStaffToSlot(periodIndex, dayIndex, selectedStaff, selectedStaff.isExaminer);
+		assignStaffToSlot(
+			periodIndex,
+			dayIndex,
+			selectedStaff,
+			selectedStaff.isExaminer,
+		);
 	};
 
 	const getSlotButtonClassName = (slot: TimeSlot) => {
@@ -343,28 +384,34 @@ export default function ScheduleShift() {
 				const usualShiftsCollection = collection(db, 'shiftUsual');
 				const usualShiftsSnapshot = await getDocs(usualShiftsCollection);
 				let foundShift = usualShiftsSnapshot.docs
-					.map((doc) => ({
-						uid: doc.id,
-						year: doc.data().year || 2024,
-						semester: doc.data().semester || 'spring',
-						module: doc.data().module || 'A',
-						isScheduled: doc.data().isScheduled || false,
-						comment: doc.data().comment || '',
-					}) as ShiftListItem)
+					.map(
+						(doc) =>
+							({
+								uid: doc.id,
+								year: doc.data().year || 2024,
+								semester: doc.data().semester || 'spring',
+								module: doc.data().module || 'A',
+								isScheduled: doc.data().isScheduled || false,
+								comment: doc.data().comment || '',
+							}) as ShiftListItem,
+					)
 					.find((shift) => shift.uid === state.shiftUid);
 
 				if (!foundShift) {
 					const unusualShiftsCollection = collection(db, 'shiftUnusual');
 					const unusualShiftsSnapshot = await getDocs(unusualShiftsCollection);
 					foundShift = unusualShiftsSnapshot.docs
-						.map((doc) => ({
-							uid: doc.id,
-							year: doc.data().year || 9999,
-							semester: doc.data().semester || 'spring',
-							module: doc.data().module || 'A',
-							isScheduled: doc.data().isScheduled || false,
-							comment: doc.data().comment || '',
-						}) as ShiftListItem)
+						.map(
+							(doc) =>
+								({
+									uid: doc.id,
+									year: doc.data().year || 9999,
+									semester: doc.data().semester || 'spring',
+									module: doc.data().module || 'A',
+									isScheduled: doc.data().isScheduled || false,
+									comment: doc.data().comment || '',
+								}) as ShiftListItem,
+						)
 						.find((shift) => shift.uid === state.shiftUid);
 				}
 
@@ -386,8 +433,14 @@ export default function ScheduleShift() {
 
 				const shiftResponsesCollection = collection(db, scheduleCollectionName);
 				const shiftResponsesSnapshot = await getDocs(shiftResponsesCollection);
-				console.log('📝 Schedule responses found:', shiftResponsesSnapshot.docs.length);
-				console.log('📋 Schedule response docs:', shiftResponsesSnapshot.docs.map((d) => d.data()));
+				console.log(
+					'📝 Schedule responses found:',
+					shiftResponsesSnapshot.docs.length,
+				);
+				console.log(
+					'📋 Schedule response docs:',
+					shiftResponsesSnapshot.docs.map((d) => d.data()),
+				);
 
 				const traineeList: StaffMember[] = [];
 				const examinerList: StaffMember[] = [];
@@ -395,7 +448,12 @@ export default function ScheduleShift() {
 				for (const shiftDoc of shiftResponsesSnapshot.docs) {
 					const shiftResponseData = shiftDoc.data() as {
 						userId?: string;
-						scheduleData?: Array<{ period?: number; day?: string; isSelected?: boolean; canBeAssigned?: boolean }>;
+						scheduleData?: Array<{
+							period?: number;
+							day?: string;
+							isSelected?: boolean;
+							canBeAssigned?: boolean;
+						}>;
 						comment?: string;
 						isTwice?: boolean;
 					};
@@ -423,7 +481,11 @@ export default function ScheduleShift() {
 						isExaminer: userData.isExaminer,
 					});
 
-					console.log('Schedule data for user:', userId, shiftResponseData.scheduleData);
+					console.log(
+						'Schedule data for user:',
+						userId,
+						shiftResponseData.scheduleData,
+					);
 
 					const staffMember: StaffMember = {
 						userId,
@@ -454,7 +516,9 @@ export default function ScheduleShift() {
 				if (savedScheduleJson) {
 					try {
 						const savedSchedule = JSON.parse(savedScheduleJson) as Array<
-							Array<{ traineeUserIds?: string[]; examinerUserIds?: string[] } | undefined>
+							Array<
+								{ traineeUserIds?: string[]; examinerUserIds?: string[] } | undefined
+							>
 						>;
 						const restoredSchedule: TimeSlot[][] = Array(8)
 							.fill(null)
@@ -474,11 +538,15 @@ export default function ScheduleShift() {
 										}
 
 										const restoredTrainees = (saved.traineeUserIds || [])
-											.map((userId) => traineeList.find((trainee) => trainee.userId === userId))
+											.map((userId) =>
+												traineeList.find((trainee) => trainee.userId === userId),
+											)
 											.filter(Boolean) as StaffMember[];
 
 										const restoredExaminers = (saved.examinerUserIds || [])
-											.map((userId) => examinerList.find((examiner) => examiner.userId === userId))
+											.map((userId) =>
+												examinerList.find((examiner) => examiner.userId === userId),
+											)
 											.filter(Boolean) as StaffMember[];
 
 										const uniqueRestoredTrainees = dedupeStaffMembers(restoredTrainees);
@@ -488,9 +556,11 @@ export default function ScheduleShift() {
 											assignedTrainees: uniqueRestoredTrainees,
 											assignedExaminers: uniqueRestoredExaminers,
 											slotStatus:
-												uniqueRestoredTrainees.length > 0 && uniqueRestoredExaminers.length >= 2
+												uniqueRestoredTrainees.length > 0 &&
+												uniqueRestoredExaminers.length >= 2
 													? 'complete'
-													: uniqueRestoredTrainees.length > 0 || uniqueRestoredExaminers.length > 0
+													: uniqueRestoredTrainees.length > 0 ||
+															uniqueRestoredExaminers.length > 0
 														? 'incomplete'
 														: 'idle',
 											isVacant: false,
@@ -499,9 +569,11 @@ export default function ScheduleShift() {
 							);
 
 						setSchedule(restoredSchedule);
+						setIsEditMode(false);
 						console.log('Restored schedule from localStorage');
 					} catch (error) {
 						console.error('Failed to restore schedule from localStorage:', error);
+						setIsEditMode(true);
 						setSchedule(
 							Array(8)
 								.fill(null)
@@ -532,6 +604,7 @@ export default function ScheduleShift() {
 									})),
 							),
 					);
+					setIsEditMode(true);
 				}
 
 				setIsScheduleLoaded(true);
@@ -540,11 +613,17 @@ export default function ScheduleShift() {
 				console.log('Examiners:', examinerList);
 				console.log(
 					'Trainee schedule counts:',
-					traineeList.map((staff) => ({ userId: staff.userId, count: staff.scheduleData.length })),
+					traineeList.map((staff) => ({
+						userId: staff.userId,
+						count: staff.scheduleData.length,
+					})),
 				);
 				console.log(
 					'Examiner schedule counts:',
-					examinerList.map((staff) => ({ userId: staff.userId, count: staff.scheduleData.length })),
+					examinerList.map((staff) => ({
+						userId: staff.userId,
+						count: staff.scheduleData.length,
+					})),
 				);
 				console.log('✅ Firebase data loaded successfully');
 			} catch (error) {
@@ -561,7 +640,12 @@ export default function ScheduleShift() {
 	 * schedule が更新されたら localStorage に保存する
 	 */
 	useEffect(() => {
-		if (!isScheduleLoaded || !shiftData || trainees.length === 0 || examiners.length === 0) {
+		if (
+			!isScheduleLoaded ||
+			!shiftData ||
+			trainees.length === 0 ||
+			examiners.length === 0
+		) {
 			return;
 		}
 
@@ -574,7 +658,14 @@ export default function ScheduleShift() {
 		);
 		localStorage.setItem(storageKey, JSON.stringify(serializable));
 		console.log('Saved schedule to localStorage');
-	}, [schedule, shiftData, trainees, examiners, isScheduleLoaded, getStorageKey]);
+	}, [
+		schedule,
+		shiftData,
+		trainees,
+		examiners,
+		isScheduleLoaded,
+		getStorageKey,
+	]);
 
 	/**
 	 * 選択中のユーザーのスケジュールデータをコンソールに出力
@@ -582,7 +673,7 @@ export default function ScheduleShift() {
 	useEffect(() => {
 		if (selectedStaffUserId) {
 			const selectedUser = [...trainees, ...examiners].find(
-				(staff) => staff.userId === selectedStaffUserId
+				(staff) => staff.userId === selectedStaffUserId,
 			);
 
 			if (selectedUser) {
@@ -600,10 +691,7 @@ export default function ScheduleShift() {
 	 * @param periodIndex - 時限のインデックス
 	 * @param dayIndex - 曜日のインデックス
 	 */
-	const updateSlotStatus = (
-		periodIndex: number,
-		dayIndex: number,
-	) => {
+	const updateSlotStatus = (periodIndex: number, dayIndex: number) => {
 		// TODO: 中身を実装
 		setSchedule((prevSchedule) => {
 			const newSchedule = [...prevSchedule];
@@ -611,14 +699,19 @@ export default function ScheduleShift() {
 
 			if (slot.assignedTrainees.length === 0) {
 				slot.slotStatus = 'idle';
-			} else if (slot.assignedTrainees.length > 0 && slot.assignedExaminers.length < 2) {
+			} else if (
+				slot.assignedTrainees.length > 0 &&
+				slot.assignedExaminers.length < 2
+			) {
 				slot.slotStatus = 'incomplete';
-			} else if (slot.assignedTrainees.length > 0 && slot.assignedExaminers.length >= 2) {
+			} else if (
+				slot.assignedTrainees.length > 0 &&
+				slot.assignedExaminers.length >= 2
+			) {
 				slot.slotStatus = 'complete';
 			}
 
 			return newSchedule;
-
 		});
 	};
 
@@ -644,8 +737,12 @@ export default function ScheduleShift() {
 			const newSchedule = [...prevSchedule];
 			const slot = newSchedule[periodIndex][dayIndex];
 			const alreadyAssigned = isExaminer
-				? slot.assignedExaminers.some((examiner) => examiner.userId === staffMember.userId)
-				: slot.assignedTrainees.some((trainee) => trainee.userId === staffMember.userId);
+				? slot.assignedExaminers.some(
+						(examiner) => examiner.userId === staffMember.userId,
+					)
+				: slot.assignedTrainees.some(
+						(trainee) => trainee.userId === staffMember.userId,
+					);
 
 			if (alreadyAssigned) {
 				return prevSchedule;
@@ -670,25 +767,33 @@ export default function ScheduleShift() {
 		staffMember: StaffMember,
 		isExaminer: boolean,
 	) => {
+		if (!isEditMode) {
+			return;
+		}
+
 		setSchedule((prevSchedule) => {
 			const newSchedule = [...prevSchedule];
 			const slot = newSchedule[periodIndex][dayIndex];
 
 			if (isExaminer) {
-				slot.assignedExaminers = slot.assignedExaminers.filter((examiner) => examiner.userId !== staffMember.userId);
+				slot.assignedExaminers = slot.assignedExaminers.filter(
+					(examiner) => examiner.userId !== staffMember.userId,
+				);
 			} else {
-				slot.assignedTrainees = slot.assignedTrainees.filter((trainee) => trainee.userId !== staffMember.userId);
+				slot.assignedTrainees = slot.assignedTrainees.filter(
+					(trainee) => trainee.userId !== staffMember.userId,
+				);
 			}
 
 			slot.slotStatus = getSlotStatus(slot);
 
 			return newSchedule;
 		});
-	}
+	};
 
 	// prevent unused-variable compile errors
 	void assignStaffToSlot;
-	void deleteStaffFromSlot;;
+	void deleteStaffFromSlot;
 
 	// prevent unused-variable compile errors in template
 	void assignStaffToSlot;
@@ -698,27 +803,30 @@ export default function ScheduleShift() {
 
 	return (
 		<div
-			className={`${styles.schedulePage} ${isMobile
+			className={`${styles.schedulePage} ${
+				isMobile
 					? styles.schedulePageMobile
 					: isTablet
 						? styles.schedulePageTablet
 						: styles.schedulePageDesktop
-				}`}
+			}`}
 		>
 			<div
-				className={`${styles.scheduleContainer} ${isMobile
+				className={`${styles.scheduleContainer} ${
+					isMobile
 						? styles.scheduleContainerMobile
 						: isTablet
 							? styles.scheduleContainerTablet
 							: styles.scheduleContainerDesktop
-					}`}
+				}`}
 			>
 				{/* ヘッダー */}
 				<div className={styles.scheduleHeader}>
 					<div className={styles.scheduleHeaderRow}>
 						<h1
-							className={`${styles.scheduleTitle} ${isMobile ? styles.scheduleTitleMobile : styles.scheduleTitleDesktop
-								}`}
+							className={`${styles.scheduleTitle} ${
+								isMobile ? styles.scheduleTitleMobile : styles.scheduleTitleDesktop
+							}`}
 						>
 							シフト作成
 						</h1>
@@ -738,28 +846,39 @@ export default function ScheduleShift() {
 				</div>
 
 				{/* メインコンテンツ */}
-				<div className={isDesktop ? styles.mainContentDesktop : styles.mainContentMobile}>
+				<div
+					className={
+						isDesktop ? styles.mainContentDesktop : styles.mainContentMobile
+					}
+				>
 					{/* 左側：時間割表 */}
-					<div className={isDesktop ? styles.leftPaneDesktop : styles.leftPaneMobile}>
-						<div className={isMobile ? styles.leftInnerMobile : styles.leftInnerDesktop}>
+					<div
+						className={isDesktop ? styles.leftPaneDesktop : styles.leftPaneMobile}
+					>
+						<div
+							className={isMobile ? styles.leftInnerMobile : styles.leftInnerDesktop}
+						>
 							<div
-								className={`${styles.scheduleGrid} ${isMobile ? styles.scheduleGridMobile : styles.scheduleGridDesktop
-									} ${isMobile
+								className={`${styles.scheduleGrid} ${
+									isMobile ? styles.scheduleGridMobile : styles.scheduleGridDesktop
+								} ${
+									isMobile
 										? styles.scheduleGridGapMobile
 										: isTablet
 											? styles.scheduleGridGapTablet
 											: styles.scheduleGridGapDesktop
-									}`}
+								}`}
 							>
 								{/* ヘッダー行 */}
 								<Card className={styles.dayHeadCard}>
 									<CardContent
-										className={`${styles.dayHeadText} ${isMobile
+										className={`${styles.dayHeadText} ${
+											isMobile
 												? styles.dayHeadTextMobile
 												: isTablet
 													? styles.dayHeadTextTablet
 													: styles.dayHeadTextDesktop
-											}`}
+										}`}
 									>
 										時限
 									</CardContent>
@@ -767,12 +886,13 @@ export default function ScheduleShift() {
 								{day.map((dayName) => (
 									<Card key={dayName} className={styles.dayHeadCard}>
 										<CardContent
-											className={`${styles.dayHeadText} ${isMobile
+											className={`${styles.dayHeadText} ${
+												isMobile
 													? styles.dayHeadTextMobile
 													: isTablet
 														? styles.dayHeadTextTablet
 														: styles.dayHeadTextDesktop
-												}`}
+											}`}
 										>
 											{isMobile ? dayName : `${dayName}曜日`}
 										</CardContent>
@@ -785,12 +905,13 @@ export default function ScheduleShift() {
 										{/* 時限表示 */}
 										<Card className={styles.periodHeadCard}>
 											<CardContent
-												className={`${styles.periodHeadContent} ${isMobile
+												className={`${styles.periodHeadContent} ${
+													isMobile
 														? styles.periodHeadContentMobile
 														: isTablet
 															? styles.periodHeadContentTablet
 															: styles.periodHeadContentDesktop
-													}`}
+												}`}
 											>
 												<div
 													className={
@@ -811,14 +932,20 @@ export default function ScheduleShift() {
 												<Button
 													key={`${period}-${dayName}`}
 													variant={slot.slotStatus === 'complete' ? 'default' : 'outline'}
-													disabled={!slot.isVacant && slot.assignedTrainees.length === 0 && slot.assignedExaminers.length === 0}
+													disabled={
+														!isEditMode ||
+														(!slot.isVacant &&
+															slot.assignedTrainees.length === 0 &&
+															slot.assignedExaminers.length === 0)
+													}
 													onClick={() => handleSlotClick(periodIndex, dayIndex)}
-													className={`${styles.slotButton} ${isMobile
+													className={`${styles.slotButton} ${
+														isMobile
 															? styles.slotButtonMobile
 															: isTablet
 																? styles.slotButtonTablet
 																: styles.slotButtonDesktop
-														} ${slotStateClassName}`}
+													} ${slotStateClassName}`}
 												>
 													<div className={styles.slotContentWrap}>
 														<div className={styles.slotTextCol}>
@@ -840,7 +967,9 @@ export default function ScheduleShift() {
 																			>
 																				×
 																			</button>
-																			<div className={styles.slotAssigneeLabel}>練:{trainee.name}</div>
+																			<div className={styles.slotAssigneeLabel}>
+																				練:{trainee.name}
+																			</div>
 																		</div>
 																	))}
 																</div>
@@ -867,7 +996,9 @@ export default function ScheduleShift() {
 																			>
 																				×
 																			</button>
-																			<div className={styles.slotAssigneeLabel}>試:{examiner.name}</div>
+																			<div className={styles.slotAssigneeLabel}>
+																				試:{examiner.name}
+																			</div>
 																		</div>
 																	))}
 																</div>
@@ -901,17 +1032,25 @@ export default function ScheduleShift() {
 								<div className={styles.staffToggleRow}>
 									<Button
 										variant={activeList === 'trainees' ? 'default' : 'outline'}
-										className={`${styles.staffToggleButton} ${activeList === 'trainees' ? styles.staffToggleActive : styles.staffToggleInactive
-											}`}
+										className={`${styles.staffToggleButton} ${
+											activeList === 'trainees'
+												? styles.staffToggleActive
+												: styles.staffToggleInactive
+										}`}
 										onClick={() => setActiveList('trainees')}
+										disabled={!isEditMode}
 									>
 										練習生 ({trainees.length})
 									</Button>
 									<Button
 										variant={activeList === 'examiners' ? 'default' : 'outline'}
-										className={`${styles.staffToggleButton} ${activeList === 'examiners' ? styles.staffToggleActive : styles.staffToggleInactive
-											}`}
+										className={`${styles.staffToggleButton} ${
+											activeList === 'examiners'
+												? styles.staffToggleActive
+												: styles.staffToggleInactive
+										}`}
 										onClick={() => setActiveList('examiners')}
+										disabled={!isEditMode}
 									>
 										試験官 ({examiners.length})
 									</Button>
@@ -925,27 +1064,31 @@ export default function ScheduleShift() {
 												<Button
 													key={trainee.userId}
 													variant="outline"
-													className={`${styles.staffItemButton} ${selectedStaffUserId === trainee.userId
+													className={`${styles.staffItemButton} ${
+														selectedStaffUserId === trainee.userId
 															? styles.staffItemSelected
 															: styles.staffItemDefault
-														}`}
+													}`}
 													onClick={() => handleStaffSelect(trainee)}
+													disabled={!isEditMode}
 												>
 													<div className={styles.staffItemHeader}>
 														<span
-															className={`${styles.staffItemName} ${selectedStaffUserId === trainee.userId
+															className={`${styles.staffItemName} ${
+																selectedStaffUserId === trainee.userId
 																	? styles.staffItemNameSelected
 																	: ''
-																}`}
+															}`}
 														>
 															{trainee.name}
 														</span>
 													</div>
 													<p
-														className={`${styles.staffItemComment} ${selectedStaffUserId === trainee.userId
+														className={`${styles.staffItemComment} ${
+															selectedStaffUserId === trainee.userId
 																? styles.staffItemCommentSelected
 																: styles.staffItemCommentDefault
-															}`}
+														}`}
 													>
 														{trainee.comment}
 													</p>
@@ -954,41 +1097,43 @@ export default function ScheduleShift() {
 										) : (
 											<p className={styles.emptyStaffText}>練習生がいません</p>
 										)
-									) : (
-										examiners.length > 0 ? (
-											examiners.map((examiner) => (
-												<Button
-													key={examiner.userId}
-													variant="outline"
-													className={`${styles.staffItemButton} ${selectedStaffUserId === examiner.userId
-															? styles.staffItemSelected
-															: styles.staffItemDefault
+									) : examiners.length > 0 ? (
+										examiners.map((examiner) => (
+											<Button
+												key={examiner.userId}
+												variant="outline"
+												className={`${styles.staffItemButton} ${
+													selectedStaffUserId === examiner.userId
+														? styles.staffItemSelected
+														: styles.staffItemDefault
+												}`}
+												onClick={() => handleStaffSelect(examiner)}
+												disabled={!isEditMode}
+											>
+												<div className={styles.staffItemHeader}>
+													<span
+														className={`${styles.staffItemName} ${
+															selectedStaffUserId === examiner.userId
+																? styles.staffItemNameSelected
+																: ''
 														}`}
-													onClick={() => handleStaffSelect(examiner)}
-												>
-													<div className={styles.staffItemHeader}>
-														<span
-															className={`${styles.staffItemName} ${selectedStaffUserId === examiner.userId
-																	? styles.staffItemNameSelected
-																	: ''
-																}`}
-														>
-															{examiner.name}
-														</span>
-													</div>
-													<p
-														className={`${styles.staffItemComment} ${selectedStaffUserId === examiner.userId
-																? styles.staffItemCommentSelected
-																: styles.staffItemCommentDefault
-															}`}
 													>
-														{examiner.comment}
-													</p>
-												</Button>
-											))
-										) : (
-											<p className={styles.emptyStaffText}>試験官がいません</p>
-										)
+														{examiner.name}
+													</span>
+												</div>
+												<p
+													className={`${styles.staffItemComment} ${
+														selectedStaffUserId === examiner.userId
+															? styles.staffItemCommentSelected
+															: styles.staffItemCommentDefault
+													}`}
+												>
+													{examiner.comment}
+												</p>
+											</Button>
+										))
+									) : (
+										<p className={styles.emptyStaffText}>試験官がいません</p>
 									)}
 								</div>
 							</CardContent>
@@ -996,15 +1141,28 @@ export default function ScheduleShift() {
 
 						{/* 保存ボタン */}
 						<div className={styles.saveButtonMockWrap}>
-							<Button
-								variant="default"
-								className={styles.saveButtonMock}
-								onClick={handleSaveSchedule}
-								disabled={!isScheduleLoaded || !shiftData}
-							>
-								シフトを保存
-							</Button>
-							{saveResultMessage ? <p className={styles.copyResultMessage}>{saveResultMessage}</p> : null}
+							{isEditMode ? (
+								<Button
+									variant="default"
+									className={styles.saveButtonMock}
+									onClick={handleSaveSchedule}
+									disabled={!isScheduleLoaded || !shiftData}
+								>
+									シフトを保存
+								</Button>
+							) : (
+								<Button
+									variant="default"
+									className={styles.saveButtonMock}
+									onClick={() => setIsEditMode(true)}
+									disabled={!isScheduleLoaded || !shiftData}
+								>
+									編集する
+								</Button>
+							)}
+							{saveResultMessage ? (
+								<p className={styles.copyResultMessage}>{saveResultMessage}</p>
+							) : null}
 						</div>
 
 						{/* 出力ボタン */}
@@ -1017,7 +1175,6 @@ export default function ScheduleShift() {
 								シフトを出力
 							</Button>
 						</div>
-
 					</div>
 				</div>
 			</div>
@@ -1060,17 +1217,13 @@ export default function ScheduleShift() {
 							</div>
 						</div>
 						<div className={styles.modalFooter}>
-							{copyResultMessage ? <p className={styles.copyResultMessage}>{copyResultMessage}</p> : null}
-							<Button
-								variant="default"
-								onClick={handleCopyOutputText}
-							>
+							{copyResultMessage ? (
+								<p className={styles.copyResultMessage}>{copyResultMessage}</p>
+							) : null}
+							<Button variant="default" onClick={handleCopyOutputText}>
 								コピー
 							</Button>
-							<Button
-								variant="outline"
-								onClick={closeOutputPopup}
-							>
+							<Button variant="outline" onClick={closeOutputPopup}>
 								閉じる
 							</Button>
 						</div>
