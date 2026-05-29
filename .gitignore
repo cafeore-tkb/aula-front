@@ -7,3 +7,5 @@ dist/
 # React Router
 /.react-router/
 /build/
+
+openapi.yaml
