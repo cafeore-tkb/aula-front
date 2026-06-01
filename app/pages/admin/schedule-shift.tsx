@@ -1,6 +1,7 @@
 import {
 	collection,
 	doc,
+	getDoc,
 	getDocs,
 	getFirestore,
 	serverTimestamp,
@@ -112,6 +113,20 @@ export default function ScheduleShift() {
 					})),
 			),
 	);
+
+	const buildEmptySchedule = (): TimeSlot[][] =>
+		Array(8)
+			.fill(null)
+			.map(() =>
+				Array(7)
+					.fill(null)
+					.map(() => ({
+						assignedTrainees: [],
+						assignedExaminers: [],
+						slotStatus: 'idle',
+						isVacant: false,
+					})),
+			);
 
 	const getStorageKey = useCallback(
 		(shiftUid: string) => `schedule_shift_${shiftUid}`,
@@ -510,6 +525,72 @@ export default function ScheduleShift() {
 				setTrainees(traineeList);
 				setExaminers(examinerList);
 
+				/**
+				 * Firebase のconfirmed_shiftに確定シフトがあればFirebaseから復元、なければlocalStorageから復元
+				 */
+				const confirmedShiftDocId = `${foundShift.year}_${foundShift.semester}_${foundShift.module}`;
+				const confirmedShiftRef = doc(db, 'confirmed_shift', confirmedShiftDocId);
+				const confirmedShiftSnap = await getDoc(confirmedShiftRef);
+
+				if (confirmedShiftSnap.exists()) {
+					const confirmedData = confirmedShiftSnap.data() as {
+						confirmedSchedule?: Array<{
+							periodIndex: number;
+							slots: Array<{
+								dayIndex: number;
+								slotStatus?: TimeSlot['slotStatus'];
+								assignedTrainees?: Array<{ userId: string; name: string }>;
+								assignedExaminers?: Array<{ userId: string; name: string }>;
+							}>;
+						}>;
+					};
+
+					const restoredSchedule = buildEmptySchedule();
+
+					confirmedData.confirmedSchedule?.forEach((period) => {
+						period.slots?.forEach((slot) => {
+							const restoredTrainees = (slot.assignedTrainees || []).map((saved) => {
+								return (
+									traineeList.find((trainee) => trainee.userId === saved.userId) || {
+										userId: saved.userId,
+										name: saved.name,
+										isExaminer: false,
+										scheduleData: [],
+										comment: '',
+										isTwice: false,
+									}
+								);
+							});
+
+							const restoredExaminers = (slot.assignedExaminers || []).map((saved) => {
+								return (
+									examinerList.find((examiner) => examiner.userId === saved.userId) || {
+										userId: saved.userId,
+										name: saved.name,
+										isExaminer: true,
+										scheduleData: [],
+										comment: '',
+										isTwice: false,
+									}
+								);
+							});
+
+							restoredSchedule[period.periodIndex][slot.dayIndex] = {
+								assignedTrainees: dedupeStaffMembers(restoredTrainees),
+								assignedExaminers: dedupeStaffMembers(restoredExaminers),
+								slotStatus: slot.slotStatus || 'idle',
+								isVacant: false,
+							};
+						});
+					});
+
+					setSchedule(restoredSchedule);
+					setIsEditMode(false);
+					setIsScheduleLoaded(true);
+					console.log('Restored schedule from Firebase');
+					return;
+				}
+
 				const storageKey = getStorageKey(foundShift.uid);
 				const savedScheduleJson = localStorage.getItem(storageKey);
 
@@ -574,36 +655,10 @@ export default function ScheduleShift() {
 					} catch (error) {
 						console.error('Failed to restore schedule from localStorage:', error);
 						setIsEditMode(true);
-						setSchedule(
-							Array(8)
-								.fill(null)
-								.map(() =>
-									Array(7)
-										.fill(null)
-										.map(() => ({
-											assignedTrainees: [],
-											assignedExaminers: [],
-											slotStatus: 'idle',
-											isVacant: false,
-										})),
-								),
-						);
+						setSchedule(buildEmptySchedule());
 					}
 				} else {
-					setSchedule(
-						Array(8)
-							.fill(null)
-							.map(() =>
-								Array(7)
-									.fill(null)
-									.map(() => ({
-										assignedTrainees: [],
-										assignedExaminers: [],
-										slotStatus: 'idle',
-										isVacant: false,
-									})),
-							),
-					);
+					setSchedule(buildEmptySchedule());
 					setIsEditMode(true);
 				}
 
@@ -625,7 +680,7 @@ export default function ScheduleShift() {
 						count: staff.scheduleData.length,
 					})),
 				);
-				console.log('✅ Firebase data loaded successfully');
+				console.log('✅ Shift responses loaded successfully');
 			} catch (error) {
 				console.error('Error fetching shift data:', error);
 			} finally {
