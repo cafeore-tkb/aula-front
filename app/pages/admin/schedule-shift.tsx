@@ -771,6 +771,10 @@ export default function ScheduleShift() {
 			return;
 		}
 
+		if ((isExaminer && activeList !== 'examiners') || (!isExaminer && activeList !== 'trainees')) {
+			return;
+		}
+
 		setSchedule((prevSchedule) => {
 			const newSchedule = [...prevSchedule];
 			const slot = newSchedule[periodIndex][dayIndex];
