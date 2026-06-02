@@ -1,0 +1,59 @@
+/* Used by: app/components/ui/confirm-modal.tsx */
+
+.modalOverlay {
+	position: fixed;
+	top: 0;
+	left: 0;
+	right: 0;
+	bottom: 0;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	background-color: rgba(0, 0, 0, 0.5);
+	z-index: 9999;
+	animation: fadeIn 0.2s ease-out;
+}
+
+.modalContent {
+	background-color: var(--color-white);
+	border-radius: 0.5rem;
+	box-shadow: 0 10px 25px 0 rgba(0, 0, 0, 0.1);
+	padding: 1.5rem;
+	max-width: 400px;
+	width: 90%;
+	animation: slideUp 0.2s ease-out;
+}
+
+.modalMessage {
+	font-size: 1rem;
+	line-height: 1.5rem;
+	color: var(--color-slate-800);
+	margin-bottom: 1.5rem;
+	word-break: break-word;
+}
+
+.modalActions {
+	display: flex;
+	gap: 1rem;
+	justify-content: flex-end;
+}
+
+@keyframes fadeIn {
+	from {
+		opacity: 0;
+	}
+	to {
+		opacity: 1;
+	}
+}
+
+@keyframes slideUp {
+	from {
+		opacity: 0;
+		transform: translateY(10px);
+	}
+	to {
+		opacity: 1;
+		transform: translateY(0);
+	}
+}

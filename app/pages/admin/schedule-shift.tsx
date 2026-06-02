@@ -3,6 +3,7 @@ import React, { useCallback, useEffect, useState } from 'react';
 import { useMediaQuery } from 'react-responsive';
 import { useLocation, useNavigate } from 'react-router';
 import { Button } from '../../components/ui/button';
+import { showConfirmModal } from '../../components/ui/confirm-modal';
 import { Card, CardContent } from '../../components/ui/card';
 import { useAuth } from '../../lib/auth-context';
 import type { ShiftListItem, UserProfile } from '../../lib/firebase';
@@ -244,7 +245,7 @@ export default function ScheduleShift() {
 		updateVacancyBySelectedStaff(isDeselecting ? null : staff);
 	};
 
-	const handleSlotClick = (periodIndex: number, dayIndex: number) => {
+	const handleSlotClick = async (periodIndex: number, dayIndex: number) => {
 		if (!selectedStaffUserId) {
 			return;
 		}
@@ -269,10 +270,8 @@ export default function ScheduleShift() {
 		});
 
 		if (!canBeAssigned) {
-			//本当に割り当てるか確認
-			if (!window.confirm(
-				`このスタッフはこの時間枠に割り当てできない可能性があります。\n\n本当に割り当てますか？`,
-			)) {
+			const result = await showConfirmModal('このスタッフはこの時間枠に割り当てできない可能性があります。割り当てますか？');
+			if (!result) {
 				return;
 			}
 		}
