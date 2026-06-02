@@ -257,6 +257,25 @@ export default function ScheduleShift() {
 			return;
 		}
 
+		// 与えられた時間枠がスタッフのスケジュールデータで割り当て可能とされているかをチェック
+		const canBeAssigned = selectedStaff.scheduleData.some((scheduleItem) => {
+			const staffPeriodIndex = getPeriodIndexFromValue(scheduleItem.period);
+			const staffDayIndex = getDayIndexFromValue(scheduleItem.day);
+			return (
+				staffPeriodIndex === periodIndex &&
+				staffDayIndex === dayIndex &&
+				scheduleItem.canBeAssigned
+			);
+		});
+
+		if (!canBeAssigned) {
+			//本当に割り当てるか確認
+			if (!window.confirm(
+				`このスタッフはこの時間枠に割り当てできない可能性があります。\n\n本当に割り当てますか？`,
+			)) {
+				return;
+			}
+		}
 		assignStaffToSlot(periodIndex, dayIndex, selectedStaff, selectedStaff.isExaminer);
 	};
 
