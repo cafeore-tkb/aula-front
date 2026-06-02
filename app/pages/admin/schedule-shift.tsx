@@ -956,6 +956,7 @@ export default function ScheduleShift() {
 																			key={`${trainee.userId}-${idx}`}
 																			className={`${styles.slotAssigneeBox} ${styles.slotAssigneeBoxTrainee}`}
 																		>
+																			{activeList ==='trainees' ? 
 																			<button
 																				type="button"
 																				className={styles.slotRemoveButton}
@@ -966,7 +967,8 @@ export default function ScheduleShift() {
 																				aria-label={`${trainee.name} の割り当てを解除`}
 																			>
 																				×
-																			</button>
+																			</button>: null}
+																			
 																			<div className={styles.slotAssigneeLabel}>
 																				練:{trainee.name}
 																			</div>
@@ -985,6 +987,7 @@ export default function ScheduleShift() {
 																			key={`${examiner.userId}-${idx}`}
 																			className={`${styles.slotAssigneeBox} ${styles.slotAssigneeBoxExaminer}`}
 																		>
+																			{activeList === 'examiners' ?
 																			<button
 																				type="button"
 																				className={styles.slotRemoveButton}
@@ -996,6 +999,7 @@ export default function ScheduleShift() {
 																			>
 																				×
 																			</button>
+																			: null}
 																			<div className={styles.slotAssigneeLabel}>
 																				試:{examiner.name}
 																			</div>
