@@ -13,6 +13,7 @@ import { Button } from '../../components/ui/button';
 import { Card, CardContent } from '../../components/ui/card';
 import { useAuth } from '../../lib/auth-context';
 import type { ShiftListItem, UserProfile } from '../../lib/firebase';
+import { getModuleDisplay, getSemesterDisplay } from '../../lib/shift-labels';
 import styles from './schedule-shift.module.scss';
 
 /**
@@ -837,9 +838,8 @@ export default function ScheduleShift() {
 							</div>
 						) : shiftData ? (
 							<div className={styles.shiftMeta}>
-								{shiftData.year}年度{' '}
-								{shiftData.semester === 'spring' ? '春学期 ' : '秋学期 '}
-								{shiftData.module}モジュール
+								{shiftData.year}年度 {getSemesterDisplay(shiftData.semester)}{' '}
+								{getModuleDisplay(shiftData.semester, shiftData.module)}
 							</div>
 						) : null}
 					</div>

@@ -1,8 +1,12 @@
 import { doc, getDoc } from 'firebase/firestore';
 import { db } from './firebase';
+import {
+	getModuleDisplay,
+	getSemesterDisplay,
+} from './shift-labels';
 
-type Semester = 'spring' | 'autumn';
-type Module = 'A' | 'B' | 'C';
+type Semester = 'spring' | 'summer' | 'autumn';
+type Module = 'A' | 'B' | 'C' | `${number}`;
 
 export interface ExportResult {
 	success: boolean;
@@ -198,6 +202,37 @@ async function getModuleDateRange(
 	module: Module,
 ): Promise<{ start: Date; end: Date }> {
 	const events = await getAcademicCalendar(year);
+
+	if (semester === 'summer') {
+		const vacationStart = findFirst(events, '夏季休業開始')?.start;
+		const vacationEnd = findFirst(events, '夏季休業終了')?.start;
+		const week = Number.parseInt(module, 10);
+
+		if (!vacationStart || !vacationEnd) {
+			throw new Error(
+				`${year}年度 夏休み期間の開始・終了日がICSから見つかりません。`,
+			);
+		}
+
+		if (!Number.isInteger(week) || week <= 0) {
+			throw new Error('夏休みシフトのモジュールは1以上の週番号を指定してください。');
+		}
+
+		const start = addDays(vacationStart, (week - 1) * 7);
+		const end = addDays(start, 6);
+
+		if (start > vacationEnd) {
+			throw new Error(
+				`${year}年度 夏休み第${week}週は夏休み期間外のためエクスポートできません。`,
+			);
+		}
+
+		return {
+			start,
+			end: end > vacationEnd ? vacationEnd : end,
+		};
+	}
+
 	const semJa = semester === 'spring' ? '春' : '秋';
 
 	const semesterStart = findFirst(events, `${semJa}学期授業開始`)?.start;
@@ -459,7 +494,6 @@ export async function generateIcalContent(
 
 	const holidays = await getHolidays(shiftInfo.year);
 
-	const semesterJa = shiftInfo.semester === 'spring' ? '春' : '秋';
 	const until = toIcalUntil(end);
 	const dtstamp = toIcalUtc(new Date());
 	const now = Date.now();
@@ -490,7 +524,7 @@ export async function generateIcalContent(
 					: `担当: ${userName}`;
 
 			const description = escapeIcal(
-				`${shiftInfo.year}年度 ${semesterJa}学期 ${shiftInfo.module}モジュール\n${partnerText}`,
+				`${shiftInfo.year}年度 ${getSemesterDisplay(shiftInfo.semester)} ${getModuleDisplay(shiftInfo.semester, shiftInfo.module)}\n${partnerText}`,
 			);
 
 			const exdates = buildExdates(holidays, cell.day, cell.startTime, start, end);
@@ -596,10 +630,8 @@ export async function exportShiftToIcal(
 			userName,
 		);
 
-		const semesterJa = shift.semester === 'spring' ? '春' : '秋';
-
 		const filename =
-			`珈琲・俺練習シフト_${shift.year}年度_${semesterJa}学期_${shift.module}モジュール.ics`;
+			`珈琲・俺練習シフト_${shift.year}年度_${getSemesterDisplay(shift.semester)}_${getModuleDisplay(shift.semester, shift.module)}.ics`;
 
 		downloadIcal(content, filename);
 
