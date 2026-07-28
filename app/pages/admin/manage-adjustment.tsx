@@ -28,6 +28,10 @@ import {
 } from '../../components/ui/table';
 import { useAuth } from '../../lib/auth-context';
 import type { ShiftUsual } from '../../lib/firebase';
+import {
+	getModuleDisplay,
+	getSemesterLabel,
+} from '../../lib/shift-labels';
 import styles from './manage-adjustment.module.scss';
 
 export function meta() {
@@ -54,6 +58,22 @@ export default function ManageAdjustment() {
 	const [newIsTwice, setNewIsTwice] = useState('');
 	const [isAdding, setIsAdding] = useState(false);
 	const [exportingShiftUid, setExportingShiftUid] = useState<string | null>(null);
+
+	const handleSemesterSelect = (value: string) => {
+		setNewSemester(value);
+		setNewModule('');
+	};
+
+	const handleSummerWeekInput = (value: string) => {
+		if (value === '') {
+			setNewModule('');
+			return;
+		}
+
+		if (/^\d+$/.test(value) && Number.parseInt(value, 10) > 0) {
+			setNewModule(value);
+		}
+	};
 
 	// CSVエクスポート関数（シフト回答内容を出力）
 	const exportToCSV = async (shift: ShiftUsual) => {
@@ -130,7 +150,7 @@ export default function ManageAdjustment() {
 			let csvContent = '\uFEFF'; // BOM for UTF-8
 
 			// ヘッダー情報
-			csvContent += `${shift.year}年度 ${shift.semester} モジュール${shift.module} シフト回答一覧\n`;
+			csvContent += `${shift.year}年度 ${getSemesterLabel(shift.semester)} ${getModuleDisplay(shift.semester, shift.module)} シフト回答一覧\n`;
 			csvContent += `出力日時: ${new Date().toLocaleString('ja-JP')}\n\n`;
 
 			// テーブルヘッダー（名前、役割、各時限×曜日）
@@ -278,16 +298,37 @@ export default function ManageAdjustment() {
 
 	// 新規シフト追加関数
 	const handleAddShift = async () => {
-		if (!newYear || !newSemester || !newModule || !newIsTwice) {
+		const normalizedYear = newYear.trim();
+		const normalizedSemester = newSemester.trim();
+		const normalizedModule = newModule.trim();
+		const normalizedIsTwice = newIsTwice.trim();
+
+		if (
+			normalizedYear === '' ||
+			normalizedSemester === '' ||
+			normalizedModule === '' ||
+			normalizedIsTwice === ''
+		) {
 			alert('全ての項目を入力してください');
 			return;
 		} else {
 			const yearNow = new Date().getFullYear();
-			const yearInt = Number.parseInt(newYear, 10);
+			const yearInt = Number.parseInt(normalizedYear, 10);
 			if (Number.isNaN(yearInt) || yearInt < yearNow || yearInt > yearNow + 1) {
 				alert(
 					`年度を正しく入力してください。登録できる年度は今年度と来年度のみです`,
 				);
+				return;
+			}
+
+			if (normalizedSemester === 'summer') {
+				const week = Number.parseInt(normalizedModule, 10);
+				if (!Number.isInteger(week) || week <= 0) {
+					alert('夏休みシフトは週番号（1以上）を入力してください');
+					return;
+				}
+			} else if (!['A', 'B', 'C'].includes(normalizedModule)) {
+				alert('モジュールは A / B / C から選択してください');
 				return;
 			}
 		}
@@ -295,9 +336,9 @@ export default function ManageAdjustment() {
 		// 重複チェック
 		const isDuplicate = shiftUsual.some(
 			(shift) =>
-				shift.year === Number.parseInt(newYear, 10) &&
-				shift.semester === newSemester &&
-				shift.module === newModule,
+				shift.year === Number.parseInt(normalizedYear, 10) &&
+				shift.semester === normalizedSemester &&
+				shift.module === normalizedModule,
 		);
 
 		if (isDuplicate) {
@@ -311,14 +352,14 @@ export default function ManageAdjustment() {
 			const shiftUsualCollection = collection(db, 'shiftUsual');
 
 			// シフト専用のコレクション名を生成
-			const scheduleCollectionId = `schedules_${newYear}_${newSemester}_${newModule}`;
+			const scheduleCollectionId = `schedules_${normalizedYear}_${normalizedSemester}_${normalizedModule}`;
 
 			// 新しいシフトを追加
 			const docRef = await addDoc(shiftUsualCollection, {
-				year: Number.parseInt(newYear, 10),
-				semester: newSemester,
-				module: newModule,
-				isTwice: newIsTwice === 'true',
+				year: Number.parseInt(normalizedYear, 10),
+				semester: normalizedSemester,
+				module: normalizedModule,
+				isTwice: normalizedIsTwice === 'true',
 				isOpen: false,
 				isScheduled: false,
 				scheduleCollectionId, // コレクション名を保存
@@ -327,11 +368,11 @@ export default function ManageAdjustment() {
 				...prev,
 				{
 					uid: docRef.id,
-					year: Number.parseInt(newYear, 10),
-					semester: newSemester as 'spring' | 'autumn',
-					module: newModule as 'A' | 'B' | 'C',
+					year: Number.parseInt(normalizedYear, 10),
+					semester: normalizedSemester as 'spring' | 'summer' | 'autumn',
+					module: normalizedModule as 'A' | 'B' | 'C' | `${number}`,
 					isOpen: false,
-					isTwice: newIsTwice === 'true',
+					isTwice: normalizedIsTwice === 'true',
 					isScheduled: false,
 					scheduleCollectionId,
 				},
@@ -405,12 +446,13 @@ export default function ManageAdjustment() {
 								>
 									学期
 								</label>
-								<Select value={newSemester} onValueChange={setNewSemester}>
+								<Select value={newSemester} onValueChange={handleSemesterSelect}>
 									<SelectTrigger id={semesterSelectId}>
 										<SelectValue placeholder="学期を選択" />
 									</SelectTrigger>
 									<SelectContent>
 										<SelectItem value="spring">春</SelectItem>
+										<SelectItem value="summer">夏休み</SelectItem>
 										<SelectItem value="autumn">秋</SelectItem>
 									</SelectContent>
 								</Select>
@@ -422,16 +464,27 @@ export default function ManageAdjustment() {
 								>
 									モジュール
 								</label>
-								<Select value={newModule} onValueChange={setNewModule}>
-									<SelectTrigger id={moduleSelectId}>
-										<SelectValue placeholder="モジュールを選択" />
-									</SelectTrigger>
-									<SelectContent>
-										<SelectItem value="A">A</SelectItem>
-										<SelectItem value="B">B</SelectItem>
-										<SelectItem value="C">C</SelectItem>
-									</SelectContent>
-								</Select>
+								{newSemester === 'summer' ? (
+									<Input
+										id={moduleSelectId}
+										type="number"
+										placeholder="1"
+										value={newModule}
+										onChange={(e) => handleSummerWeekInput(e.target.value)}
+										min="1"
+									/>
+								) : (
+									<Select value={newModule} onValueChange={setNewModule}>
+										<SelectTrigger id={moduleSelectId}>
+											<SelectValue placeholder="モジュールを選択" />
+										</SelectTrigger>
+										<SelectContent>
+											<SelectItem value="A">A</SelectItem>
+											<SelectItem value="B">B</SelectItem>
+											<SelectItem value="C">C</SelectItem>
+										</SelectContent>
+									</Select>
+								)}
 							</div>
 							<div>
 								<label
@@ -452,6 +505,7 @@ export default function ManageAdjustment() {
 							</div>
 							<div className={styles.manageAddButtonWrap}>
 								<Button
+									type="button"
 									onClick={handleAddShift}
 									disabled={isAdding}
 									className={styles.manageAddButton}
@@ -482,12 +536,8 @@ export default function ManageAdjustment() {
 								<TableBody>
 									{shiftUsual.map((su) => {
 										// semesterを日本語に変換
-										const semesterJa =
-											su.semester === 'spring'
-												? '春'
-												: su.semester === 'autumn'
-													? '秋'
-													: su.semester;
+										const semesterJa = getSemesterLabel(su.semester);
+										const moduleLabel = getModuleDisplay(su.semester, su.module);
 
 										return (
 											<TableRow
@@ -496,7 +546,7 @@ export default function ManageAdjustment() {
 											>
 												<TableCell className={styles.manageTableText}>{su.year}</TableCell>
 												<TableCell className={styles.manageTableText}>{semesterJa}</TableCell>
-												<TableCell className={styles.manageTableText}>{su.module}</TableCell>
+												<TableCell className={styles.manageTableText}>{moduleLabel}</TableCell>
 												<TableCell>
 													<Select
 														value={su.isTwice ? 'true' : 'false'}

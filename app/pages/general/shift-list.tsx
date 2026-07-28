@@ -11,6 +11,10 @@ import {
 } from '../../components/ui/card';
 import { useAuth } from '../../lib/auth-context';
 import { db, type ShiftUsual } from '../../lib/firebase';
+import {
+	getModuleDisplay,
+	getSemesterDisplay,
+} from '../../lib/shift-labels';
 import styles from './shift-list.module.scss';
 import { exportShiftToIcal } from '~/lib/export-ical';
 
@@ -133,13 +137,8 @@ export default function ShiftList() {
 				) : (
 					<div className={styles.shiftListListWrap}>
 						{shifts.map((shift) => {
-							// 学期の日本語変換
-							const semesterJa =
-								shift.semester === 'spring'
-									? '春'
-									: shift.semester === 'autumn'
-										? '秋'
-										: shift.semester;
+							const semesterDisplay = getSemesterDisplay(shift.semester);
+							const moduleDisplay = getModuleDisplay(shift.semester, shift.module);
 
 							// シフト専用のコレクション名（なければデフォルト名を生成）
 							const scheduleCollectionId =
@@ -153,8 +152,8 @@ export default function ShiftList() {
 								>
 									<CardHeader>
 										<CardTitle className={styles.shiftListCardTitle}>
-											<span>
-												{shift.year}年度 {semesterJa}学期 {shift.module}モジュール
+											<span className={styles.shiftListCardTitleText}>
+												{shift.year}年度 {semesterDisplay} {moduleDisplay}
 											</span>
 										</CardTitle>
 									</CardHeader>
