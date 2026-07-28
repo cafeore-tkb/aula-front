@@ -932,6 +932,7 @@ export default function ScheduleShift() {
 												<Button
 													key={`${period}-${dayName}`}
 													variant={slot.slotStatus === 'complete' ? 'default' : 'outline'}
+													size="auto"
 													disabled={
 														!isEditMode ||
 														(!slot.isVacant &&
