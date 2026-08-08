@@ -2,8 +2,9 @@
 
 declare global {
 	interface ImportMetaEnv {
-		readonly VITE_REGISTRATION_PASSWORD?: string
+		readonly VITE_API_BASE_URL?: string;
+		readonly VITE_DEV_MODE?: string;
 	}
 }
 
-export {}
+export {};

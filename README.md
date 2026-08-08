@@ -1,145 +1,58 @@
 # Aula Frontend
 
-珈琲・俺のシフト調整アプリ（React Router v7 + Firebase）のフロントエンドです。
+珈琲・俺のシフト調整アプリです。React Router v7 のSPAから、Cloudflare Workers上のREST APIを利用します。
 
-## Tech Stack
+## 構成
 
 - React 19 / React Router v7
 - TypeScript
-- Firebase (Auth / Firestore / Hosting)
+- Cloudflare Access認証
+- REST API（既定: `/api/v1`）
 - SCSS + CSS Modules
 - pnpm
 
-## Setup
+Firebase Authentication、Firestore、Firebase Hostingには依存しません。API仕様は[docs/API_DESIGN.md](docs/API_DESIGN.md)、DB仕様は[docs/db.md](docs/db.md)を参照してください。
 
-### 1. Install dependencies
+## セットアップ
 
 ```bash
 pnpm install
-```
-
-### 2. Configure environment variables
-
-`.env` を作成して Firebase の設定値を入れてください。
-
-```env
-VITE_FIREBASE_API_KEY=...
-VITE_FIREBASE_AUTH_DOMAIN=...
-VITE_FIREBASE_PROJECT_ID=...
-VITE_FIREBASE_STORAGE_BUCKET=...
-VITE_FIREBASE_MESSAGING_SENDER_ID=...
-VITE_FIREBASE_APP_ID=...
-```
-
-## Development
-
-```bash
+cp .env.example .env
 pnpm dev
 ```
 
-`http://localhost:5173` で起動します。
-
-## Build
-
-```bash
-pnpm build
-```
-
-## Test
-
-```bash
-pnpm test
-```
-
-## Deploy
-
-主なコマンド:
-
-```bash
-pnpm deploy
-pnpm deploy:hosting
-```
-
-### 前提条件
-
-1. Firebase CLI をインストール
-
-```bash
-npm install -g firebase-tools
-```
-
-2. Firebase プロジェクトを用意（現行: `aula-eb466`）
-3. Firebase にログイン
-
-```bash
-firebase login
-```
-
-### 環境変数
-
-- ローカル開発: `.env`
-- 本番ビルド: `.env.production`
+同一オリジンでAPIを配信する場合、`VITE_API_BASE_URL`は既定値の`/api/v1`を使用します。開発中に別オリジンのAPIへ接続する場合だけ、`.env`で完全なAPI URLを指定してください。
 
 ```env
-VITE_FIREBASE_API_KEY=...
-VITE_FIREBASE_AUTH_DOMAIN=...
-VITE_FIREBASE_PROJECT_ID=...
-VITE_FIREBASE_STORAGE_BUCKET=...
-VITE_FIREBASE_MESSAGING_SENDER_ID=...
-VITE_FIREBASE_APP_ID=...
+VITE_API_BASE_URL=http://localhost:8787/api/v1
 ```
 
-### デプロイ手順
+ローカルでCloudflare Accessを利用できない場合は、次を指定すると開発用の管理者プロフィールで画面を確認できます。この設定はViteの開発モードでのみ有効で、本番ビルドでは無効です。
 
-1. ビルド
+```env
+VITE_DEV_MODE=true
+```
+
+認証はCloudflare AccessのセッションCookieを使用するため、ブラウザからAPIへCookieを送信できるオリジン・CORS設定が必要です。本番ではSPAとAPIの同一オリジン配信を推奨します。
+
+## コマンド
 
 ```bash
-pnpm build
+pnpm dev        # 開発サーバー
+pnpm typecheck  # 型検査
+pnpm test       # テスト
+pnpm build      # 本番ビルド
+pnpm ci:check   # Biome検査、型検査、テスト、ビルド
 ```
 
-2. デプロイ
+`pnpm deploy`は現在フロントエンドの本番ビルドまでを実行します。Cloudflare Workerへの配信は、API実装側のWorker設定とデプロイ手順に従ってください。
 
-```bash
-pnpm run deploy
-```
+## 主な画面とAPI
 
-または Hosting のみ:
+- ログイン・プロフィール: `/auth/session`, `/users/me`
+- シフト回答: `/shifts`, `/shifts/{shiftId}/slots`, `/responses/me`
+- メンバー管理: `/users`, `/cafeore-statuses`
+- 募集・確定割当管理: `/shifts`, `/responses`, `/confirmed-assignments`
+- 業務・枠設定: `/events`, `/positions`, `/slots`
 
-```bash
-pnpm deploy:hosting
-# もしくは
-firebase deploy --only hosting
-```
-
-3. 公開URLで動作確認（例: `https://aula-eb466.web.app`）
-
-### 重要設定
-
-- `firebase.json`
-	- `hosting.public` は `build/client`
-	- `hosting.rewrites` は `** -> /index.html`（SPAルーティング対応）
-- `react-router.config.ts`
-	- `ssr: false`（Firebase Hosting では SPA モード運用）
-
-### トラブルシューティング
-
-- ビルド失敗時
-
-```bash
-rm -rf node_modules pnpm-lock.yaml
-pnpm install
-rm -rf .react-router build
-```
-
-- デプロイ後に 404 が出る
-	- `firebase.json` の `rewrites` 設定を確認
-
-- 環境変数が効かない
-	- 変数名が `VITE_` プレフィックスか確認
-	- `.env` / `.env.production` を見直して再ビルド
-
-## Styling Policy
-
-- 画面・コンポーネントのスタイルは `*.module.scss` を利用
-- グローバル定義は `app/styles/app.scss`（トークン/リセット中心）
-- 文字列ベースのユーティリティ `className` は使用しない
+Google Calendar連携とクライアント側iCalendar出力は現在の対象外です。

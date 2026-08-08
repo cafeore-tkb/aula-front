@@ -1,19 +1,25 @@
-import {
-	collection,
-	doc,
-	getDocs,
-	getFirestore,
-	serverTimestamp,
-	setDoc,
-} from 'firebase/firestore';
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useMediaQuery } from 'react-responsive';
 import { useLocation, useNavigate } from 'react-router';
 import { Button } from '../../components/ui/button';
 import { Card, CardContent } from '../../components/ui/card';
+import {
+	getShift,
+	listConfirmedAssignments,
+	listShiftResponses,
+	listSlots,
+	listUsers,
+	replaceConfirmedAssignments,
+	type ShiftListItem,
+	type Slot,
+} from '../../lib/api';
 import { useAuth } from '../../lib/auth-context';
-import type { ShiftListItem, UserProfile } from '../../lib/firebase';
 import { getModuleDisplay, getSemesterDisplay } from '../../lib/shift-labels';
+import {
+	type SolverInput,
+	serializeSolverInput,
+	solveSchedule,
+} from '../../lib/shift-solver';
 import styles from './schedule-shift.module.scss';
 
 /**
@@ -25,6 +31,8 @@ interface StaffMember {
 	isExaminer: boolean;
 	scheduleData: { period: string; day: string; canBeAssigned: boolean }[];
 	comment: string;
+	entranceYear: number;
+	isFirstYear: boolean;
 	isTwice?: boolean; // 週2回シフトを希望するかどうか
 	isAssigned?: boolean; // 割り当て済みフラグ
 }
@@ -38,9 +46,6 @@ interface TimeSlot {
 	slotStatus: 'unable' | 'idle' | 'incomplete' | 'complete'; // 割当不可/割当可能（未割当）/割当可能（途中）/割当確定
 	isVacant: boolean;
 }
-
-const dedupeStaffMembers = (members: StaffMember[]) =>
-	Array.from(new Map(members.map((member) => [member.userId, member])).values());
 
 /**
  * ページメタデータを定義する関数
@@ -61,9 +66,10 @@ export default function ScheduleShift() {
 	const navigate = useNavigate();
 	const location = useLocation();
 
-	// Firebase データフェッチ用の状態
+	// APIデータフェッチ用の状態
 	const [loadingUsers, setLoadingUsers] = useState(false);
 	const [shiftData, setShiftData] = useState<ShiftListItem | null>(null);
+	const [shiftSlots, setShiftSlots] = useState<Slot[]>([]);
 
 	// レスポンシブ判定
 	const isDesktop = useMediaQuery({ minWidth: 1024 });
@@ -99,6 +105,7 @@ export default function ScheduleShift() {
 	const [showOutputPopup, setShowOutputPopup] = useState(false);
 	const [copyResultMessage, setCopyResultMessage] = useState('');
 	const [saveResultMessage, setSaveResultMessage] = useState('');
+	const [solverResultMessage, setSolverResultMessage] = useState('');
 	const [schedule, setSchedule] = useState<TimeSlot[][]>(
 		Array(8)
 			.fill(null)
@@ -112,11 +119,6 @@ export default function ScheduleShift() {
 						isVacant: false,
 					})),
 			),
-	);
-
-	const getStorageKey = useCallback(
-		(shiftUid: string) => `schedule_shift_${shiftUid}`,
-		[],
 	);
 
 	const outputText = (() => {
@@ -197,47 +199,146 @@ export default function ScheduleShift() {
 
 		try {
 			setSaveResultMessage('保存中...');
-			const db = getFirestore();
-			const confirmedShiftCollection = collection(db, 'confirmed_shift');
-			const confirmedShiftDocId = `${shiftData.year}_${shiftData.semester}_${shiftData.module}`;
-			const confirmedShiftDoc = doc(confirmedShiftCollection, confirmedShiftDocId);
-
-			const confirmedSchedule = schedule.map((row, periodIndex) => ({
-				periodIndex,
-				periodLabel: periods[periodIndex],
-				slots: row.map((slot, dayIndex) => ({
-					dayIndex,
-					dayLabel: day[dayIndex],
-					slotStatus: slot.slotStatus,
-					assignedTrainees: slot.assignedTrainees.map((trainee) => ({
-						userId: trainee.userId,
-						name: trainee.name,
-					})),
-					assignedExaminers: slot.assignedExaminers.map((examiner) => ({
-						userId: examiner.userId,
-						name: examiner.name,
-					})),
-				})),
-			}));
-
-			await setDoc(
-				confirmedShiftDoc,
-				{
-					shiftUid: shiftData.uid,
-					year: shiftData.year,
-					semester: shiftData.semester,
-					module: shiftData.module,
-					confirmedSchedule,
-					updatedAt: serverTimestamp(),
-				},
-				{ merge: true },
+			const assignments = schedule.flatMap((row, periodIndex) =>
+				row.flatMap((cell, dayIndex) => {
+					const slot = shiftSlots.find(
+						(item) =>
+							item.period === periodIndex + 1 && item.dayOfWeek === dayIndex + 1,
+					);
+					if (!slot) return [];
+					return [...cell.assignedTrainees, ...cell.assignedExaminers].map(
+						(member) => ({ slotId: slot.slotId, userId: member.userId }),
+					);
+				}),
 			);
+			await replaceConfirmedAssignments(shiftData.shiftId, assignments);
 
 			setSaveResultMessage('保存しました');
 			setIsEditMode(false);
 		} catch (error) {
 			console.error('Failed to save confirmed shift:', error);
 			setSaveResultMessage('保存に失敗しました');
+		}
+	};
+
+	const handleAutoSchedule = () => {
+		setSolverResultMessage('');
+		if (!trainees.length) {
+			setSolverResultMessage('回答済みの練習生がいません');
+			return;
+		}
+		if (examiners.length < 2) {
+			setSolverResultMessage('回答済みの試験官が2人以上必要です');
+			return;
+		}
+
+		const allStaff = [...trainees, ...examiners];
+		const externalIdByUserId = new Map(
+			allStaff.map((staff, index) => [staff.userId, index + 1]),
+		);
+		const staffByExternalId = new Map(
+			allStaff.map((staff) => [
+				externalIdByUserId.get(staff.userId) as number,
+				staff,
+			]),
+		);
+		const availabilityOf = (staff: StaffMember) =>
+			Array.from({ length: day.length * periods.length }, (_, slotIndex) => {
+				const dayIndex = Math.floor(slotIndex / periods.length);
+				const periodIndex = slotIndex % periods.length;
+				const hasSlot = shiftSlots.some(
+					(slot) =>
+						slot.dayOfWeek === dayIndex + 1 && slot.period === periodIndex + 1,
+				);
+				return (
+					hasSlot &&
+					staff.scheduleData.some(
+						(item) =>
+							getDayIndexFromValue(item.day) === dayIndex &&
+							getPeriodIndexFromValue(item.period) === periodIndex &&
+							item.canBeAssigned,
+					)
+				);
+			});
+		const gradeOf = (staff: StaffMember) =>
+			Math.max(
+				1,
+				(shiftData?.year ?? new Date().getFullYear()) - staff.entranceYear + 1,
+			);
+		const input: SolverInput = {
+			days: day.length,
+			periodsPerDay: periods.length,
+			trainees: trainees.map((staff) => ({
+				id: externalIdByUserId.get(staff.userId) as number,
+				grade: gradeOf(staff),
+				first: staff.isFirstYear,
+				availability: availabilityOf(staff),
+			})),
+			examiners: examiners.map((staff) => ({
+				id: externalIdByUserId.get(staff.userId) as number,
+				grade: gradeOf(staff),
+				first: staff.isFirstYear,
+				isHigh: staff.isTwice ?? false,
+				availability: availabilityOf(staff),
+			})),
+		};
+
+		try {
+			// 外部solverへ切り替える際にも、そのまま標準入力へ渡せる形式を生成する。
+			serializeSolverInput(input);
+			const result = solveSchedule(input);
+			const nextSchedule: TimeSlot[][] = Array.from(
+				{ length: periods.length },
+				() =>
+					Array.from({ length: day.length }, () => ({
+						assignedTrainees: [],
+						assignedExaminers: [],
+						slotStatus: 'idle' as const,
+						isVacant: false,
+					})),
+			);
+			for (const solvedSlot of result.slots) {
+				const dayIndex = Math.floor(solvedSlot.slotIndex / periods.length);
+				const periodIndex = solvedSlot.slotIndex % periods.length;
+				const assignedTrainees = solvedSlot.traineeIds.flatMap((id) => {
+					const staff = staffByExternalId.get(id);
+					return staff ? [staff] : [];
+				});
+				const assignedExaminers = solvedSlot.examinerIds.flatMap((id) => {
+					const staff = staffByExternalId.get(id);
+					return staff ? [staff] : [];
+				});
+				nextSchedule[periodIndex][dayIndex] = {
+					assignedTrainees,
+					assignedExaminers,
+					slotStatus:
+						assignedTrainees.length > 0 && assignedExaminers.length >= 2
+							? 'complete'
+							: assignedTrainees.length > 0
+								? 'incomplete'
+								: 'idle',
+					isVacant: false,
+				};
+			}
+			setSchedule(nextSchedule);
+			setSelectedStaffUserId(null);
+			setIsEditMode(true);
+			if (result.complete) {
+				setSolverResultMessage(
+					'全練習生を自動で割り当てました。内容を確認して保存してください',
+				);
+			} else {
+				const names = result.unassignedTraineeIds
+					.map((id) => staffByExternalId.get(id)?.name)
+					.filter(Boolean)
+					.join('、');
+				setSolverResultMessage(
+					`部分的なシフトを作成しました。未割当: ${names || '不明'}`,
+				);
+			}
+		} catch (error) {
+			console.error('Failed to solve schedule:', error);
+			setSolverResultMessage('solver入力の生成または自動割当に失敗しました');
 		}
 	};
 
@@ -365,308 +466,109 @@ export default function ScheduleShift() {
 		}
 	}, [user, userProfile, loading, navigate]);
 
-	/**
-	 * Firebase からのデータフェッチ
-	 * 旧実装を参考に、shiftUid 起点でシフトと回答を取得する
-	 */
 	useEffect(() => {
 		const fetchShiftData = async () => {
-			const state = location.state as { shiftUid?: string } | null;
-			if (!state?.shiftUid || !userProfile?.isAdmin) {
+			const state = location.state as { shiftId?: string } | null;
+			if (!state?.shiftId || !userProfile?.isAdmin) {
 				navigate('/admin/manageAdjustment');
 				return;
 			}
-
 			try {
 				setLoadingUsers(true);
 				setIsScheduleLoaded(false);
-				const db = getFirestore();
-
-				const usualShiftsCollection = collection(db, 'shiftUsual');
-				const usualShiftsSnapshot = await getDocs(usualShiftsCollection);
-				let foundShift = usualShiftsSnapshot.docs
-					.map(
-						(doc) =>
-							({
-								uid: doc.id,
-								year: doc.data().year || 2024,
-								semester: doc.data().semester || 'spring',
-								module: doc.data().module || 'A',
-								isScheduled: doc.data().isScheduled || false,
-								comment: doc.data().comment || '',
-							}) as ShiftListItem,
-					)
-					.find((shift) => shift.uid === state.shiftUid);
-
-				if (!foundShift) {
-					const unusualShiftsCollection = collection(db, 'shiftUnusual');
-					const unusualShiftsSnapshot = await getDocs(unusualShiftsCollection);
-					foundShift = unusualShiftsSnapshot.docs
-						.map(
-							(doc) =>
-								({
-									uid: doc.id,
-									year: doc.data().year || 9999,
-									semester: doc.data().semester || 'spring',
-									module: doc.data().module || 'A',
-									isScheduled: doc.data().isScheduled || false,
-									comment: doc.data().comment || '',
-								}) as ShiftListItem,
-						)
-						.find((shift) => shift.uid === state.shiftUid);
-				}
-
-				if (!foundShift) {
-					console.error('Shift not found');
-					navigate('/admin/manageAdjustment');
-					return;
-				}
-
+				const [shift, slots, responses, users, assignments] = await Promise.all([
+					getShift(state.shiftId),
+					listSlots(state.shiftId),
+					listShiftResponses(state.shiftId),
+					listUsers(),
+					listConfirmedAssignments(state.shiftId),
+				]);
+				const foundShift: ShiftListItem = {
+					uid: shift.shiftId,
+					shiftId: shift.shiftId,
+					year: shift.year,
+					semester: shift.semester,
+					module: shift.module,
+					isScheduled: assignments.length > 0,
+				};
 				setShiftData(foundShift);
-				console.log('Loaded shift:', foundShift);
+				setShiftSlots(slots);
 
-				const scheduleCollectionName = `schedules_${foundShift.year}_${foundShift.semester}_${foundShift.module}`;
-				console.log('📂 Schedule collection name:', scheduleCollectionName);
-
-				const usersCollection = collection(db, 'users');
-				const usersSnapshot = await getDocs(usersCollection);
-				console.log('👥 Users found:', usersSnapshot.docs.length);
-
-				const shiftResponsesCollection = collection(db, scheduleCollectionName);
-				const shiftResponsesSnapshot = await getDocs(shiftResponsesCollection);
-				console.log(
-					'📝 Schedule responses found:',
-					shiftResponsesSnapshot.docs.length,
-				);
-				console.log(
-					'📋 Schedule response docs:',
-					shiftResponsesSnapshot.docs.map((d) => d.data()),
-				);
-
-				const traineeList: StaffMember[] = [];
-				const examinerList: StaffMember[] = [];
-
-				for (const shiftDoc of shiftResponsesSnapshot.docs) {
-					const shiftResponseData = shiftDoc.data() as {
-						userId?: string;
-						scheduleData?: Array<{
-							period?: number;
-							day?: string;
-							isSelected?: boolean;
-							canBeAssigned?: boolean;
-						}>;
-						comment?: string;
-						isTwice?: boolean;
-					};
-
-					const userId = shiftResponseData.userId;
-					if (!userId) {
-						console.log('No userId in shift response:', shiftDoc.id);
-						continue;
-					}
-
-					const userDoc = usersSnapshot.docs.find((doc) => doc.id === userId);
-					if (!userDoc) {
-						console.log('User not found:', userId);
-						continue;
-					}
-
-					const userData = userDoc.data() as UserProfile;
-					const userDataWithFlags = userDoc.data() as UserProfile & {
-						isTwice?: boolean;
-						isAssigned?: boolean;
-					};
-					console.log('User data:', {
-						userId,
-						name: userData.name,
-						isExaminer: userData.isExaminer,
-					});
-
-					console.log(
-						'Schedule data for user:',
-						userId,
-						shiftResponseData.scheduleData,
+				const usersById = new Map(users.map((member) => [member.userId, member]));
+				const staff = responses.flatMap((response) => {
+					const member = response.user ?? usersById.get(response.userId);
+					if (!member) return [];
+					const answersById = new Map(
+						response.answers.map((answer) => [answer.slotId, answer.isAvailable]),
 					);
-
-					const staffMember: StaffMember = {
-						userId,
-						name: userData.name || '名前未設定',
-						isExaminer: userData.isExaminer || false,
-						scheduleData: (shiftResponseData.scheduleData || []).map((slot) => ({
-							period: String(slot.period ?? ''),
-							day: String(slot.day ?? ''),
-							canBeAssigned: Boolean(slot.canBeAssigned ?? slot.isSelected),
-						})),
-						comment: shiftResponseData.comment || '',
-						isTwice: userDataWithFlags.isTwice ?? shiftResponseData.isTwice ?? false,
-					};
-
-					if (userData.isExaminer === true) {
-						examinerList.push(staffMember);
-					} else {
-						traineeList.push(staffMember);
-					}
-				}
-
+					return [
+						{
+							userId: member.userId,
+							name: member.displayName || member.name,
+							isExaminer: member.isExaminer,
+							scheduleData: slots.map((slot) => ({
+								period: String(slot.period),
+								day: day[slot.dayOfWeek - 1],
+								canBeAssigned: answersById.get(slot.slotId) ?? false,
+							})),
+							comment: response.comment,
+							entranceYear: member.entranceYear,
+							isFirstYear: member.isFirstYear,
+							isTwice: response.frequency === 'TWICE_WEEKLY',
+						} satisfies StaffMember,
+					];
+				});
+				const traineeList = staff.filter((member) => !member.isExaminer);
+				const examinerList = staff.filter((member) => member.isExaminer);
 				setTrainees(traineeList);
 				setExaminers(examinerList);
 
-				const storageKey = getStorageKey(foundShift.uid);
-				const savedScheduleJson = localStorage.getItem(storageKey);
-
-				if (savedScheduleJson) {
-					try {
-						const savedSchedule = JSON.parse(savedScheduleJson) as Array<
-							Array<
-								{ traineeUserIds?: string[]; examinerUserIds?: string[] } | undefined
-							>
-						>;
-						const restoredSchedule: TimeSlot[][] = Array(8)
-							.fill(null)
-							.map((_, periodIndex) =>
-								Array(7)
-									.fill(null)
-									.map((_, dayIndex) => {
-										const saved = savedSchedule[periodIndex]?.[dayIndex];
-
-										if (!saved) {
-											return {
-												assignedTrainees: [],
-												assignedExaminers: [],
-												slotStatus: 'idle',
-												isVacant: false,
-											};
-										}
-
-										const restoredTrainees = (saved.traineeUserIds || [])
-											.map((userId) =>
-												traineeList.find((trainee) => trainee.userId === userId),
-											)
-											.filter(Boolean) as StaffMember[];
-
-										const restoredExaminers = (saved.examinerUserIds || [])
-											.map((userId) =>
-												examinerList.find((examiner) => examiner.userId === userId),
-											)
-											.filter(Boolean) as StaffMember[];
-
-										const uniqueRestoredTrainees = dedupeStaffMembers(restoredTrainees);
-										const uniqueRestoredExaminers = dedupeStaffMembers(restoredExaminers);
-
-										return {
-											assignedTrainees: uniqueRestoredTrainees,
-											assignedExaminers: uniqueRestoredExaminers,
-											slotStatus:
-												uniqueRestoredTrainees.length > 0 &&
-												uniqueRestoredExaminers.length >= 2
-													? 'complete'
-													: uniqueRestoredTrainees.length > 0 ||
-															uniqueRestoredExaminers.length > 0
-														? 'incomplete'
-														: 'idle',
-											isVacant: false,
-										};
-									}),
-							);
-
-						setSchedule(restoredSchedule);
-						setIsEditMode(false);
-						console.log('Restored schedule from localStorage');
-					} catch (error) {
-						console.error('Failed to restore schedule from localStorage:', error);
-						setIsEditMode(true);
-						setSchedule(
-							Array(8)
-								.fill(null)
-								.map(() =>
-									Array(7)
-										.fill(null)
-										.map(() => ({
-											assignedTrainees: [],
-											assignedExaminers: [],
-											slotStatus: 'idle',
-											isVacant: false,
-										})),
-								),
-						);
-					}
-				} else {
-					setSchedule(
-						Array(8)
-							.fill(null)
-							.map(() =>
-								Array(7)
-									.fill(null)
-									.map(() => ({
-										assignedTrainees: [],
-										assignedExaminers: [],
-										slotStatus: 'idle',
-										isVacant: false,
-									})),
-							),
-					);
-					setIsEditMode(true);
+				const allStaff = new Map(staff.map((member) => [member.userId, member]));
+				const assignmentsBySlot = new Map<string, StaffMember[]>();
+				for (const assignment of assignments) {
+					const member = allStaff.get(assignment.userId);
+					if (!member) continue;
+					const current = assignmentsBySlot.get(assignment.slotId) ?? [];
+					current.push(member);
+					assignmentsBySlot.set(assignment.slotId, current);
 				}
-
+				const restored: TimeSlot[][] = Array(8)
+					.fill(null)
+					.map((_, periodIndex) =>
+						Array(7)
+							.fill(null)
+							.map((_, dayIndex) => {
+								const slot = slots.find(
+									(item) =>
+										item.period === periodIndex + 1 && item.dayOfWeek === dayIndex + 1,
+								);
+								const members = slot ? (assignmentsBySlot.get(slot.slotId) ?? []) : [];
+								const assignedTrainees = members.filter((member) => !member.isExaminer);
+								const assignedExaminers = members.filter((member) => member.isExaminer);
+								return {
+									assignedTrainees,
+									assignedExaminers,
+									slotStatus:
+										assignedTrainees.length > 0 && assignedExaminers.length >= 2
+											? ('complete' as const)
+											: members.length > 0
+												? ('incomplete' as const)
+												: ('idle' as const),
+									isVacant: false,
+								};
+							}),
+					);
+				setSchedule(restored);
+				setIsEditMode(assignments.length === 0);
 				setIsScheduleLoaded(true);
-
-				console.log('Trainees:', traineeList);
-				console.log('Examiners:', examinerList);
-				console.log(
-					'Trainee schedule counts:',
-					traineeList.map((staff) => ({
-						userId: staff.userId,
-						count: staff.scheduleData.length,
-					})),
-				);
-				console.log(
-					'Examiner schedule counts:',
-					examinerList.map((staff) => ({
-						userId: staff.userId,
-						count: staff.scheduleData.length,
-					})),
-				);
-				console.log('✅ Firebase data loaded successfully');
 			} catch (error) {
-				console.error('Error fetching shift data:', error);
+				console.error('Failed to load shift data:', error);
 			} finally {
 				setLoadingUsers(false);
 			}
 		};
-
-		fetchShiftData();
-	}, [getStorageKey, location.state, navigate, userProfile]);
-
-	/**
-	 * schedule が更新されたら localStorage に保存する
-	 */
-	useEffect(() => {
-		if (
-			!isScheduleLoaded ||
-			!shiftData ||
-			trainees.length === 0 ||
-			examiners.length === 0
-		) {
-			return;
-		}
-
-		const storageKey = getStorageKey(shiftData.uid);
-		const serializable = schedule.map((row) =>
-			row.map((slot) => ({
-				traineeUserIds: slot.assignedTrainees.map((trainee) => trainee.userId),
-				examinerUserIds: slot.assignedExaminers.map((examiner) => examiner.userId),
-			})),
-		);
-		localStorage.setItem(storageKey, JSON.stringify(serializable));
-		console.log('Saved schedule to localStorage');
-	}, [
-		schedule,
-		shiftData,
-		trainees,
-		examiners,
-		isScheduleLoaded,
-		getStorageKey,
-	]);
+		void fetchShiftData();
+	}, [location.state, navigate, userProfile]);
 
 	/**
 	 * 選択中のユーザーのスケジュールデータをコンソールに出力
@@ -957,19 +859,25 @@ export default function ScheduleShift() {
 																			key={`${trainee.userId}-${idx}`}
 																			className={`${styles.slotAssigneeBox} ${styles.slotAssigneeBoxTrainee}`}
 																		>
-																			{activeList ==='trainees' ? 
-																			<button
-																				type="button"
-																				className={styles.slotRemoveButton}
-																				onClick={(event) => {
-																					event.stopPropagation();
-																					deleteStaffFromSlot(periodIndex, dayIndex, trainee, false);
-																				}}
-																				aria-label={`${trainee.name} の割り当てを解除`}
-																			>
-																				×
-																			</button>: null}
-																			
+																			{activeList === 'trainees' ? (
+																				<button
+																					type="button"
+																					className={styles.slotRemoveButton}
+																					onClick={(event) => {
+																						event.stopPropagation();
+																						deleteStaffFromSlot(
+																							periodIndex,
+																							dayIndex,
+																							trainee,
+																							false,
+																						);
+																					}}
+																					aria-label={`${trainee.name} の割り当てを解除`}
+																				>
+																					×
+																				</button>
+																			) : null}
+
 																			<div className={styles.slotAssigneeLabel}>
 																				練:{trainee.name}
 																			</div>
@@ -988,19 +896,24 @@ export default function ScheduleShift() {
 																			key={`${examiner.userId}-${idx}`}
 																			className={`${styles.slotAssigneeBox} ${styles.slotAssigneeBoxExaminer}`}
 																		>
-																			{activeList === 'examiners' ?
-																			<button
-																				type="button"
-																				className={styles.slotRemoveButton}
-																				onClick={(event) => {
-																					event.stopPropagation();
-																					deleteStaffFromSlot(periodIndex, dayIndex, examiner, true);
-																				}}
-																				aria-label={`${examiner.name} の割り当てを解除`}
-																			>
-																				×
-																			</button>
-																			: null}
+																			{activeList === 'examiners' ? (
+																				<button
+																					type="button"
+																					className={styles.slotRemoveButton}
+																					onClick={(event) => {
+																						event.stopPropagation();
+																						deleteStaffFromSlot(
+																							periodIndex,
+																							dayIndex,
+																							examiner,
+																							true,
+																						);
+																					}}
+																					aria-label={`${examiner.name} の割り当てを解除`}
+																				>
+																					×
+																				</button>
+																			) : null}
 																			<div className={styles.slotAssigneeLabel}>
 																				試:{examiner.name}
 																			</div>
@@ -1146,6 +1059,17 @@ export default function ScheduleShift() {
 
 						{/* 保存ボタン */}
 						<div className={styles.saveButtonMockWrap}>
+							<Button
+								variant="outline"
+								className={styles.solveButton}
+								onClick={handleAutoSchedule}
+								disabled={!isScheduleLoaded || !shiftData || loadingUsers}
+							>
+								solverで自動作成
+							</Button>
+							{solverResultMessage ? (
+								<p className={styles.copyResultMessage}>{solverResultMessage}</p>
+							) : null}
 							{isEditMode ? (
 								<Button
 									variant="default"

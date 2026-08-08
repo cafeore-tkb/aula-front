@@ -1,11 +1,3 @@
-import {
-	addDoc,
-	collection,
-	doc,
-	getDocs,
-	getFirestore,
-	updateDoc,
-} from 'firebase/firestore';
 import { useEffect, useId, useState } from 'react';
 import { useNavigate } from 'react-router';
 import { HomeButton } from '../../components/home-button';
@@ -26,587 +18,338 @@ import {
 	TableHeader,
 	TableRow,
 } from '../../components/ui/table';
-import { useAuth } from '../../lib/auth-context';
-import type { ShiftUsual } from '../../lib/firebase';
 import {
-	getModuleDisplay,
-	getSemesterLabel,
-} from '../../lib/shift-labels';
+	ApiError,
+	createShift,
+	downloadResponsesCsv,
+	listShifts,
+	type ShiftUsual,
+	updateShift,
+} from '../../lib/api';
+import { useAuth } from '../../lib/auth-context';
+import { getModuleDisplay, getSemesterLabel } from '../../lib/shift-labels';
 import styles from './manage-adjustment.module.scss';
 
 export function meta() {
 	return [
-		{ title: 'Aula - 管理画面' },
-		{ name: 'description', content: '管理者向けの設定画面' },
+		{ title: 'Aula - シフト募集管理' },
+		{ name: 'description', content: 'シフト募集の作成と公開設定' },
 	];
 }
 
 export default function ManageAdjustment() {
 	const { user, userProfile, loading } = useAuth();
-	const [shiftUsual, setShiftUsual] = useState<ShiftUsual[]>([]);
-	const [loadingShiftUsual, setLoadingShiftUsual] = useState(false);
 	const navigate = useNavigate();
-	const yearInputId = useId();
-	const semesterSelectId = useId();
-	const moduleSelectId = useId();
-	const isTwiceSelectId = useId();
-
-	// 新規追加フォームの状態
-	const [newYear, setNewYear] = useState('');
-	const [newSemester, setNewSemester] = useState('');
-	const [newModule, setNewModule] = useState('');
-	const [newIsTwice, setNewIsTwice] = useState('');
+	const [shifts, setShifts] = useState<ShiftUsual[]>([]);
+	const [loadingShifts, setLoadingShifts] = useState(true);
 	const [isAdding, setIsAdding] = useState(false);
-	const [exportingShiftUid, setExportingShiftUid] = useState<string | null>(null);
+	const [exportingId, setExportingId] = useState<string | null>(null);
+	const [year, setYear] = useState('');
+	const [semester, setSemester] = useState('');
+	const [module, setModule] = useState('');
+	const [frequency, setFrequency] = useState('');
+	const [startDate, setStartDate] = useState('');
+	const [endDate, setEndDate] = useState('');
+	const yearId = useId();
+	const semesterId = useId();
+	const moduleId = useId();
+	const frequencyId = useId();
+	const startDateId = useId();
+	const endDateId = useId();
 
-	const handleSemesterSelect = (value: string) => {
-		setNewSemester(value);
-		setNewModule('');
-	};
-
-	const handleSummerWeekInput = (value: string) => {
-		if (value === '') {
-			setNewModule('');
-			return;
-		}
-
-		if (/^\d+$/.test(value) && Number.parseInt(value, 10) > 0) {
-			setNewModule(value);
-		}
-	};
-
-	// CSVエクスポート関数（シフト回答内容を出力）
-	const exportToCSV = async (shift: ShiftUsual) => {
-		try {
-			setExportingShiftUid(shift.uid);
-			const db = getFirestore();
-
-			// schedules コレクション名を構築
-			const collectionName = `schedules_${shift.year}_${shift.semester}_${shift.module}`;
-
-			// スケジュールデータを取得
-			const schedulesRef = collection(db, collectionName);
-			const schedulesSnapshot = await getDocs(schedulesRef);
-
-			// ユーザー情報を取得
-			const usersRef = collection(db, 'users');
-			const usersSnapshot = await getDocs(usersRef);
-			const usersDict: Record<string, { name: string; isExaminer: boolean }> = {};
-
-			for (const userDoc of usersSnapshot.docs) {
-				const userData = userDoc.data();
-				usersDict[userDoc.id] = {
-					name: userData.name || '名前未設定',
-					isExaminer: userData.isExaminer || false,
-				};
-			}
-
-			// ユーザーごとのシフト回答を整理
-			const userResponses: Array<{
-				userId: string;
-				name: string;
-				isExaminer: boolean;
-				responses: Record<string, boolean>; // "period-day" => canBeAssigned
-			}> = [];
-
-			// スケジュールデータを処理
-			for (const scheduleDoc of schedulesSnapshot.docs) {
-				const scheduleData = scheduleDoc.data();
-				const userId = scheduleData.userId;
-				const scheduleItems = scheduleData.scheduleData || [];
-
-				if (!userId || !usersDict[userId]) continue;
-
-				const userInfo = usersDict[userId];
-				const responses: Record<string, boolean> = {};
-
-				// 各時間帯の回答を記録
-				for (const item of scheduleItems) {
-					// periodは文字列'1'~'8'で保存されているので、数値に変換して0-7にする
-					const period = typeof item.period === 'string' ? parseInt(item.period, 10) - 1 : item.period;
-					const dayName = item.day;
-					// isSelectedとcanBeAssignedの両方に対応
-					const canBeAssigned = item.canBeAssigned === true || item.isSelected === true;
-
-					if (period !== undefined && dayName !== undefined) {
-						const key = `${period}-${dayName}`;
-						responses[key] = canBeAssigned;
-					}
-				}
-
-				userResponses.push({
-					userId,
-					name: userInfo.name,
-					isExaminer: userInfo.isExaminer,
-					responses,
-				});
-			}
-
-			// ユーザーを名前でソート
-			userResponses.sort((a, b) => a.name.localeCompare(b.name, 'ja'));
-
-			// CSVデータを構築
-			const dayNames = ['月', '火', '水', '木', '金', '土', '日'];
-			let csvContent = '\uFEFF'; // BOM for UTF-8
-
-			// ヘッダー情報
-			csvContent += `${shift.year}年度 ${getSemesterLabel(shift.semester)} ${getModuleDisplay(shift.semester, shift.module)} シフト回答一覧\n`;
-			csvContent += `出力日時: ${new Date().toLocaleString('ja-JP')}\n\n`;
-
-			// テーブルヘッダー（名前、役割、各時限×曜日）
-			const header = ['名前', '役割'];
-			for (let period = 0; period < 8; period++) {
-				for (const dayName of dayNames) {
-					header.push(`${period + 1}限${dayName}`);
-				}
-			}
-			csvContent += header.join(',') + '\n';
-
-			// 各ユーザーの回答データ
-			for (const user of userResponses) {
-				const row = [
-					`"${user.name}"`,
-					user.isExaminer ? '試験官' : '練習生',
-				];
-
-				// 各時限×曜日の回答
-				for (let period = 0; period < 8; period++) {
-					for (const dayName of dayNames) {
-						const key = `${period}-${dayName}`;
-						const canBeAssigned = user.responses[key];
-						row.push(canBeAssigned ? '○' : '×');
-					}
-				}
-
-				csvContent += row.join(',') + '\n';
-			}
-
-			// 集計情報
-			csvContent += '\n集計情報\n';
-			csvContent += `回答者数,${userResponses.length}\n`;
-			csvContent += `練習生,${userResponses.filter(u => !u.isExaminer).length}\n`;
-			csvContent += `試験官,${userResponses.filter(u => u.isExaminer).length}\n`;
-
-			// ダウンロード
-			const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-			const link = document.createElement('a');
-			const url = URL.createObjectURL(blob);
-			link.setAttribute('href', url);
-			link.setAttribute('download', `shift_responses_${shift.year}_${shift.semester}_${shift.module}.csv`);
-			link.style.visibility = 'hidden';
-			document.body.appendChild(link);
-			link.click();
-			document.body.removeChild(link);
-
-		} catch (error) {
-			console.error('CSV export error:', error);
-			alert('CSVのエクスポートに失敗しました');
-		} finally {
-			setExportingShiftUid(null);
-		}
-	};
-
-	// 認証状態とadminフラグをチェック
 	useEffect(() => {
-		if (!loading) {
-			// 未ログインの場合はログインページにリダイレクト
-			if (!user) {
-				navigate('/login');
-				return;
-			}
+		if (!loading && !user) navigate('/login');
+		else if (!loading && userProfile && !userProfile.isAdmin)
+			navigate('/dashboard');
+	}, [loading, navigate, user, userProfile]);
 
-			// ログイン済みでもadminフラグがない場合はホームページにリダイレクト
-			if (userProfile && !userProfile.isAdmin) {
-				navigate('/dashboard');
-				return;
-			}
-		}
-	}, [user, userProfile, loading, navigate]);
-
-	//シフト一覧を取得
 	useEffect(() => {
-		const fetchShiftUsual = async () => {
-			if (!userProfile?.isAdmin) return;
-
-			try {
-				setLoadingShiftUsual(true);
-				const db = getFirestore();
-				const shiftUsualCollection = collection(db, 'shiftUsual');
-				const shiftUsualSnapshot = await getDocs(shiftUsualCollection);
-				const shiftUsualList = shiftUsualSnapshot.docs.map(
-					(doc) =>
-						({
-							uid: doc.id,
-							...doc.data(),
-						}) as ShiftUsual,
-				);
-				setShiftUsual(shiftUsualList);
-			} catch (error) {
-				console.error('Error fetching users:', error);
-			} finally {
-				setLoadingShiftUsual(false);
-			}
+		if (!userProfile?.isAdmin) return;
+		let active = true;
+		void listShifts('limit=100')
+			.then((data) => active && setShifts(data))
+			.catch((error) => console.error('Failed to load shifts:', error))
+			.finally(() => active && setLoadingShifts(false));
+		return () => {
+			active = false;
 		};
-
-		fetchShiftUsual();
 	}, [userProfile]);
 
-	// ステータス更新関数
-	const handleStatusChange = async (uid: string, statusValue: string) => {
+	const updateOne = async (
+		shift: ShiftUsual,
+		changes: { isOpen?: boolean; requiredSessionsPerWeek?: 1 | 2 },
+	) => {
 		try {
-			const db = getFirestore();
-			const userDocRef = doc(db, 'shiftUsual', uid);
-
-			// ステータスから各フラグを判定
-			const isOpen = statusValue.includes('isOpen');
-
-			await updateDoc(userDocRef, {
-				isOpen,
+			const updated = await updateShift(shift.shiftId, {
+				...changes,
+				version: shift.version,
 			});
-
-			// ローカルの状態を更新
-			setShiftUsual((prevUsers) =>
-				prevUsers.map((u) => (u.uid === uid ? { ...u, isOpen } : u)),
+			setShifts((current) =>
+				current.map((item) => (item.shiftId === shift.shiftId ? updated : item)),
 			);
 		} catch (error) {
-			console.error('Error updating user status:', error);
-			alert('ステータスの更新に失敗しました');
+			console.error('Failed to update shift:', error);
+			alert(
+				error instanceof ApiError ? error.message : 'シフトの更新に失敗しました',
+			);
 		}
 	};
 
-	// 頻度更新関数
-	const handleFrequencyChange = async (uid: string, frequencyValue: string) => {
-		try {
-			const db = getFirestore();
-			const shiftDocRef = doc(db, 'shiftUsual', uid);
-
-			const isTwice = frequencyValue === 'true';
-
-			await updateDoc(shiftDocRef, {
-				isTwice,
-			});
-
-			// ローカルの状態を更新
-			setShiftUsual((prevShifts) =>
-				prevShifts.map((s) => (s.uid === uid ? { ...s, isTwice } : s)),
-			);
-		} catch (error) {
-			console.error('Error updating frequency:', error);
-			alert('頻度の更新に失敗しました');
-		}
-	};
-
-	// 新規シフト追加関数
-	const handleAddShift = async () => {
-		const normalizedYear = newYear.trim();
-		const normalizedSemester = newSemester.trim();
-		const normalizedModule = newModule.trim();
-		const normalizedIsTwice = newIsTwice.trim();
-
-		if (
-			normalizedYear === '' ||
-			normalizedSemester === '' ||
-			normalizedModule === '' ||
-			normalizedIsTwice === ''
-		) {
+	const handleAdd = async () => {
+		if (!year || !semester || !module || !frequency || !startDate || !endDate) {
 			alert('全ての項目を入力してください');
 			return;
-		} else {
-			const yearNow = new Date().getFullYear();
-			const yearInt = Number.parseInt(normalizedYear, 10);
-			if (Number.isNaN(yearInt) || yearInt < yearNow || yearInt > yearNow + 1) {
-				alert(
-					`年度を正しく入力してください。登録できる年度は今年度と来年度のみです`,
-				);
-				return;
-			}
-
-			if (normalizedSemester === 'summer') {
-				const week = Number.parseInt(normalizedModule, 10);
-				if (!Number.isInteger(week) || week <= 0) {
-					alert('夏休みシフトは週番号（1以上）を入力してください');
-					return;
-				}
-			} else if (!['A', 'B', 'C'].includes(normalizedModule)) {
-				alert('モジュールは A / B / C から選択してください');
-				return;
-			}
 		}
-
-		// 重複チェック
-		const isDuplicate = shiftUsual.some(
-			(shift) =>
-				shift.year === Number.parseInt(normalizedYear, 10) &&
-				shift.semester === normalizedSemester &&
-				shift.module === normalizedModule,
-		);
-
-		if (isDuplicate) {
-			alert('同じ年度・学期・モジュールの組み合わせが既に存在します');
+		if (endDate < startDate) {
+			alert('終了日は開始日以降にしてください');
 			return;
 		}
-
 		try {
 			setIsAdding(true);
-			const db = getFirestore();
-			const shiftUsualCollection = collection(db, 'shiftUsual');
-
-			// シフト専用のコレクション名を生成
-			const scheduleCollectionId = `schedules_${normalizedYear}_${normalizedSemester}_${normalizedModule}`;
-
-			// 新しいシフトを追加
-			const docRef = await addDoc(shiftUsualCollection, {
-				year: Number.parseInt(normalizedYear, 10),
-				semester: normalizedSemester,
-				module: normalizedModule,
-				isTwice: normalizedIsTwice === 'true',
-				isOpen: false,
-				isScheduled: false,
-				scheduleCollectionId, // コレクション名を保存
-			});		// ローカルの状態を更新
-			setShiftUsual((prev) => [
-				...prev,
-				{
-					uid: docRef.id,
-					year: Number.parseInt(normalizedYear, 10),
-					semester: normalizedSemester as 'spring' | 'summer' | 'autumn',
-					module: normalizedModule as 'A' | 'B' | 'C' | `${number}`,
-					isOpen: false,
-					isTwice: normalizedIsTwice === 'true',
-					isScheduled: false,
-					scheduleCollectionId,
-				},
-			]);			// フォームをリセット
-			setNewYear('');
-			setNewSemester('');
-			setNewModule('');
-			setNewIsTwice('');
-
-			alert('シフトを追加しました');
+			const created = await createShift({
+				year: Number(year),
+				semester: semester as ShiftUsual['semester'],
+				module: module as ShiftUsual['module'],
+				startDate,
+				endDate,
+				requiredSessionsPerWeek: frequency === '2' ? 2 : 1,
+				isVacation: semester === 'summer',
+			});
+			setShifts((current) => [...current, created]);
+			setYear('');
+			setSemester('');
+			setModule('');
+			setFrequency('');
+			setStartDate('');
+			setEndDate('');
 		} catch (error) {
-			console.error('Error adding shift:', error);
-			alert('シフトの追加に失敗しました');
+			console.error('Failed to create shift:', error);
+			alert(
+				error instanceof ApiError ? error.message : 'シフトの追加に失敗しました',
+			);
 		} finally {
 			setIsAdding(false);
 		}
 	};
 
-	// ローディング中の表示
-	// 管理者権限がない場合（リダイレクト処理中）
-	if (!userProfile?.isAdmin) {
-		return null;
-	}
+	const exportCsv = async (shift: ShiftUsual) => {
+		try {
+			setExportingId(shift.shiftId);
+			await downloadResponsesCsv(shift.shiftId);
+		} catch (error) {
+			console.error('Failed to download CSV:', error);
+			alert('CSVの出力に失敗しました');
+		} finally {
+			setExportingId(null);
+		}
+	};
 
-	// 管理者ページのメインコンテンツ
+	if (loading || !userProfile?.isAdmin) return null;
+
 	return (
 		<div className={styles.page}>
 			<div className={styles.container}>
 				<div className={styles.header}>
 					<h1 className={styles.title}>管理者ページ</h1>
 					<div className={styles.manageUserInfo}>
-						<span className={styles.manageAdminBadge}>
-							管理者
-						</span>
-						<span className={styles.userName}>
-							{userProfile.name || user?.displayName || 'ユーザー'}
-						</span>
+						<span className={styles.manageAdminBadge}>管理者</span>
+						<span className={styles.userName}>{userProfile.displayName}</span>
 					</div>
 				</div>
-				<div>
-					<div className={styles.manageSectionHeading}>
-						シフト通常設定一覧
-					</div>
 
-					{/* 新規追加フォーム */}
-					<div className={styles.manageFormCard}>
-						<h2 className={styles.manageFormTitle}>
-							新規シフト追加
-						</h2>
-						<div className={styles.manageFormGrid}>
-							<div>
-								<label
-									htmlFor={yearInputId}
-									className={styles.manageLabel}
-								>
-									年度
-								</label>
+				<div className={styles.manageSectionHeading}>シフト設定一覧</div>
+				<div className={styles.manageFormCard}>
+					<h2 className={styles.manageFormTitle}>新規シフト追加</h2>
+					<div className={styles.manageFormGrid}>
+						<div>
+							<label htmlFor={yearId} className={styles.manageLabel}>
+								年度
+							</label>
+							<Input
+								id={yearId}
+								type="number"
+								value={year}
+								onChange={(e) => setYear(e.target.value)}
+							/>
+						</div>
+						<div>
+							<label htmlFor={semesterId} className={styles.manageLabel}>
+								学期
+							</label>
+							<Select
+								value={semester}
+								onValueChange={(value) => {
+									setSemester(value);
+									setModule('');
+								}}
+							>
+								<SelectTrigger id={semesterId}>
+									<SelectValue placeholder="学期" />
+								</SelectTrigger>
+								<SelectContent>
+									<SelectItem value="spring">春</SelectItem>
+									<SelectItem value="summer">夏休み</SelectItem>
+									<SelectItem value="autumn">秋</SelectItem>
+								</SelectContent>
+							</Select>
+						</div>
+						<div>
+							<label htmlFor={moduleId} className={styles.manageLabel}>
+								モジュール
+							</label>
+							{semester === 'summer' ? (
 								<Input
-									id={yearInputId}
+									id={moduleId}
 									type="number"
-									placeholder="2025"
-									value={newYear}
-									onChange={(e) => setNewYear(e.target.value)}
-									min="2000"
+									min="1"
+									value={module}
+									onChange={(e) => setModule(e.target.value)}
 								/>
-							</div>
-							<div>
-								<label
-									htmlFor={semesterSelectId}
-									className={styles.manageLabel}
-								>
-									学期
-								</label>
-								<Select value={newSemester} onValueChange={handleSemesterSelect}>
-									<SelectTrigger id={semesterSelectId}>
-										<SelectValue placeholder="学期を選択" />
+							) : (
+								<Select value={module} onValueChange={setModule}>
+									<SelectTrigger id={moduleId}>
+										<SelectValue placeholder="モジュール" />
 									</SelectTrigger>
 									<SelectContent>
-										<SelectItem value="spring">春</SelectItem>
-										<SelectItem value="summer">夏休み</SelectItem>
-										<SelectItem value="autumn">秋</SelectItem>
+										<SelectItem value="A">A</SelectItem>
+										<SelectItem value="B">B</SelectItem>
+										<SelectItem value="C">C</SelectItem>
 									</SelectContent>
 								</Select>
-							</div>
-							<div>
-								<label
-									htmlFor={moduleSelectId}
-									className={styles.manageLabel}
-								>
-									モジュール
-								</label>
-								{newSemester === 'summer' ? (
-									<Input
-										id={moduleSelectId}
-										type="number"
-										placeholder="1"
-										value={newModule}
-										onChange={(e) => handleSummerWeekInput(e.target.value)}
-										min="1"
-									/>
-								) : (
-									<Select value={newModule} onValueChange={setNewModule}>
-										<SelectTrigger id={moduleSelectId}>
-											<SelectValue placeholder="モジュールを選択" />
-										</SelectTrigger>
-										<SelectContent>
-											<SelectItem value="A">A</SelectItem>
-											<SelectItem value="B">B</SelectItem>
-											<SelectItem value="C">C</SelectItem>
-										</SelectContent>
-									</Select>
-								)}
-							</div>
-							<div>
-								<label
-									htmlFor={isTwiceSelectId}
-									className={styles.manageLabel}
-								>
-									頻度
-								</label>
-								<Select value={newIsTwice} onValueChange={setNewIsTwice}>
-									<SelectTrigger id={isTwiceSelectId}>
-										<SelectValue placeholder="頻度を選択" />
-									</SelectTrigger>
-									<SelectContent>
-										<SelectItem value="false">週1回</SelectItem>
-										<SelectItem value="true">週2回</SelectItem>
-									</SelectContent>
-								</Select>
-							</div>
-							<div className={styles.manageAddButtonWrap}>
-								<Button
-									type="button"
-									onClick={handleAddShift}
-									disabled={isAdding}
-									className={styles.manageAddButton}
-								>
-									{isAdding ? '追加中...' : '✓ 追加'}
-								</Button>
-							</div>
+							)}
+						</div>
+						<div>
+							<label htmlFor={frequencyId} className={styles.manageLabel}>
+								頻度
+							</label>
+							<Select value={frequency} onValueChange={setFrequency}>
+								<SelectTrigger id={frequencyId}>
+									<SelectValue placeholder="頻度" />
+								</SelectTrigger>
+								<SelectContent>
+									<SelectItem value="1">週1回</SelectItem>
+									<SelectItem value="2">週2回</SelectItem>
+								</SelectContent>
+							</Select>
+						</div>
+						<div>
+							<label htmlFor={startDateId} className={styles.manageLabel}>
+								開始日
+							</label>
+							<Input
+								id={startDateId}
+								type="date"
+								value={startDate}
+								onChange={(e) => setStartDate(e.target.value)}
+							/>
+						</div>
+						<div>
+							<label htmlFor={endDateId} className={styles.manageLabel}>
+								終了日
+							</label>
+							<Input
+								id={endDateId}
+								type="date"
+								value={endDate}
+								onChange={(e) => setEndDate(e.target.value)}
+							/>
+						</div>
+						<div className={styles.manageAddButtonWrap}>
+							<Button onClick={handleAdd} disabled={isAdding}>
+								{isAdding ? '追加中...' : '✓ 追加'}
+							</Button>
 						</div>
 					</div>
-
-					{loadingShiftUsual ? (
-						<div className={styles.manageLoadingWrap}>
-							<p className={styles.manageLoadingText}>シフト通常設定を読み込み中...</p>
-						</div>
-					) : (
-						<div className={styles.manageTableCard}>
-							<Table>
-								<TableHeader>
-									<TableRow>
-										<TableHead className={styles.manageTableText}>年度</TableHead>
-										<TableHead className={styles.manageTableText}>学期</TableHead>
-										<TableHead className={styles.manageTableText}>モジュール</TableHead>
-										<TableHead className={styles.manageTableText}>頻度</TableHead>
-										<TableHead className={styles.manageTableText}>公開設定</TableHead>
-										<TableHead className={styles.manageTableText}>シフト作成</TableHead>
-									</TableRow>
-								</TableHeader>
-								<TableBody>
-									{shiftUsual.map((su) => {
-										// semesterを日本語に変換
-										const semesterJa = getSemesterLabel(su.semester);
-										const moduleLabel = getModuleDisplay(su.semester, su.module);
-
-										return (
-											<TableRow
-												key={su.year + su.semester + su.module}
-												className={su.isOpen ? styles.manageRowOpen : styles.manageRowClosed}
-											>
-												<TableCell className={styles.manageTableText}>{su.year}</TableCell>
-												<TableCell className={styles.manageTableText}>{semesterJa}</TableCell>
-												<TableCell className={styles.manageTableText}>{moduleLabel}</TableCell>
-												<TableCell>
-													<Select
-														value={su.isTwice ? 'true' : 'false'}
-														onValueChange={(value) => handleFrequencyChange(su.uid, value)}
-													>
-														<SelectTrigger
-															className={`${styles.manageSelectTriggerBase} ${su.isTwice ? styles.manageSelectPositive : styles.manageSelectNeutral}`}
-														>
-															<SelectValue />
-														</SelectTrigger>
-														<SelectContent>
-															<SelectItem value="false">週1回</SelectItem>
-															<SelectItem value="true">週2回</SelectItem>
-														</SelectContent>
-													</Select>
-												</TableCell>
-												<TableCell>
-													<Select
-														value={su.isOpen ? 'isOpen' : 'isClosed'}
-														onValueChange={(value) => handleStatusChange(su.uid, value)}
-													>
-														<SelectTrigger
-															className={`${styles.manageSelectTriggerBase} ${su.isOpen ? styles.manageSelectPositive : styles.manageSelectNeutral}`}
-														>
-															<SelectValue />
-														</SelectTrigger>
-														<SelectContent>
-															<SelectItem value="isOpen">公開</SelectItem>
-															<SelectItem value="isClosed">非公開</SelectItem>
-														</SelectContent>
-													</Select>
-												</TableCell>
-												<TableCell>
-													<div className={styles.manageActionButtons}>
-														<Button
-															onClick={() => navigate('/admin/scheduleShift', { state: { shiftUid: su.uid } })}
-															className={styles.managePrimaryActionButton}
-														>
-															シフトを組む
-														</Button>
-														<Button
-															onClick={() => exportToCSV(su)}
-															disabled={exportingShiftUid === su.uid}
-															variant="outline"
-															className={styles.manageCsvButton}
-														>
-															{exportingShiftUid === su.uid ? '出力中...' : 'CSV出力'}
-														</Button>
-													</div>
-												</TableCell>
-											</TableRow>
-										);
-									})}
-								</TableBody>
-							</Table>
-						</div>
-					)}
 				</div>
 
-				{/* ホームに戻るボタン */}
+				{loadingShifts ? (
+					<p>読み込み中...</p>
+				) : (
+					<div className={styles.manageTableCard}>
+						<Table>
+							<TableHeader>
+								<TableRow>
+									<TableHead>年度</TableHead>
+									<TableHead>学期</TableHead>
+									<TableHead>モジュール</TableHead>
+									<TableHead>頻度</TableHead>
+									<TableHead>公開</TableHead>
+									<TableHead>操作</TableHead>
+								</TableRow>
+							</TableHeader>
+							<TableBody>
+								{shifts.map((shift) => (
+									<TableRow
+										key={shift.shiftId}
+										className={
+											shift.isOpen ? styles.manageRowOpen : styles.manageRowClosed
+										}
+									>
+										<TableCell>{shift.year}</TableCell>
+										<TableCell>{getSemesterLabel(shift.semester)}</TableCell>
+										<TableCell>
+											{getModuleDisplay(shift.semester, shift.module)}
+										</TableCell>
+										<TableCell>
+											<Select
+												value={String(shift.requiredSessionsPerWeek)}
+												onValueChange={(value) =>
+													void updateOne(shift, {
+														requiredSessionsPerWeek: value === '2' ? 2 : 1,
+													})
+												}
+											>
+												<SelectTrigger>
+													<SelectValue />
+												</SelectTrigger>
+												<SelectContent>
+													<SelectItem value="1">週1回</SelectItem>
+													<SelectItem value="2">週2回</SelectItem>
+												</SelectContent>
+											</Select>
+										</TableCell>
+										<TableCell>
+											<Select
+												value={shift.isOpen ? 'open' : 'closed'}
+												onValueChange={(value) =>
+													void updateOne(shift, { isOpen: value === 'open' })
+												}
+											>
+												<SelectTrigger>
+													<SelectValue />
+												</SelectTrigger>
+												<SelectContent>
+													<SelectItem value="open">公開</SelectItem>
+													<SelectItem value="closed">非公開</SelectItem>
+												</SelectContent>
+											</Select>
+										</TableCell>
+										<TableCell>
+											<div className={styles.manageActionButtons}>
+												<Button
+													onClick={() =>
+														navigate('/admin/scheduleShift', {
+															state: { shiftId: shift.shiftId },
+														})
+													}
+												>
+													シフトを組む
+												</Button>
+												<Button
+													variant="outline"
+													disabled={exportingId === shift.shiftId}
+													onClick={() => void exportCsv(shift)}
+												>
+													{exportingId === shift.shiftId ? '出力中...' : 'CSV出力'}
+												</Button>
+											</div>
+										</TableCell>
+									</TableRow>
+								))}
+							</TableBody>
+						</Table>
+					</div>
+				)}
 				<div className={styles.homeButtonWrap}>
 					<HomeButton />
 				</div>

@@ -9,14 +9,6 @@ export default defineConfig(({ mode }) => {
 
 	return {
 		plugins: [reactRouter(), tsconfigPaths()],
-		optimizeDeps: {
-			exclude: ['firebase/app', 'firebase/auth', 'firebase/firestore'],
-			include: [
-				'firebase > @firebase/app',
-				'firebase > @firebase/auth',
-				'firebase > @firebase/firestore',
-			],
-		},
 		server: {
 			port: Number.parseInt(env.PORT || '5173', 10),
 			host: true, // 外部からのアクセスを許可

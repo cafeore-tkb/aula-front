@@ -1,14 +1,3 @@
-import {
-	addDoc,
-	collection,
-	doc,
-	getDocs,
-	query,
-	serverTimestamp,
-	setDoc,
-	where,
-} from 'firebase/firestore';
-import type { Timestamp } from 'firebase/firestore';
 import { FileSpreadsheet } from 'lucide-react';
 import React, { useEffect, useId, useState } from 'react';
 import { useMediaQuery } from 'react-responsive';
@@ -17,8 +6,16 @@ import { HomeButton } from '../../components/home-button';
 import { Button } from '../../components/ui/button';
 import { Card, CardContent } from '../../components/ui/card';
 import { RadioGroup, RadioGroupItem } from '../../components/ui/radio-group';
+import {
+	ApiError,
+	createShiftResponse,
+	getMyShiftResponse,
+	listSlots,
+	replaceMyShiftResponse,
+	type ShiftResponse,
+	type Slot,
+} from '../../lib/api';
 import { useAuth } from '../../lib/auth-context';
-import { db } from '../../lib/firebase';
 import { getModuleDisplay, getSemesterDisplay } from '../../lib/shift-labels';
 import styles from './adjustment.module.scss';
 
@@ -29,29 +26,14 @@ export function meta() {
 	];
 }
 
-export interface shiftData {
-	id: number;
-	year: number;
-	semester: string;
-	module: string;
-	userId: string;
-	userName: string;
-	userEmail: string;
-	scheduleData: {day:string; period:string; isSelected:boolean; startTime:string; endTime:string}[];
-	isTwice: boolean;
-	comment: string;
-	frequency: string;
-	updatedAt: Timestamp;
-	};
-
 export default function Adjustment() {
 	const location = useLocation();
 	const shiftInfo = location.state as {
+		shiftId?: string;
 		year?: number;
 		semester?: string;
 		module?: string;
 		isTwice?: boolean;
-		scheduleCollectionId?: string;
 	} | null;
 
 	const day = ['月', '火', '水', '木', '金', '土', '日'];
@@ -101,70 +83,51 @@ export default function Adjustment() {
 
 	// ローディング状態
 	const [isLoading, setIsLoading] = useState<boolean>(true);
-
-	// 既存のドキュメントIDを保持
-	const [existingDocId, setExistingDocId] = useState<string | null>(null);
+	const [slots, setSlots] = useState<Slot[]>([]);
+	const [existingResponse, setExistingResponse] = useState<ShiftResponse | null>(
+		null,
+	);
 
 	// 登録済みデータを読み込む
 	useEffect(() => {
 		const loadExistingSchedule = async () => {
-			if (!user || !shiftInfo) {
+			if (!user || !shiftInfo?.shiftId) {
 				setIsLoading(false);
 				return;
 			}
 
 			try {
-				// シフト専用のコレクション名（なければデフォルト名を生成）
-				const collectionName =
-					shiftInfo.scheduleCollectionId ||
-					`schedules_${shiftInfo.year}_${shiftInfo.semester}_${shiftInfo.module}`;
-
-				// 同じシフト情報で登録済みのデータを検索
-				const schedulesRef = collection(db, collectionName);
-				const q = query(schedulesRef, where('userId', '==', user.uid));
-
-				const querySnapshot = await getDocs(q);
-
-				if (!querySnapshot.empty) {
-					// 最新のデータを取得（最初のドキュメント）
-					const docSnapshot = querySnapshot.docs[0];
-					const docData = docSnapshot.data();
-
-					// ドキュメントIDを保存
-					setExistingDocId(docSnapshot.id);
-
-					// スケジュールデータを復元
-					if (docData.scheduleData) {
-						const newSchedule = Array(periods.length)
-							.fill(null)
-							.map(() => Array(day.length).fill(false));
-
-						docData.scheduleData.forEach(
-							(cell: { period: string; day: string; isSelected: boolean }) => {
-								const periodIndex = periods.indexOf(cell.period);
-								const dayIndex = day.indexOf(cell.day);
-								if (periodIndex !== -1 && dayIndex !== -1 && cell.isSelected) {
-									newSchedule[periodIndex][dayIndex] = true;
-								}
-							},
-						);
-
-						setSchedule(newSchedule);
+				const loadedSlots = await listSlots(shiftInfo.shiftId);
+				setSlots(loadedSlots);
+				try {
+					const response = await getMyShiftResponse(shiftInfo.shiftId);
+					setExistingResponse(response);
+					const answerMap = new Map(
+						response.answers.map((answer) => [answer.slotId, answer.isAvailable]),
+					);
+					const restored = Array(periods.length)
+						.fill(null)
+						.map(() => Array(day.length).fill(false));
+					for (const slot of loadedSlots) {
+						restored[slot.period - 1][slot.dayOfWeek - 1] =
+							answerMap.get(slot.slotId) ?? false;
 					}
-
-					// 頻度とコメントを復元
-					if (docData.frequency) {
-						setFrequency(docData.frequency);
-					}
-					if (docData.comment) {
-						setComment(docData.comment);
-					}
-
-					// データがある場合は閲覧モードで開始
+					setSchedule(restored);
+					setFrequency(
+						response.frequency === 'TWICE_WEEKLY'
+							? '週2回'
+							: response.frequency === 'EXAMINER'
+								? '試験官'
+								: '週1回',
+					);
+					setComment(response.comment);
 					setIsEditMode(false);
-				} else {
-					// データがない場合は編集モードで開始
-					setIsEditMode(true);
+				} catch (error) {
+					if (error instanceof ApiError && error.status === 404) {
+						setIsEditMode(true);
+					} else {
+						throw error;
+					}
 				}
 			} catch (error) {
 				console.error('データ読み込みエラー:', error);
@@ -174,12 +137,11 @@ export default function Adjustment() {
 		};
 
 		loadExistingSchedule();
-		// eslint-disable-next-line react-hooks/exhaustive-deps
-	}, [user, shiftInfo]);
+	}, [user, shiftInfo?.shiftId]);
 
-	// Firestoreに保存する関数
+	// REST APIへ回答を保存する
 	const handleSave = async () => {
-		if (!user) {
+		if (!user || !shiftInfo?.shiftId) {
 			alert('ログインが必要です');
 			return;
 		}
@@ -187,51 +149,25 @@ export default function Adjustment() {
 		try {
 			setIsSaving(true);
 
-			// 時間割データを整理
-			const scheduleData = schedule.flatMap((row, periodIndex) =>
-				row.map((isSelected, dayIndex) => ({
-					period: periods[periodIndex],
-					day: day[dayIndex],
-					isSelected,
-					startTime: startTimes[periodIndex],
-					endTime: endTimes[periodIndex],
-				})),
-			);
-
-			const dataToSave = {
-				userId: user.uid,
-				userEmail: user.email,
-				userName: user.displayName || user.email || 'ユーザー',
-				scheduleData,
-				frequency,
+			const input = {
+				frequency: (frequency === '週2回'
+					? 'TWICE_WEEKLY'
+					: frequency === '試験官'
+						? 'EXAMINER'
+						: 'ONCE_WEEKLY') as ShiftResponse['frequency'],
 				comment,
-				// シフト情報を追加
-				...(shiftInfo && {
-					year: shiftInfo.year,
-					semester: shiftInfo.semester,
-					module: shiftInfo.module,
-					isTwice: shiftInfo.isTwice,
-				}),
-				updatedAt: serverTimestamp(),
+				answers: slots.map((slot) => ({
+					slotId: slot.slotId,
+					isAvailable: schedule[slot.period - 1][slot.dayOfWeek - 1],
+				})),
 			};
-
-			// シフト専用のコレクション名（なければデフォルト名を生成）
-			const collectionName =
-				shiftInfo?.scheduleCollectionId ||
-				`schedules_${shiftInfo?.year}_${shiftInfo?.semester}_${shiftInfo?.module}`;
-
-			// 既存のドキュメントがある場合は更新、ない場合は新規作成
-			if (existingDocId) {
-				// 既存のドキュメントを更新
-				await setDoc(doc(db, collectionName, existingDocId), dataToSave);
-			} else {
-				// 新規作成
-				const docRef = await addDoc(collection(db, collectionName), {
-					...dataToSave,
-					createdAt: serverTimestamp(),
-				});
-				setExistingDocId(docRef.id);
-			}
+			const saved = existingResponse
+				? await replaceMyShiftResponse(shiftInfo.shiftId, {
+						...input,
+						version: existingResponse.version,
+					})
+				: await createShiftResponse(shiftInfo.shiftId, input);
+			setExistingResponse(saved);
 
 			alert('保存しました！');
 			setIsEditMode(false); // 保存後に閲覧モードに戻る
@@ -256,11 +192,15 @@ export default function Adjustment() {
 	// 曜日（列）全体をトグルする関数
 	const toggleColumnAll = (dayIndex: number) => {
 		setSchedule((prev) => {
-			// その列が全てtrueかどうかをチェック
-			const isAllTrue = prev.every((row) => row[dayIndex] === true);
+			const activePeriods = slots
+				.filter((slot) => slot.dayOfWeek === dayIndex + 1)
+				.map((slot) => slot.period - 1);
+			const isAllTrue = activePeriods.every(
+				(periodIndex) => prev[periodIndex][dayIndex],
+			);
 
 			const newSchedule = [...prev];
-			for (let periodIndex = 0; periodIndex < periods.length; periodIndex++) {
+			for (const periodIndex of activePeriods) {
 				newSchedule[periodIndex] = [...newSchedule[periodIndex]];
 				// 全てtrueなら全てfalseに、そうでなければ全てtrueに
 				newSchedule[periodIndex][dayIndex] = !isAllTrue;
@@ -272,12 +212,18 @@ export default function Adjustment() {
 	// 時限（行）全体をトグルする関数
 	const toggleRowAll = (periodIndex: number) => {
 		setSchedule((prev) => {
-			// その行が全てtrueかどうかをチェック
-			const isAllTrue = prev[periodIndex].every((cell) => cell === true);
+			const activeDays = slots
+				.filter((slot) => slot.period === periodIndex + 1)
+				.map((slot) => slot.dayOfWeek - 1);
+			const isAllTrue = activeDays.every(
+				(dayIndex) => prev[periodIndex][dayIndex],
+			);
 
 			const newSchedule = [...prev];
-			// 全てtrueなら全てfalseに、そうでなければ全てtrueに
-			newSchedule[periodIndex] = new Array(day.length).fill(!isAllTrue);
+			newSchedule[periodIndex] = [...newSchedule[periodIndex]];
+			for (const dayIndex of activeDays) {
+				newSchedule[periodIndex][dayIndex] = !isAllTrue;
+			}
 			return newSchedule;
 		});
 	};
@@ -300,10 +246,10 @@ export default function Adjustment() {
 	// ローディング中の表示
 	if (isLoading) {
 		return (
-			<div className={"common-loading-wrap"}>
-				<div className={"common-loading-inner"}>
-					<div className={"common-loading-spinner-teal"} />
-					<p className={"common-loading-text"}>データを読み込み中...</p>
+			<div className={'common-loading-wrap'}>
+				<div className={'common-loading-inner'}>
+					<div className={'common-loading-spinner-teal'} />
+					<p className={'common-loading-text'}>データを読み込み中...</p>
 				</div>
 			</div>
 		);
@@ -340,9 +286,19 @@ export default function Adjustment() {
 
 				{/* 左側：時間割表 */}
 				<div
-					className={isDesktop ? styles.adjustmentGridPaneDesktop : styles.adjustmentGridPaneDefault}
+					className={
+						isDesktop
+							? styles.adjustmentGridPaneDesktop
+							: styles.adjustmentGridPaneDefault
+					}
 				>
-					<div className={isMobile ? styles.adjustmentGridWrapMobile : styles.adjustmentGridWrapDesktop}>
+					<div
+						className={
+							isMobile
+								? styles.adjustmentGridWrapMobile
+								: styles.adjustmentGridWrapDesktop
+						}
+					>
 						<div
 							className={`${styles.adjustmentScheduleGrid} ${
 								isMobile
@@ -370,7 +326,9 @@ export default function Adjustment() {
 								<Card
 									key={dayName}
 									className={`${styles.adjustmentDayHeaderCard} ${
-										isEditMode ? styles.adjustmentDayHeaderCardEditable : styles.adjustmentDayHeaderCardReadonly
+										isEditMode
+											? styles.adjustmentDayHeaderCardEditable
+											: styles.adjustmentDayHeaderCardReadonly
 									}`}
 									onClick={() => isEditMode && toggleColumnAll(index)}
 								>
@@ -394,7 +352,9 @@ export default function Adjustment() {
 									{/* 時限・時間表示 */}
 									<Card
 										className={`${styles.adjustmentTimeHeaderCard} ${
-											isEditMode ? styles.adjustmentTimeHeaderCardEditable : styles.adjustmentTimeHeaderCardReadonly
+											isEditMode
+												? styles.adjustmentTimeHeaderCardEditable
+												: styles.adjustmentTimeHeaderCardReadonly
 										}`}
 										onClick={() => isEditMode && toggleRowAll(periodIndex)}
 									>
@@ -407,7 +367,13 @@ export default function Adjustment() {
 														: styles.adjustmentTimeHeaderContentDesktop
 											}`}
 										>
-											<div className={isMobile ? styles.adjustmentPeriodTextMobile : styles.adjustmentPeriodTextDesktop}>
+											<div
+												className={
+													isMobile
+														? styles.adjustmentPeriodTextMobile
+														: styles.adjustmentPeriodTextDesktop
+												}
+											>
 												<div className={styles.adjustmentPeriodMain}>{period}限</div>
 												{!isMobile && (
 													<div className={styles.adjustmentPeriodSub}>
@@ -428,6 +394,10 @@ export default function Adjustment() {
 
 									{/* 各曜日のセル */}
 									{day.map((dayName, dayIndex) => {
+										const hasSlot = slots.some(
+											(slot) =>
+												slot.period === periodIndex + 1 && slot.dayOfWeek === dayIndex + 1,
+										);
 										const isSelected = schedule[periodIndex][dayIndex];
 										return (
 											<Button
@@ -435,19 +405,21 @@ export default function Adjustment() {
 												variant={isSelected ? 'default' : 'ghost'}
 												className={`${styles.adjustmentSlotButtonBase} ${
 													isMobile
-															? styles.adjustmentSlotButtonMobile
+														? styles.adjustmentSlotButtonMobile
 														: isTablet
-																? styles.adjustmentSlotButtonTablet
-																: styles.adjustmentSlotButtonDesktop
+															? styles.adjustmentSlotButtonTablet
+															: styles.adjustmentSlotButtonDesktop
 												} ${
 													isSelected
-															? styles.adjustmentSlotButtonSelected
-															: styles.adjustmentSlotButtonUnselected
-													} ${!isEditMode ? styles.adjustmentSlotButtonReadonly : ''}`}
-												onClick={() => isEditMode && toggleCell(periodIndex, dayIndex)}
-												disabled={!isEditMode}
+														? styles.adjustmentSlotButtonSelected
+														: styles.adjustmentSlotButtonUnselected
+												} ${!isEditMode ? styles.adjustmentSlotButtonReadonly : ''}`}
+												onClick={() =>
+													isEditMode && hasSlot && toggleCell(periodIndex, dayIndex)
+												}
+												disabled={!isEditMode || !hasSlot}
 											>
-												{isSelected ? '〇' : '×'}
+												{hasSlot ? (isSelected ? '〇' : '×') : '—'}
 											</Button>
 										);
 									})}
@@ -467,10 +439,20 @@ export default function Adjustment() {
 						{/* シフト情報表示（タブレット・デスクトップのみ） */}
 						{!isMobile && shiftInfo && (
 							<Card className={styles.adjustmentShiftInfoCard}>
-								<CardContent className={isMobile ? styles.adjustmentShiftInfoContentMobile : styles.adjustmentShiftInfoContentDesktop}>
+								<CardContent
+									className={
+										isMobile
+											? styles.adjustmentShiftInfoContentMobile
+											: styles.adjustmentShiftInfoContentDesktop
+									}
+								>
 									<div className={styles.adjustmentShiftInfoRow}>
 										<FileSpreadsheet
-											className={isMobile ? styles.adjustmentShiftIconMobile : styles.adjustmentShiftIconDesktop}
+											className={
+												isMobile
+													? styles.adjustmentShiftIconMobile
+													: styles.adjustmentShiftIconDesktop
+											}
 											size={isMobile ? 20 : 24}
 											aria-hidden="true"
 										/>
@@ -495,11 +477,19 @@ export default function Adjustment() {
 						{/* ユーザー名表示 */}
 						{user && (
 							<Card className={styles.adjustmentUserCard}>
-								<CardContent className={isMobile ? styles.adjustmentUserCardContentMobile : styles.adjustmentUserCardContentDesktop}>
+								<CardContent
+									className={
+										isMobile
+											? styles.adjustmentUserCardContentMobile
+											: styles.adjustmentUserCardContentDesktop
+									}
+								>
 									<div className={styles.adjustmentUserRow}>
 										<div
 											className={`${styles.adjustmentAvatarCircle} ${
-												isMobile ? styles.adjustmentAvatarCircleMobile : styles.adjustmentAvatarCircleDesktop
+												isMobile
+													? styles.adjustmentAvatarCircleMobile
+													: styles.adjustmentAvatarCircleDesktop
 											}`}
 										>
 											<span
@@ -509,9 +499,7 @@ export default function Adjustment() {
 											</span>
 										</div>
 										<div>
-											<p className={styles.adjustmentUserLoginLabel}>
-												ログイン中
-											</p>
+											<p className={styles.adjustmentUserLoginLabel}>ログイン中</p>
 											<p
 												className={`${styles.adjustmentUserLoginName} ${isMobile ? styles.adjustmentUserLoginNameMobile : styles.adjustmentUserLoginNameDesktop}`}
 											>
@@ -525,15 +513,27 @@ export default function Adjustment() {
 
 						{/* コメント欄 */}
 						<Card className={styles.adjustmentFormCard}>
-							<CardContent className={isMobile ? styles.adjustmentFormCardContentMobile : styles.adjustmentFormCardContentDesktop}>
+							<CardContent
+								className={
+									isMobile
+										? styles.adjustmentFormCardContentMobile
+										: styles.adjustmentFormCardContentDesktop
+								}
+							>
 								<label
 									htmlFor={subjectNameId}
 									className={`${styles.adjustmentFormLabel} ${
-										isMobile ? styles.adjustmentFormLabelMobile : styles.adjustmentFormLabelDesktop
+										isMobile
+											? styles.adjustmentFormLabelMobile
+											: styles.adjustmentFormLabelDesktop
 									}`}
 								>
 									<FileSpreadsheet
-										className={isMobile ? styles.adjustmentFormLabelIconMobile : styles.adjustmentFormLabelIconDesktop}
+										className={
+											isMobile
+												? styles.adjustmentFormLabelIconMobile
+												: styles.adjustmentFormLabelIconDesktop
+										}
 										size={isMobile ? 16 : 18}
 										aria-hidden="true"
 									/>
@@ -545,7 +545,9 @@ export default function Adjustment() {
 									onChange={(e) => setComment(e.target.value)}
 									rows={isMobile ? 2 : 3}
 									className={`${styles.adjustmentCommentInput} ${
-										isMobile ? styles.adjustmentCommentInputMobile : styles.adjustmentCommentInputDesktop
+										isMobile
+											? styles.adjustmentCommentInputMobile
+											: styles.adjustmentCommentInputDesktop
 									}`}
 									placeholder="ご要望やコメントがあればお書きください..."
 									disabled={!isEditMode}
@@ -556,23 +558,39 @@ export default function Adjustment() {
 						{/* 希望頻度 */}
 						{shiftInfo?.isTwice && (
 							<Card className={styles.adjustmentFormCard}>
-								<CardContent className={isMobile ? styles.adjustmentFormCardContentMobile : styles.adjustmentFormCardContentDesktop}>
+								<CardContent
+									className={
+										isMobile
+											? styles.adjustmentFormCardContentMobile
+											: styles.adjustmentFormCardContentDesktop
+									}
+								>
 									<h3
 										className={`${styles.adjustmentFormLabel} ${
-											isMobile ? styles.adjustmentFormLabelMobile : styles.adjustmentFormLabelDesktop
+											isMobile
+												? styles.adjustmentFormLabelMobile
+												: styles.adjustmentFormLabelDesktop
 										}`}
 									>
-											<FileSpreadsheet
-												className={isMobile ? styles.adjustmentFormLabelIconMobile : styles.adjustmentFormLabelIconDesktop}
-												size={isMobile ? 16 : 18}
-												aria-hidden="true"
-											/>
+										<FileSpreadsheet
+											className={
+												isMobile
+													? styles.adjustmentFormLabelIconMobile
+													: styles.adjustmentFormLabelIconDesktop
+											}
+											size={isMobile ? 16 : 18}
+											aria-hidden="true"
+										/>
 										希望頻度
 									</h3>
 									<RadioGroup
 										value={frequency}
 										onValueChange={setFrequency}
-										className={isMobile ? styles.adjustmentFrequencyGroupMobile : styles.adjustmentFrequencyGroupDesktop}
+										className={
+											isMobile
+												? styles.adjustmentFrequencyGroupMobile
+												: styles.adjustmentFrequencyGroupDesktop
+										}
 										disabled={!isEditMode}
 									>
 										<div
@@ -633,7 +651,9 @@ export default function Adjustment() {
 							{!isEditMode ? (
 								<Button
 									className={`${styles.adjustmentEditButton} ${
-										isMobile ? styles.adjustmentActionButtonMobile : styles.adjustmentActionButtonDesktop
+										isMobile
+											? styles.adjustmentActionButtonMobile
+											: styles.adjustmentActionButtonDesktop
 									}`}
 									onClick={() => setIsEditMode(true)}
 								>
@@ -647,7 +667,9 @@ export default function Adjustment() {
 							) : (
 								<Button
 									className={`${styles.adjustmentSaveButton} ${
-										isMobile ? styles.adjustmentActionButtonMobile : styles.adjustmentActionButtonDesktop
+										isMobile
+											? styles.adjustmentActionButtonMobile
+											: styles.adjustmentActionButtonDesktop
 									}`}
 									onClick={handleSave}
 									disabled={isSaving}
@@ -657,7 +679,11 @@ export default function Adjustment() {
 											className={`${styles.adjustmentActionButtonInner} ${isMobile ? styles.adjustmentActionButtonTextMobile : styles.adjustmentActionButtonTextDesktop}`}
 										>
 											<div
-												className={isMobile ? styles.adjustmentSaveSpinnerMobile : styles.adjustmentSaveSpinnerDesktop}
+												className={
+													isMobile
+														? styles.adjustmentSaveSpinnerMobile
+														: styles.adjustmentSaveSpinnerDesktop
+												}
 											/>
 											保存中...
 										</span>

@@ -1,159 +1,122 @@
-import type { User } from 'firebase/auth';
-import { createContext, useContext, useEffect, useState } from 'react';
 import {
-	clearAuthSession,
+	createContext,
+	useCallback,
+	useContext,
+	useEffect,
+	useState,
+} from 'react';
+import {
+	ApiError,
+	type AuthUser,
 	getAuthSession,
-	isSessionValid,
-	saveAuthSession,
-} from './cookie-utils';
-import {
-	getUserProfile,
-	onAuthStateChange,
+	getMyProfile,
+	redirectToAccessLogout,
 	type UserProfile,
-} from './firebase';
+} from './api';
 
 interface AuthContextType {
-	user: User | null;
+	user: AuthUser | null;
 	userProfile: UserProfile | null;
 	loading: boolean;
-	sessionExpired: boolean; // ★追加
+	sessionExpired: boolean;
 	needsProfile: boolean;
 	refreshProfile: () => Promise<void>;
 	signOut: () => Promise<void>;
 }
 
-const AuthContext = createContext<AuthContextType>({
-	user: null,
-	userProfile: null,
-	loading: true,
-	sessionExpired: false,
-	needsProfile: false,
-	refreshProfile: async () => {},
-	signOut: async () => {},
-});
+const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export const useAuth = () => {
 	const context = useContext(AuthContext);
-	if (context === undefined) {
+	if (!context) {
 		throw new Error('useAuth must be used within an AuthProvider');
 	}
 	return context;
 };
 
-interface AuthProviderProps {
-	children: React.ReactNode;
-}
-
-export function AuthProvider({ children }: AuthProviderProps) {
-	const [user, setUser] = useState<User | null>(null);
+export function AuthProvider({ children }: { children: React.ReactNode }) {
+	const [user, setUser] = useState<AuthUser | null>(null);
 	const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
 	const [loading, setLoading] = useState(true);
-	const [sessionExpired, setSessionExpired] = useState(false); // ★追加
+	const [sessionExpired, setSessionExpired] = useState(false);
 	const [needsProfile, setNeedsProfile] = useState(false);
 
-	const refreshProfile = async () => {
-		if (user) {
-			try {
-				console.log('AuthContext: refreshProfile 開始');
-				const profile = await getUserProfile(user.uid);
-				console.log('AuthContext: refreshProfile 取得結果=', profile ? 'exists' : 'null');
-				setUserProfile(profile);
-				setNeedsProfile(!profile);
-			} catch (error) {
-				console.error('Error fetching user profile:', error);
+	const refreshProfile = useCallback(async () => {
+		try {
+			const profile = await getMyProfile();
+			setUserProfile(profile);
+			setUser((current) =>
+				current
+					? {
+							...current,
+							uid: profile.userId,
+							displayName: profile.displayName,
+							photoURL: profile.photoUrl,
+						}
+					: current,
+			);
+			setNeedsProfile(false);
+		} catch (error) {
+			if (error instanceof ApiError && error.status === 404) {
+				setUserProfile(null);
+				setNeedsProfile(true);
+				return;
 			}
+			throw error;
 		}
-	};
+	}, []);
 
-	const signOut = async () => {
-		await clearAuthSession();
-		setUser(null);
-		setUserProfile(null);
-	};
-
-	// 初期化時にCookieからセッション復元を試行
 	useEffect(() => {
-		const initializeAuth = async () => {
-			// まずCookieからセッション情報を確認
-			const sessionData = getAuthSession();
-
-			if (sessionData && isSessionValid()) {
-				// Cookieが有効な場合、Firebase Authの状態変化を待つ
-				console.log(
-					'Valid session found in cookie, waiting for Firebase auth state...',
-				);
-			} else {
-				// 無効なセッションの場合はCookieをクリアし、セッション期限切れフラグを立てる
-				if (sessionData) {
+		let active = true;
+		const initialize = async () => {
+			try {
+				const result = await getAuthSession();
+				if (!active) return;
+				setUser(result.user);
+				setUserProfile(result.profile);
+				setNeedsProfile(result.session.authenticated && !result.session.hasProfile);
+				setSessionExpired(false);
+			} catch (error) {
+				if (!active) return;
+				if (error instanceof ApiError && error.status === 401) {
+					setUser(null);
+					setUserProfile(null);
+					setNeedsProfile(false);
 					setSessionExpired(true);
+				} else {
+					console.error('Failed to initialize Access session:', error);
+					setUser(null);
+					setUserProfile(null);
 				}
-				clearAuthSession();
+			} finally {
+				if (active) setLoading(false);
 			}
 		};
-
-		initializeAuth();
+		void initialize();
+		return () => {
+			active = false;
+		};
 	}, []);
 
-	useEffect(() => {
-		const unsubscribe = onAuthStateChange(async (user) => {
-			console.log('AuthContext: onAuthStateChange fired, user=', user?.email || 'null');
-			setUser(user);
-
-			if (user) {
-				try {
-					// ログイン成功時に期限切れフラグをリセット
-					setSessionExpired(false);
-					// ユーザーがログインした場合、Cookieにセッション情報を保存
-					saveAuthSession({
-						uid: user.uid,
-						email: user.email,
-						displayName: user.displayName,
-						photoURL: user.photoURL,
-					});
-
-					// ユーザープロファイルを取得
-					const profile = await getUserProfile(user.uid);
-					console.log('AuthContext: profile=', profile ? 'exists' : 'null');
-					
-					// プロファイルが見つからない場合（新規登録直後）
-					if (!profile) {
-						console.log('AuthContext: プロファイルが存在しません。プロフィール作成が必要です。');
-						setUserProfile(null);
-						setNeedsProfile(true);
-					} else {
-						console.log('AuthContext: プロファイルを設定しました。');
-						setUserProfile(profile);
-						setNeedsProfile(false);
-					}
-				} catch (error) {
-					console.error('Error handling user profile:', error);
-					// プロファイルが見つからない場合はnullのままにする
-					setUserProfile(null);
-					setNeedsProfile(true);
-				}
-			} else {
-				// ユーザーがログアウトまたはセッション期限切れ場合
-				console.log('AuthContext: ユーザーなし、クリーンアップ');
-				clearAuthSession();
-				setUserProfile(null);
-				setNeedsProfile(false);
-			}
-
-			setLoading(false);
-		});
-
-		return unsubscribe;
-	}, []);
-
-	const value = {
-		user,
-		userProfile,
-		loading,
-		sessionExpired, // ★追加
-		needsProfile,
-		refreshProfile,
-		signOut,
+	const signOut = async () => {
+		setUser(null);
+		setUserProfile(null);
+		redirectToAccessLogout();
 	};
 
-	return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
+	return (
+		<AuthContext.Provider
+			value={{
+				user,
+				userProfile,
+				loading,
+				sessionExpired,
+				needsProfile,
+				refreshProfile,
+				signOut,
+			}}
+		>
+			{children}
+		</AuthContext.Provider>
+	);
 }

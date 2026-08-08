@@ -618,6 +618,17 @@ display: flex;
     flex-shrink: 0;
 }
 
+.solveButton {
+    width: 100%;
+    margin-bottom: 0.75rem;
+    border-color: #2563eb;
+    color: #1d4ed8;
+}
+
+.solveButton:hover {
+    background: #eff6ff;
+}
+
 .saveButtonMock {
     width: 100%;
     background: #5dade2;

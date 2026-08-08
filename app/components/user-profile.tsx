@@ -1,13 +1,15 @@
 import { useId, useState } from 'react';
-import type { User } from 'firebase/auth';
-import type { UserProfile as UserProfileType } from '../lib/firebase';
-import { updateUserProfile } from '../lib/firebase';
+import {
+	type AuthUser,
+	type UserProfile as UserProfileType,
+	updateMyProfile,
+} from '../lib/api';
 import { useAuth } from '../lib/auth-context';
 import { LogoutButton } from './logout-button';
 import styles from './user-profile.module.scss';
 
 interface UserProfileProps {
-	user: User;
+	user: AuthUser;
 	userProfile?: UserProfileType | null;
 }
 
@@ -34,13 +36,15 @@ export function UserProfile({ user, userProfile }: UserProfileProps) {
 	}
 
 	const handleSave = async () => {
-		if (!user || !name.trim()) return;
+		if (!userProfile || !name.trim()) return;
 
 		try {
 			setLoading(true);
-			await updateUserProfile(user.uid, {
+			await updateMyProfile({
 				name: name.trim(),
-				year: year,
+				displayName: name.trim(),
+				entranceYear: year,
+				version: userProfile.version,
 			});
 			await refreshProfile();
 			setIsEditing(false);
@@ -70,23 +74,16 @@ export function UserProfile({ user, userProfile }: UserProfileProps) {
 					/>
 				)}
 				<div className={styles.profileMeta}>
-					<h3 className={styles.userName}>
-						{user.displayName || 'ユーザー'}
-					</h3>
+					<h3 className={styles.userName}>{user.displayName || 'ユーザー'}</h3>
 				</div>
 			</div>
 
 			{isEditing ? (
 				<div className={styles.editSection}>
-					<h4 className={styles.sectionTitle}>
-						プロフィール編集
-					</h4>
+					<h4 className={styles.sectionTitle}>プロフィール編集</h4>
 
 					<div>
-						<label
-							htmlFor={nameId}
-							className={styles.inputLabel}
-						>
+						<label htmlFor={nameId} className={styles.inputLabel}>
 							表示名
 						</label>
 						<input
@@ -100,10 +97,7 @@ export function UserProfile({ user, userProfile }: UserProfileProps) {
 					</div>
 
 					<div>
-						<label
-							htmlFor={yearId}
-							className={styles.inputLabel}
-						>
+						<label htmlFor={yearId} className={styles.inputLabel}>
 							入学年度
 						</label>
 						<input
@@ -139,9 +133,7 @@ export function UserProfile({ user, userProfile }: UserProfileProps) {
 			) : (
 				<div className={styles.infoSection}>
 					<div className={styles.infoHeader}>
-						<h4 className={styles.sectionTitle}>
-							アカウント情報
-						</h4>
+						<h4 className={styles.sectionTitle}>アカウント情報</h4>
 						<button
 							type="button"
 							onClick={() => setIsEditing(true)}
@@ -158,9 +150,7 @@ export function UserProfile({ user, userProfile }: UserProfileProps) {
 						</div>
 						<div>
 							<span className={styles.gmailLabel}>Gmail:</span>
-							<span className={styles.gmailValue}>
-								{userProfile.gmail}
-							</span>
+							<span className={styles.gmailValue}>{userProfile.email}</span>
 						</div>
 						<div className={styles.infoRow}>
 							<span>入学年度:</span>

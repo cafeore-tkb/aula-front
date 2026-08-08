@@ -1,51 +1,124 @@
 /* Used by: app/pages/admin/settings.tsx */
 .page {
-min-height: 100vh;
-    background: #f3f4f6;
-    padding: 2rem 0;
+	min-height: 100vh;
+	background: #f3f4f6;
+	padding: 2rem 0;
 }
 
 .container {
-width: 100%;
-    max-width: 72rem;
-    margin: 0 auto;
-    padding: 0 1rem;
+	width: 100%;
+	max-width: 72rem;
+	margin: 0 auto;
+	padding: 0 1rem;
 }
 
 .header {
-margin-bottom: 1.5rem;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
+	margin-bottom: 1.5rem;
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: 1rem;
 }
 
 .title {
-margin: 0;
-    color: #111827;
-    font-size: 1.875rem;
-    font-weight: 700;
+	margin: 0;
+	color: #111827;
+	font-size: 1.875rem;
+	font-weight: 700;
 }
 
 .userMeta {
-display: flex;
-    align-items: center;
-    gap: 0.5rem;
+	display: flex;
+	align-items: center;
+	gap: 0.5rem;
 }
 
 .badge {
-border-radius: 9999px;
-    background: #fee2e2;
-    padding: 0.25rem 0.75rem;
-    font-size: 0.875rem;
-    font-weight: 500;
-    color: #dc2626;
+	border-radius: 9999px;
+	background: #fee2e2;
+	padding: 0.25rem 0.75rem;
+	font-size: 0.875rem;
+	font-weight: 500;
+	color: #dc2626;
 }
 
 .userName {
-color: #4b5563;
-    font-size: 0.875rem;
+	color: #4b5563;
+	font-size: 0.875rem;
+}
+
+.card {
+	margin-bottom: 1.25rem;
+	border: 1px solid #e5e7eb;
+	border-radius: 0.75rem;
+	background: #fff;
+	padding: 1.25rem;
+}
+
+.card h2 {
+	margin: 0 0 1rem;
+	font-size: 1.15rem;
+}
+
+.formRow,
+.formGrid {
+	display: grid;
+	grid-template-columns: repeat(auto-fit, minmax(10rem, 1fr));
+	align-items: end;
+	gap: 0.75rem;
+	margin-bottom: 1rem;
+}
+
+.field {
+	display: flex;
+	flex-direction: column;
+	gap: 0.35rem;
+	color: #374151;
+	font-size: 0.875rem;
+}
+
+.field select {
+	height: 2.5rem;
+	border: 1px solid #d1d5db;
+	border-radius: 0.375rem;
+	background: #fff;
+	padding: 0 0.75rem;
+}
+
+.tags {
+	margin: 0;
+	color: #4b5563;
+}
+
+.slotList {
+	margin-top: 1rem;
+	border-top: 1px solid #e5e7eb;
+}
+
+.slotRow {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: 1rem;
+	border-bottom: 1px solid #e5e7eb;
+	padding: 0.7rem 0;
+}
+
+.error {
+	border-radius: 0.5rem;
+	background: #fee2e2;
+	padding: 0.75rem 1rem;
+	color: #b91c1c;
 }
 
 .homeButtonWrap {
-margin-top: 2rem;
+	margin-top: 2rem;
+}
+
+@media (max-width: 640px) {
+	.header,
+	.slotRow {
+		align-items: flex-start;
+		flex-direction: column;
+	}
 }

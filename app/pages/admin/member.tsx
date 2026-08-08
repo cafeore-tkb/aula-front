@@ -1,11 +1,4 @@
-import {
-	collection,
-	doc,
-	getDocs,
-	getFirestore,
-	updateDoc,
-} from 'firebase/firestore';
-import { Eye, Edit2 } from 'lucide-react';
+import { Edit2, Eye } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router';
 import {
@@ -25,8 +18,8 @@ import {
 } from '~/components/ui/table';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '~/components/ui/tabs';
 import { HomeButton } from '../../components/home-button';
+import { listUsers, type UserProfile, updateUser } from '../../lib/api';
 import { useAuth } from '../../lib/auth-context';
-import type { UserProfile } from '../../lib/firebase';
 import styles from './member.module.scss';
 
 export function meta() {
@@ -66,17 +59,7 @@ export default function Admin() {
 
 			try {
 				setLoadingUsers(true);
-				const db = getFirestore();
-				const usersCollection = collection(db, 'users');
-				const usersSnapshot = await getDocs(usersCollection);
-				const usersList = usersSnapshot.docs.map(
-					(doc) =>
-						({
-							uid: doc.id,
-							...doc.data(),
-						}) as UserProfile,
-				);
-				setUsers(usersList);
+				setUsers(await listUsers());
 			} catch (error) {
 				console.error('Error fetching users:', error);
 			} finally {
@@ -90,24 +73,15 @@ export default function Admin() {
 	// ステータス更新関数
 	const handleStatusChange = async (uid: string, statusValue: string) => {
 		try {
-			const db = getFirestore();
-			const userDocRef = doc(db, 'users', uid);
-
-			// ステータスから各フラグを判定
-			const isFirstYear = statusValue.includes('first');
-			const isExaminer = statusValue.includes('examiner');
-
-			await updateDoc(userDocRef, {
-				isFirstYear,
-				isExaminer,
+			const current = users.find((member) => member.uid === uid);
+			if (!current) return;
+			const updated = await updateUser(uid, {
+				cafeoreStatusId: statusValue,
+				version: current.version,
 			});
 
 			// ローカルの状態を更新
-			setUsers((prevUsers) =>
-				prevUsers.map((u) =>
-					u.uid === uid ? { ...u, isFirstYear, isExaminer } : u,
-				),
-			);
+			setUsers((prevUsers) => prevUsers.map((u) => (u.uid === uid ? updated : u)));
 		} catch (error) {
 			console.error('Error updating user status:', error);
 			alert('ステータスの更新に失敗しました');
@@ -117,10 +91,10 @@ export default function Admin() {
 	// ローディング中の表示
 	if (loading) {
 		return (
-			<div className={"common-loading-wrap"}>
-				<div className={"common-loading-inner"}>
-					<div className={"common-loading-spinner-red"}></div>
-					<p className={"common-loading-text"}>権限を確認中...</p>
+			<div className={'common-loading-wrap'}>
+				<div className={'common-loading-inner'}>
+					<div className={'common-loading-spinner-red'}></div>
+					<p className={'common-loading-text'}>権限を確認中...</p>
 				</div>
 			</div>
 		);
@@ -134,10 +108,10 @@ export default function Admin() {
 	// ユーザープロフィールが未読み込みの場合
 	if (!userProfile) {
 		return (
-			<div className={"common-loading-wrap"}>
-				<div className={"common-loading-inner"}>
-					<div className={"common-loading-spinner-red"}></div>
-					<p className={"common-loading-text"}>プロフィール情報を読み込み中...</p>
+			<div className={'common-loading-wrap'}>
+				<div className={'common-loading-inner'}>
+					<div className={'common-loading-spinner-red'}></div>
+					<p className={'common-loading-text'}>プロフィール情報を読み込み中...</p>
 				</div>
 			</div>
 		);
@@ -153,13 +127,9 @@ export default function Admin() {
 		<div className={styles.page}>
 			<div className={styles.container}>
 				<div className={styles.header}>
-					<h1 className={styles.title}>
-						管理者ページ-メンバー管理
-					</h1>
+					<h1 className={styles.title}>管理者ページ-メンバー管理</h1>
 					<div className={styles.userMeta}>
-						<span className={styles.badge}>
-							管理者
-						</span>
+						<span className={styles.badge}>管理者</span>
 						<span className={styles.userName}>
 							{userProfile.name || user.displayName || 'ユーザー'}
 						</span>
@@ -173,17 +143,11 @@ export default function Admin() {
 				) : (
 					<Tabs defaultValue="view" className={styles.tabsRoot}>
 						<TabsList className={styles.tabsList}>
-							<TabsTrigger
-								value="view"
-								className={styles.tabsTrigger}
-							>
+							<TabsTrigger value="view" className={styles.tabsTrigger}>
 								<Eye className={styles.tabsIcon} />
 								<span>閲覧モード</span>
 							</TabsTrigger>
-							<TabsTrigger
-								value="edit"
-								className={styles.tabsTrigger}
-							>
+							<TabsTrigger value="edit" className={styles.tabsTrigger}>
 								<Edit2 className={styles.tabsIcon} />
 								<span>編集モード</span>
 							</TabsTrigger>
@@ -195,12 +159,8 @@ export default function Admin() {
 									<Table className={styles.tableCollapsed}>
 										<TableHeader className={styles.tableHeaderSticky}>
 											<TableRow className={styles.tableHeaderRow}>
-												<TableHead className={styles.tableHead}>
-													表示名
-												</TableHead>
-												<TableHead className={styles.tableHead}>
-													入学年度
-												</TableHead>
+												<TableHead className={styles.tableHead}>表示名</TableHead>
+												<TableHead className={styles.tableHead}>入学年度</TableHead>
 												<TableHead className={styles.tableHead}>
 													珈琲・俺ステータス
 												</TableHead>
@@ -221,13 +181,11 @@ export default function Admin() {
 														key={u.uid}
 														className={`${styles.tableRowBase} ${index % 2 === 0 ? styles.tableRowEven : styles.tableRowOdd}`}
 													>
-														<TableCell className={styles.tableCellStrong}>
-															{u.name}
-														</TableCell>
-														<TableCell className={styles.tableCell}>{`${u.year.toString().slice(2)}生`}</TableCell>
-														<TableCell className={styles.tableCell}>
-															{status}
-														</TableCell>
+														<TableCell className={styles.tableCellStrong}>{u.name}</TableCell>
+														<TableCell
+															className={styles.tableCell}
+														>{`${u.year.toString().slice(2)}生`}</TableCell>
+														<TableCell className={styles.tableCell}>{status}</TableCell>
 													</TableRow>
 												);
 											})}
@@ -243,12 +201,8 @@ export default function Admin() {
 									<Table className={styles.tableCollapsed}>
 										<TableHeader className={styles.tableHeaderSticky}>
 											<TableRow className={styles.tableHeaderRow}>
-												<TableHead className={styles.tableHead}>
-													表示名
-												</TableHead>
-												<TableHead className={styles.tableHead}>
-													入学年度
-												</TableHead>
+												<TableHead className={styles.tableHead}>表示名</TableHead>
+												<TableHead className={styles.tableHead}>入学年度</TableHead>
 												<TableHead className={styles.tableHead}>
 													珈琲・俺ステータス
 												</TableHead>
@@ -269,10 +223,10 @@ export default function Admin() {
 														key={u.uid}
 														className={`${styles.tableRowBase} ${index % 2 === 0 ? styles.tableRowEven : styles.tableRowOdd}`}
 													>
-														<TableCell className={styles.tableCellStrong}>
-															{u.name}
-														</TableCell>
-														<TableCell className={styles.tableCell}>{`${u.year.toString().slice(2)}生`}</TableCell>
+														<TableCell className={styles.tableCellStrong}>{u.name}</TableCell>
+														<TableCell
+															className={styles.tableCell}
+														>{`${u.year.toString().slice(2)}生`}</TableCell>
 														<TableCell className={styles.tableCell}>
 															<Select
 																value={statusValue}

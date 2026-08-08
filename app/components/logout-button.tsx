@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { logOut } from '../lib/firebase';
+import { useAuth } from '../lib/auth-context';
 import styles from './logout-button.module.scss';
 
 interface LogoutButtonProps {
@@ -13,12 +13,13 @@ export function LogoutButton({
 	size = 'md',
 	variant = 'danger',
 }: LogoutButtonProps) {
+	const { signOut } = useAuth();
 	const [loading, setLoading] = useState(false);
 
 	const handleLogout = async () => {
 		try {
 			setLoading(true);
-			await logOut();
+			await signOut();
 		} catch (error) {
 			console.error('Logout error:', error);
 		} finally {

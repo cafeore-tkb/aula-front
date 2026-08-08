@@ -3,8 +3,8 @@ import { useMediaQuery } from 'react-responsive';
 import { useNavigate } from 'react-router';
 import { Input } from '~/components/ui/input';
 import { StatusSelecter } from '../../components/status-selecter';
+import { createMyProfile } from '../../lib/api';
 import { useAuth } from '../../lib/auth-context';
-import { createUserProfileWithData } from '../../lib/firebase';
 import styles from './create-profile.module.scss';
 export function meta() {
 	return [
@@ -14,7 +14,7 @@ export function meta() {
 }
 
 export default function CreateProfile() {
-	const { user, userProfile, loading, refreshProfile } = useAuth();
+	const { user, userProfile, loading, refreshProfile, signOut } = useAuth();
 	const navigate = useNavigate();
 	const [isCreating, setIsCreating] = useState(false);
 	const [profileCreated, setProfileCreated] = useState(false);
@@ -36,8 +36,15 @@ export default function CreateProfile() {
 	// 認証状態をチェック
 	useEffect(() => {
 		if (!loading) {
-			console.log('CreateProfile: user=', !!user, 'userProfile=', !!userProfile, 'profileCreated=', profileCreated);
-			
+			console.log(
+				'CreateProfile: user=',
+				!!user,
+				'userProfile=',
+				!!userProfile,
+				'profileCreated=',
+				profileCreated,
+			);
+
 			// 未ログインの場合はログインページにリダイレクト
 			if (!user) {
 				console.log('CreateProfile: リダイレクト -> /login (未認証)');
@@ -47,11 +54,13 @@ export default function CreateProfile() {
 
 			// すでにプロフィールが存在する場合、またはプロフィールを作成した場合はホームにリダイレクト
 			if (userProfile) {
-				console.log('CreateProfile: リダイレクト -> /dashboard (プロフィール作成済み)');
+				console.log(
+					'CreateProfile: リダイレクト -> /dashboard (プロフィール作成済み)',
+				);
 				navigate('/dashboard');
 				return;
 			}
-			
+
 			console.log('CreateProfile: 表示OK');
 		}
 	}, [user, userProfile, loading, profileCreated, navigate]);
@@ -78,26 +87,27 @@ export default function CreateProfile() {
 			setError(null);
 
 			console.log('CreateProfile: プロフィール作成開始');
-			
-			// Firebase関数を使用してプロフィールを作成
-			await createUserProfileWithData(user, {
-				displayName: displayName.trim(),
-				year: Number.parseInt(year, 10),
-				status: status,
-			});
 
-			console.log('CreateProfile: Firestoreへの書き込み完了');
+			await createMyProfile({
+				name: displayName.trim(),
+				displayName: displayName.trim(),
+				entranceYear: Number.parseInt(year, 10),
+				photoUrl: user.photoURL,
+				cafeoreStatusId: status,
+			});
 
 			// プロフィールを再読み込み
 			await refreshProfile();
-			
+
 			console.log('CreateProfile: プロフィール再読み込み完了');
 
 			// プロフィール作成完了フラグを立てる
 			setProfileCreated(true);
-			
-			console.log('CreateProfile: プロフィール作成完了、useEffectがリダイレクトを実行します');
-			
+
+			console.log(
+				'CreateProfile: プロフィール作成完了、useEffectがリダイレクトを実行します',
+			);
+
 			// useEffectでuserProfileが更新されたことを検知してリダイレクト
 		} catch (error) {
 			console.error('Error creating profile:', error);
@@ -110,10 +120,10 @@ export default function CreateProfile() {
 	// ローディング中の表示
 	if (loading) {
 		return (
-			<div className={"common-loading-wrap"}>
-				<div className={"common-loading-inner"}>
-					<div className={"common-loading-spinner-blue"}></div>
-					<p className={"common-loading-text"}>プロフィール情報を確認中...</p>
+			<div className={'common-loading-wrap'}>
+				<div className={'common-loading-inner'}>
+					<div className={'common-loading-spinner-blue'}></div>
+					<p className={'common-loading-text'}>プロフィール情報を確認中...</p>
 				</div>
 			</div>
 		);
@@ -133,14 +143,22 @@ export default function CreateProfile() {
 		<div className={styles.profilePage}>
 			<div
 				className={`${styles.profileContainer} ${
-					isMobile ? styles.profileContainerMobile : isTablet ? styles.profileContainerTablet : styles.profileContainerDesktop
+					isMobile
+						? styles.profileContainerMobile
+						: isTablet
+							? styles.profileContainerTablet
+							: styles.profileContainerDesktop
 				}`}
 			>
 				<div className={styles.profileCard}>
 					<div className={styles.profileHeader}>
 						<h1
 							className={`${styles.profileTitle} ${
-								isMobile ? styles.profileTitleMobile : isTablet ? styles.profileTitleTablet : styles.profileTitleDesktop
+								isMobile
+									? styles.profileTitleMobile
+									: isTablet
+										? styles.profileTitleTablet
+										: styles.profileTitleDesktop
 							}`}
 							style={{ fontFamily: 'var(--font-rounded)' }}
 						>
@@ -167,30 +185,37 @@ export default function CreateProfile() {
 								<img
 									src={user.photoURL}
 									alt={user.displayName || 'ユーザー'}
-									className={isMobile ? styles.profileAvatarMobile : styles.profileAvatarDesktop}
+									className={
+										isMobile ? styles.profileAvatarMobile : styles.profileAvatarDesktop
+									}
 								/>
 							)}
 							<div className={styles.profileUserInfo}>
 								<h3
 									className={`${styles.profileUserName} ${
-										isMobile ? styles.profileUserNameMobile : styles.profileUserNameDesktop
+										isMobile
+											? styles.profileUserNameMobile
+											: styles.profileUserNameDesktop
 									}`}
 								>
 									{user.displayName || 'ユーザー'}
 								</h3>
-								<p className={`${styles.profileUserEmail} ${isMobile ? styles.profileUserEmailMobile : styles.profileUserEmailDesktop}`}>
+								<p
+									className={`${styles.profileUserEmail} ${isMobile ? styles.profileUserEmailMobile : styles.profileUserEmailDesktop}`}
+								>
 									{user.email}
 								</p>
 							</div>
 						</div>
 
 						{/* プロフィール入力フォーム */}
-						<div className={isDesktop ? styles.profileFormGridDesktop : styles.profileFormStack}>
+						<div
+							className={
+								isDesktop ? styles.profileFormGridDesktop : styles.profileFormStack
+							}
+						>
 							<div>
-								<label
-									htmlFor={displayNameId}
-									className={styles.profileLabel}
-								>
+								<label htmlFor={displayNameId} className={styles.profileLabel}>
 									表示名 <span className={styles.profileRequired}>*</span>
 								</label>
 								<Input
@@ -207,10 +232,7 @@ export default function CreateProfile() {
 							</div>
 
 							<div>
-								<label
-									htmlFor={yearId}
-									className={styles.profileLabel}
-								>
+								<label htmlFor={yearId} className={styles.profileLabel}>
 									筑波大学入学年度 <span className={styles.profileRequired}>*</span>
 								</label>
 								<Input
@@ -228,10 +250,7 @@ export default function CreateProfile() {
 							</div>
 
 							<div>
-								<label
-									htmlFor={statusId}
-									className={styles.profileLabel}
-								>
+								<label htmlFor={statusId} className={styles.profileLabel}>
 									珈琲・俺ステータス <span className={styles.profileRequired}>*</span>
 								</label>
 								<StatusSelecter
@@ -248,7 +267,9 @@ export default function CreateProfile() {
 					{/* エラーメッセージ */}
 					{error && (
 						<div className={styles.profileErrorBox}>
-							<p className={`${styles.profileErrorText} ${isMobile ? styles.profileErrorTextMobile : styles.profileErrorTextDesktop}`}>
+							<p
+								className={`${styles.profileErrorText} ${isMobile ? styles.profileErrorTextMobile : styles.profileErrorTextDesktop}`}
+							>
 								{error}
 							</p>
 						</div>
@@ -259,7 +280,9 @@ export default function CreateProfile() {
 						onClick={handleCreateProfile}
 						disabled={isCreating}
 						className={`${styles.profileSubmitButton} ${
-							isMobile ? styles.profileSubmitButtonMobile : styles.profileSubmitButtonDesktop
+							isMobile
+								? styles.profileSubmitButtonMobile
+								: styles.profileSubmitButtonDesktop
 						}`}
 					>
 						{isCreating ? (
@@ -277,15 +300,7 @@ export default function CreateProfile() {
 							type="button"
 							onClick={async () => {
 								try {
-									// Cookieセッションの削除
-									const { clearAuthSession } = await import('../../lib/cookie-utils');
-									clearAuthSession();
-
-									// ログアウト処理（Firebase Auth）
-									const { logOut } = await import('../../lib/firebase');
-									await logOut();
-
-									navigate('/login');
+									await signOut();
 								} catch (error) {
 									console.error('ログアウトエラー:', error);
 									navigate('/login');
