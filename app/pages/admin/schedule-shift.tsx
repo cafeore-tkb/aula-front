@@ -22,9 +22,10 @@ interface StaffMember {
 	userId: string;
 	name: string;
 	isExaminer: boolean;
+	isFirstYear: boolean;
 	scheduleData: { period: string; day: string; canBeAssigned: boolean }[];
 	comment: string;
-	isTwice?: boolean; // 週2回シフトを希望するかどうか
+	frequency: '週1回' | '週2回';
 	isAssigned?: boolean; // 割り当て済みフラグ
 }
 
@@ -85,6 +86,10 @@ export default function ScheduleShift() {
 	// スタッフリスト状態管理
 	const [trainees, setTrainees] = useState<StaffMember[]>([]);
 	const [examiners, setExaminers] = useState<StaffMember[]>([]);
+	const traineeFrequencySummary = {
+		once: trainees.filter((trainee) => trainee.frequency === '週1回').length,
+		twice: trainees.filter((trainee) => trainee.frequency === '週2回').length,
+	};
 
 	// 右カラムで表示するリストの切替（'trainees' | 'examiners'）
 	const [activeList, setActiveList] = useState<'trainees' | 'examiners'>(
@@ -456,6 +461,7 @@ export default function ScheduleShift() {
 						}>;
 						comment?: string;
 						isTwice?: boolean;
+						frequency?: string;
 					};
 
 					const userId = shiftResponseData.userId;
@@ -471,10 +477,6 @@ export default function ScheduleShift() {
 					}
 
 					const userData = userDoc.data() as UserProfile;
-					const userDataWithFlags = userDoc.data() as UserProfile & {
-						isTwice?: boolean;
-						isAssigned?: boolean;
-					};
 					console.log('User data:', {
 						userId,
 						name: userData.name,
@@ -491,13 +493,14 @@ export default function ScheduleShift() {
 						userId,
 						name: userData.name || '名前未設定',
 						isExaminer: userData.isExaminer || false,
+						isFirstYear: userData.isFirstYear === true,
 						scheduleData: (shiftResponseData.scheduleData || []).map((slot) => ({
 							period: String(slot.period ?? ''),
 							day: String(slot.day ?? ''),
 							canBeAssigned: Boolean(slot.canBeAssigned ?? slot.isSelected),
 						})),
 						comment: shiftResponseData.comment || '',
-						isTwice: userDataWithFlags.isTwice ?? shiftResponseData.isTwice ?? false,
+						frequency: shiftResponseData.frequency === '週2回' ? '週2回' : '週1回',
 					};
 
 					if (userData.isExaminer === true) {
@@ -954,7 +957,11 @@ export default function ScheduleShift() {
 																	{slot.assignedTrainees.map((trainee, idx) => (
 																		<div
 																			key={`${trainee.userId}-${idx}`}
-																			className={`${styles.slotAssigneeBox} ${styles.slotAssigneeBoxTrainee}`}
+																			className={`${styles.slotAssigneeBox} ${styles.slotAssigneeBoxTrainee} ${
+																				trainee.isFirstYear
+																					? styles.slotAssigneeBoxFirstYear
+																					: styles.slotAssigneeBoxSecondYear
+																			}`}
 																		>
 																			<button
 																				type="button"
@@ -968,7 +975,16 @@ export default function ScheduleShift() {
 																				×
 																			</button>
 																			<div className={styles.slotAssigneeLabel}>
-																				練:{trainee.name}
+																				<span
+																					className={`${styles.yearBadge} ${
+																						trainee.isFirstYear
+																							? styles.yearBadgeFirst
+																							: styles.yearBadgeSecond
+																					}`}
+																				>
+																					{trainee.isFirstYear ? '1年目' : '2年目'}
+																				</span>
+																				<span>{trainee.name}</span>
 																			</div>
 																		</div>
 																	))}
@@ -1073,15 +1089,27 @@ export default function ScheduleShift() {
 													disabled={!isEditMode}
 												>
 													<div className={styles.staffItemHeader}>
-														<span
-															className={`${styles.staffItemName} ${
-																selectedStaffUserId === trainee.userId
-																	? styles.staffItemNameSelected
-																	: ''
-															}`}
-														>
-															{trainee.name}
-														</span>
+														<div className={styles.staffItemIdentity}>
+															<span
+																className={`${styles.yearBadge} ${
+																	trainee.isFirstYear
+																		? styles.yearBadgeFirst
+																		: styles.yearBadgeSecond
+																}`}
+															>
+																{trainee.isFirstYear ? '1年目' : '2年目'}
+															</span>
+															<span
+																className={`${styles.staffItemName} ${
+																	selectedStaffUserId === trainee.userId
+																		? styles.staffItemNameSelected
+																		: ''
+																}`}
+															>
+																{trainee.name}
+															</span>
+														</div>
+														<span className={styles.frequencyBadge}>{trainee.frequency}</span>
 													</div>
 													<p
 														className={`${styles.staffItemComment} ${
