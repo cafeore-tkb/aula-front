@@ -68,10 +68,10 @@ export default function ShiftList() {
 	// ローディング中
 	if (loading || !userProfile) {
 		return (
-			<div className={"common-loading-wrap"}>
-				<div className={"common-loading-inner"}>
-					<div className={"common-loading-spinner-teal"} />
-					<p className={"common-loading-text"}>読み込み中...</p>
+			<div className={'common-loading-wrap'}>
+				<div className={'common-loading-inner'}>
+					<div className={'common-loading-spinner-teal'} />
+					<p className={'common-loading-text'}>読み込み中...</p>
 				</div>
 			</div>
 		);
@@ -83,19 +83,23 @@ export default function ShiftList() {
 				{/* ヘッダー */}
 				<div className={styles.shiftListHeader}>
 					<h1 className={styles.shiftListTitle}>シフト一覧</h1>
-					<p className={styles.shiftListSubtitle}>公開されているシフトの募集一覧です</p>
+					<p className={styles.shiftListSubtitle}>
+						公開されているシフトの募集一覧です
+					</p>
 				</div>
 
 				{/* シフト一覧 */}
 				{loadingShifts ? (
 					<div className={styles.shiftListLoadingWrap}>
-						<div className={"common-loading-spinner-teal"} />
-						<p className={"common-loading-text"}>シフトを読み込み中...</p>
+						<div className={'common-loading-spinner-teal'} />
+						<p className={'common-loading-text'}>シフトを読み込み中...</p>
 					</div>
 				) : shifts.length === 0 ? (
 					<Card>
 						<CardContent className={styles.shiftListEmptyContent}>
-							<p className={styles.shiftListEmptyText}>現在公開されているシフトはありません</p>
+							<p className={styles.shiftListEmptyText}>
+								現在公開されているシフトはありません
+							</p>
 						</CardContent>
 					</Card>
 				) : (
@@ -115,10 +119,7 @@ export default function ShiftList() {
 								`schedules_${shift.year}_${shift.semester}_${shift.module}`;
 
 							return (
-								<Card
-									key={shift.uid}
-									className={styles.shiftListCard}
-								>
+								<Card key={shift.uid} className={styles.shiftListCard}>
 									<CardHeader>
 										<CardTitle className={styles.shiftListCardTitle}>
 											<span>
@@ -139,6 +140,7 @@ export default function ShiftList() {
 																module: shift.module,
 																isTwice: shift.isTwice,
 																scheduleCollectionId,
+																startDate: shift.startDate,
 															},
 														})
 													}

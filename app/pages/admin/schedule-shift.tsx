@@ -13,6 +13,7 @@ import { Button } from '../../components/ui/button';
 import { Card, CardContent } from '../../components/ui/card';
 import { useAuth } from '../../lib/auth-context';
 import type { ShiftListItem, UserProfile } from '../../lib/firebase';
+import { getShiftDayLabels, WEEKDAY_LABELS } from '../../lib/shift-days';
 import styles from './schedule-shift.module.scss';
 
 /**
@@ -71,7 +72,7 @@ export default function ScheduleShift() {
 	const isMobile = useMediaQuery({ maxWidth: 767 });
 
 	// 定数
-	const day = ['月', '火', '水', '木', '金', '土', '日'];
+	const [day, setDay] = useState<string[]>([...WEEKDAY_LABELS]);
 	const periods = ['1限', '2限', '3限', '4限', '5限', '6限', '7限', '8限'];
 	const dayEmojiByName: Record<string, string> = {
 		月: ':d_monday:',
@@ -86,10 +87,6 @@ export default function ScheduleShift() {
 	// スタッフリスト状態管理
 	const [trainees, setTrainees] = useState<StaffMember[]>([]);
 	const [examiners, setExaminers] = useState<StaffMember[]>([]);
-	const traineeFrequencySummary = {
-		once: trainees.filter((trainee) => trainee.frequency === '週1回').length,
-		twice: trainees.filter((trainee) => trainee.frequency === '週2回').length,
-	};
 
 	// 右カラムで表示するリストの切替（'trainees' | 'examiners'）
 	const [activeList, setActiveList] = useState<'trainees' | 'examiners'>(
@@ -135,7 +132,10 @@ export default function ScheduleShift() {
 				}
 
 				const dayName = day[dayIndex];
-				const dayEmoji = dayEmojiByName[dayName] ?? `:${dayName}:`;
+				const dayEmoji =
+					shiftData?.semester === 'summer'
+						? dayName
+						: (dayEmojiByName[dayName] ?? `:${dayName}:`);
 				const periodEmoji = `:${periodIndex + 1}:`;
 				const traineesText =
 					slot.assignedTrainees.length > 0
@@ -264,6 +264,13 @@ export default function ScheduleShift() {
 		const labelIndex = day.indexOf(dayValue);
 		if (labelIndex >= 0) {
 			return labelIndex;
+		}
+
+		const weekdayIndex = WEEKDAY_LABELS.indexOf(
+			dayValue as (typeof WEEKDAY_LABELS)[number],
+		);
+		if (weekdayIndex >= 0) {
+			return weekdayIndex;
 		}
 
 		const numericIndex = Number(dayValue);
@@ -396,6 +403,8 @@ export default function ScheduleShift() {
 								year: doc.data().year || 2024,
 								semester: doc.data().semester || 'spring',
 								module: doc.data().module || 'A',
+								startDate: doc.data().startDate,
+								endDate: doc.data().endDate,
 								isScheduled: doc.data().isScheduled || false,
 								comment: doc.data().comment || '',
 							}) as ShiftListItem,
@@ -413,6 +422,8 @@ export default function ScheduleShift() {
 									year: doc.data().year || 9999,
 									semester: doc.data().semester || 'spring',
 									module: doc.data().module || 'A',
+									startDate: doc.data().startDate,
+									endDate: doc.data().endDate,
 									isScheduled: doc.data().isScheduled || false,
 									comment: doc.data().comment || '',
 								}) as ShiftListItem,
@@ -427,6 +438,7 @@ export default function ScheduleShift() {
 				}
 
 				setShiftData(foundShift);
+				setDay(await getShiftDayLabels(foundShift));
 				console.log('Loaded shift:', foundShift);
 
 				const scheduleCollectionName = `schedules_${foundShift.year}_${foundShift.semester}_${foundShift.module}`;
@@ -841,8 +853,9 @@ export default function ScheduleShift() {
 						) : shiftData ? (
 							<div className={styles.shiftMeta}>
 								{shiftData.year}年度{' '}
-								{shiftData.semester === 'spring' ? '春学期 ' : '秋学期 '}
-								{shiftData.module}モジュール
+								{shiftData.semester === 'summer'
+									? `夏休み 第${shiftData.module}週`
+									: `${shiftData.semester === 'spring' ? '春' : '秋'}学期 ${shiftData.module}モジュール`}
 							</div>
 						) : null}
 					</div>
@@ -897,7 +910,11 @@ export default function ScheduleShift() {
 														: styles.dayHeadTextDesktop
 											}`}
 										>
-											{isMobile ? dayName : `${dayName}曜日`}
+											{shiftData?.semester === 'summer'
+												? dayName
+												: isMobile
+													? dayName
+													: `${dayName}曜日`}
 										</CardContent>
 									</Card>
 								))}
