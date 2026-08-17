@@ -20,6 +20,7 @@ import { RadioGroup, RadioGroupItem } from '../../components/ui/radio-group';
 import { useAuth } from '../../lib/auth-context';
 import { db } from '../../lib/firebase';
 import { getShiftDayLabels, WEEKDAY_LABELS } from '../../lib/shift-days';
+import { getModuleDisplay, getSemesterDisplay } from '../../lib/shift-labels';
 import styles from './adjustment.module.scss';
 
 export function meta() {
@@ -304,6 +305,11 @@ export default function Adjustment() {
 	const isDesktop = useMediaQuery({ minWidth: 1024 }); // lg以上
 	const isTablet = useMediaQuery({ minWidth: 768, maxWidth: 1023 }); // md-lg
 	const isMobile = useMediaQuery({ maxWidth: 767 }); // md未満
+	const shiftSemesterLabel = getSemesterDisplay(shiftInfo?.semester || '');
+	const shiftModuleLabel = getModuleDisplay(
+		shiftInfo?.semester || '',
+		shiftInfo?.module || '',
+	);
 
 	// ローディング中の表示
 	if (isLoading) {

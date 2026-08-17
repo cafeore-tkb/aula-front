@@ -62,6 +62,14 @@ box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
 display: flex;
     align-items: center;
     justify-content: space-between;
+    gap: 0.5rem;
+    min-width: 0;
+}
+
+.shiftListCardTitleText {
+display: inline-block;
+    min-width: 0;
+    overflow-wrap: anywhere;
 }
 
 .shiftListContent {
@@ -74,10 +82,12 @@ display: flex;
 display: flex;
     gap: 0.5rem;
     padding-top: 0.5rem;
+    flex-wrap: wrap;
 }
 
 .shiftListAnswerButton {
 background: #14b8a6;
+    white-space: normal;
 }
 
 .shiftListAnswerButton:hover {
@@ -85,6 +95,27 @@ background: #0d9488;
     color: #fff;
 }
 
+.shiftListCalendarButton {
+background: #808080;
+    white-space: normal;
+}
+
+.shiftListCalendarButton:hover {
+background: #5a6d6b;
+    color: #fff;
+}
+
 .shiftListHomeButtonWrap {
 margin-top: 2rem;
+}
+
+@media (max-width: 767px) {
+.shiftListActionRow {
+flex-direction: column;
+}
+
+.shiftListAnswerButton,
+.shiftListCalendarButton {
+width: 100%;
+}
 }

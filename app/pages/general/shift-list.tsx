@@ -1,4 +1,4 @@
-import { collection, getDocs } from 'firebase/firestore';
+import { collection, doc, getDoc, getDocs } from 'firebase/firestore';
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router';
 import { HomeButton } from '../../components/home-button';
@@ -11,7 +11,12 @@ import {
 } from '../../components/ui/card';
 import { useAuth } from '../../lib/auth-context';
 import { db, type ShiftUsual } from '../../lib/firebase';
+import {
+	getModuleDisplay,
+	getSemesterDisplay,
+} from '../../lib/shift-labels';
 import styles from './shift-list.module.scss';
+import { exportShiftToIcal } from '~/lib/export-ical';
 
 export function meta() {
 	return [
@@ -25,6 +30,7 @@ export default function ShiftList() {
 	const navigate = useNavigate();
 	const [shifts, setShifts] = useState<ShiftUsual[]>([]);
 	const [loadingShifts, setLoadingShifts] = useState(true);
+	const [exportingId, setExportingId] = useState<string | null>(null);
 
 	// 認証チェック
 	useEffect(() => {
@@ -44,6 +50,11 @@ export default function ShiftList() {
 				// 公開されているシフト通常設定を取得
 				const shiftsRef = collection(db, 'shiftUsual');
 				const querySnapshot = await getDocs(shiftsRef);
+				const confirmedShiftId = `2026_spring_B`;
+
+				const confirmedRef = doc(db, 'confirmed_shift', confirmedShiftId);
+				const comsnapshot = await getDoc(confirmedRef)
+				console.log(comsnapshot.data())
 				const shiftsData: ShiftUsual[] = querySnapshot.docs
 					.map(
 						(doc) =>
@@ -77,6 +88,31 @@ export default function ShiftList() {
 		);
 	}
 
+	const handleExport = async (shift: ShiftUsual) => {
+		if (!user) return;
+		
+		const scheduleCollectionId =
+			shift.scheduleCollectionId ??
+			`schedules_${shift.year}_${shift.semester}_${shift.module}`;
+		
+		setExportingId(shift.uid);
+		try {
+			const result = await exportShiftToIcal(
+				user.uid,
+				user.displayName ?? user.email ?? 'ユーザー',
+				{
+					year: shift.year,
+					semester: shift.semester,
+					module: shift.module,
+					scheduleCollectionId,
+				},
+			);
+			alert(result.message);
+		} finally {
+			setExportingId(null);
+		}
+	};
+
 	return (
 		<div className={styles.shiftListPage}>
 			<div className={styles.shiftListContainer}>
@@ -105,13 +141,8 @@ export default function ShiftList() {
 				) : (
 					<div className={styles.shiftListListWrap}>
 						{shifts.map((shift) => {
-							// 学期の日本語変換
-							const semesterJa =
-								shift.semester === 'spring'
-									? '春'
-									: shift.semester === 'autumn'
-										? '秋'
-										: shift.semester;
+							const semesterDisplay = getSemesterDisplay(shift.semester);
+							const moduleDisplay = getModuleDisplay(shift.semester, shift.module);
 
 							// シフト専用のコレクション名（なければデフォルト名を生成）
 							const scheduleCollectionId =
@@ -122,8 +153,8 @@ export default function ShiftList() {
 								<Card key={shift.uid} className={styles.shiftListCard}>
 									<CardHeader>
 										<CardTitle className={styles.shiftListCardTitle}>
-											<span>
-												{shift.year}年度 {semesterJa}学期 {shift.module}モジュール
+											<span className={styles.shiftListCardTitleText}>
+												{shift.year}年度 {semesterDisplay} {moduleDisplay}
 											</span>
 										</CardTitle>
 									</CardHeader>
@@ -147,6 +178,26 @@ export default function ShiftList() {
 													className={styles.shiftListAnswerButton}
 												>
 													シフトを回答する
+												</Button>
+												<Button
+													onClick={() => handleExport(shift)}
+													className={styles.shiftListCalendarButton}
+													disabled={exportingId === shift.uid}
+												>
+													<svg
+														fill="none"
+														stroke="currentColor"
+														viewBox="0 0 24 24"
+													>
+														<title>カレンダー</title>
+														<path
+															strokeLinecap="round"
+															strokeLinejoin="round"
+															strokeWidth={2}
+															d="M8 7V3m8 4V3M5 11h14M5 7h14a2 2 0 012 2v10a2 2 0 01-2 2H5a2 2 0 01-2-2V9a2 2 0 012-2z"
+														/>
+													</svg>
+													{exportingId === shift.uid ? 'エクスポート中...' : 'カレンダーをダウンロード'}
 												</Button>
 											</div>
 										</div>

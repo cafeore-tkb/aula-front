@@ -12,7 +12,7 @@ type ButtonVariant =
 	| 'ghost'
 	| 'link';
 
-type ButtonSize = 'default' | 'sm' | 'lg' | 'icon';
+type ButtonSize = 'default' | 'sm' | 'lg' | 'icon' | 'auto';
 
 export interface ButtonProps
 	extends React.ButtonHTMLAttributes<HTMLButtonElement> {
@@ -47,6 +47,7 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
 			sm: styles.sizeSm,
 			lg: styles.sizeLg,
 			icon: styles.sizeIcon,
+			auto: styles.sizeAuto,
 		};
 
 		return (

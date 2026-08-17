@@ -14,6 +14,7 @@ import { Card, CardContent } from '../../components/ui/card';
 import { useAuth } from '../../lib/auth-context';
 import type { ShiftListItem, UserProfile } from '../../lib/firebase';
 import { getShiftDayLabels, WEEKDAY_LABELS } from '../../lib/shift-days';
+import { getModuleDisplay, getSemesterDisplay } from '../../lib/shift-labels';
 import styles from './schedule-shift.module.scss';
 
 /**
@@ -952,6 +953,7 @@ export default function ScheduleShift() {
 												<Button
 													key={`${period}-${dayName}`}
 													variant={slot.slotStatus === 'complete' ? 'default' : 'outline'}
+													size="auto"
 													disabled={
 														!isEditMode ||
 														(!slot.isVacant &&
@@ -980,6 +982,7 @@ export default function ScheduleShift() {
 																					: styles.slotAssigneeBoxSecondYear
 																			}`}
 																		>
+																			{activeList ==='trainees' ? 
 																			<button
 																				type="button"
 																				className={styles.slotRemoveButton}
@@ -990,7 +993,8 @@ export default function ScheduleShift() {
 																				aria-label={`${trainee.name} の割り当てを解除`}
 																			>
 																				×
-																			</button>
+																			</button>: null}
+																			
 																			<div className={styles.slotAssigneeLabel}>
 																				<span
 																					className={`${styles.yearBadge} ${
@@ -1018,6 +1022,7 @@ export default function ScheduleShift() {
 																			key={`${examiner.userId}-${idx}`}
 																			className={`${styles.slotAssigneeBox} ${styles.slotAssigneeBoxExaminer}`}
 																		>
+																			{activeList === 'examiners' ?
 																			<button
 																				type="button"
 																				className={styles.slotRemoveButton}
@@ -1029,6 +1034,7 @@ export default function ScheduleShift() {
 																			>
 																				×
 																			</button>
+																			: null}
 																			<div className={styles.slotAssigneeLabel}>
 																				試:{examiner.name}
 																			</div>
