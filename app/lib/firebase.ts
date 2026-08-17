@@ -39,6 +39,8 @@ export interface ShiftUsual {
 	year: number;
 	semester: 'spring' | 'summer' | 'autumn';
 	module: 'A' | 'B' | 'C' | `${number}`;
+	startDate?: string;
+	endDate?: string;
 	isOpen: boolean;
 	isTwice: boolean;
 	isScheduled: boolean;
@@ -50,6 +52,8 @@ export interface ShiftListItem {
 	year: number;
 	semester: string;
 	module: string;
+	startDate?: string;
+	endDate?: string;
 	isScheduled: boolean;
 }
 
