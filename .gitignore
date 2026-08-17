@@ -9,3 +9,5 @@ dist/
 /build/
 
 openapi.yaml
+
+*.ics
