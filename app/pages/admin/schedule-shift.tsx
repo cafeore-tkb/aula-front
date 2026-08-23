@@ -114,6 +114,10 @@ export default function ScheduleShift() {
 			),
 	);
 
+	const [showScheduleDiffModal, setShowScheduleDiffModal] = useState(false);
+	const [pendingFirestoreSchedule, setPendingFirestoreSchedule] = useState<TimeSlot[][] | null>(null);
+	const [pendingLocalSchedule, setPendingLocalSchedule] = useState<TimeSlot[][] | null>(null);
+
 	const buildEmptySchedule = (): TimeSlot[][] =>
 		Array(8)
 			.fill(null)
@@ -132,6 +136,96 @@ export default function ScheduleShift() {
 		(shiftUid: string) => `schedule_shift_${shiftUid}`,
 		[],
 	);
+
+	const serializeScheduleForComparison = (schedule: TimeSlot[][]) =>
+	schedule.map((row) =>
+		row.map((slot) => ({
+			traineeUserIds: slot.assignedTrainees
+				.map((staff) => staff.userId)
+				.sort(),
+			examinerUserIds: slot.assignedExaminers
+				.map((staff) => staff.userId)
+				.sort(),
+		})),
+	);
+
+const areSchedulesEqual = (
+	scheduleA: TimeSlot[][],
+	scheduleB: TimeSlot[][],
+) =>
+	JSON.stringify(serializeScheduleForComparison(scheduleA)) ===
+	JSON.stringify(serializeScheduleForComparison(scheduleB));
+
+	const restoreLocalSchedule = (
+		savedScheduleJson: string,
+		traineeList: StaffMember[],
+		examinerList: StaffMember[],
+	): TimeSlot[][] => {
+		const savedSchedule = JSON.parse(savedScheduleJson) as Array<
+			Array<
+				| {
+						traineeUserIds?: string[];
+						examinerUserIds?: string[];
+				}
+				| undefined
+			>
+		>;
+
+		return Array(8)
+			.fill(null)
+			.map((_, periodIndex) =>
+				Array(7)
+					.fill(null)
+					.map((_, dayIndex) => {
+						const saved = savedSchedule[periodIndex]?.[dayIndex];
+
+						if (!saved) {
+							return {
+								assignedTrainees: [],
+								assignedExaminers: [],
+								slotStatus: 'idle',
+								isVacant: false,
+							};
+						}
+
+						const restoredTrainees = (saved.traineeUserIds || [])
+							.map((userId) =>
+								traineeList.find(
+									(trainee) => trainee.userId === userId,
+								),
+							)
+							.filter(Boolean) as StaffMember[];
+
+						const restoredExaminers = (saved.examinerUserIds || [])
+							.map((userId) =>
+								examinerList.find(
+									(examiner) => examiner.userId === userId,
+								),
+							)
+							.filter(Boolean) as StaffMember[];
+
+						const uniqueRestoredTrainees =
+							dedupeStaffMembers(restoredTrainees);
+
+						const uniqueRestoredExaminers =
+							dedupeStaffMembers(restoredExaminers);
+
+						return {
+							assignedTrainees: uniqueRestoredTrainees,
+							assignedExaminers: uniqueRestoredExaminers,
+							slotStatus:
+								uniqueRestoredTrainees.length > 0 &&
+								uniqueRestoredExaminers.length >= 2
+									? 'complete'
+									: uniqueRestoredTrainees.length > 0 ||
+										uniqueRestoredExaminers.length > 0
+										? 'incomplete'
+										: 'idle',
+							isVacant: false,
+						};
+					}),
+			);
+	};
 
 	const outputText = (() => {
 		const lines: string[] = [];
@@ -201,6 +295,34 @@ export default function ScheduleShift() {
 			console.error('Failed to copy output text:', error);
 			setCopyResultMessage('コピーに失敗しました');
 		}
+	};
+
+	const applyFirestoreSchedule = () => {
+		if (!pendingFirestoreSchedule) {
+			return;
+		}
+
+		setSchedule(pendingFirestoreSchedule);
+		setIsEditMode(false);
+
+		setPendingFirestoreSchedule(null);
+		setPendingLocalSchedule(null);
+		setShowScheduleDiffModal(false);
+		setIsScheduleLoaded(true);
+	};
+
+	const useLocalSchedule = () => {
+		if (!pendingLocalSchedule) {
+			return;
+		}
+
+		setSchedule(pendingLocalSchedule);
+		setIsEditMode(true);
+
+		setPendingFirestoreSchedule(null);
+		setPendingLocalSchedule(null);
+		setShowScheduleDiffModal(false);
+		setIsScheduleLoaded(true);
 	};
 
 	const handleSaveSchedule = async () => {
@@ -528,6 +650,8 @@ export default function ScheduleShift() {
 				/**
 				 * Firebase のconfirmed_shiftに確定シフトがあればFirebaseから復元、なければlocalStorageから復元
 				 */
+				const storageKey = getStorageKey(foundShift.uid);
+				const savedScheduleJson = localStorage.getItem(storageKey);
 				const confirmedShiftDocId = `${foundShift.year}_${foundShift.semester}_${foundShift.module}`;
 				const confirmedShiftRef = doc(db, 'confirmed_shift', confirmedShiftDocId);
 				const confirmedShiftSnap = await getDoc(confirmedShiftRef);
@@ -539,123 +663,111 @@ export default function ScheduleShift() {
 							slots: Array<{
 								dayIndex: number;
 								slotStatus?: TimeSlot['slotStatus'];
-								assignedTrainees?: Array<{ userId: string; name: string }>;
-								assignedExaminers?: Array<{ userId: string; name: string }>;
+								assignedTrainees?: Array<{
+									userId: string;
+									name: string;
+								}>;
+								assignedExaminers?: Array<{
+									userId: string;
+									name: string;
+								}>;
 							}>;
 						}>;
 					};
 
-					const restoredSchedule = buildEmptySchedule();
+					const firestoreSchedule = buildEmptySchedule();
 
 					confirmedData.confirmedSchedule?.forEach((period) => {
 						period.slots?.forEach((slot) => {
-							const restoredTrainees = (slot.assignedTrainees || []).map((saved) => {
-								return (
-									traineeList.find((trainee) => trainee.userId === saved.userId) || {
+							const restoredTrainees = (slot.assignedTrainees || []).map(
+								(saved) =>
+									traineeList.find(
+										(trainee) => trainee.userId === saved.userId,
+									) || {
 										userId: saved.userId,
 										name: saved.name,
 										isExaminer: false,
 										scheduleData: [],
 										comment: '',
 										isTwice: false,
-									}
-								);
-							});
+									},
+							);
 
-							const restoredExaminers = (slot.assignedExaminers || []).map((saved) => {
-								return (
-									examinerList.find((examiner) => examiner.userId === saved.userId) || {
+							const restoredExaminers = (slot.assignedExaminers || []).map(
+								(saved) =>
+									examinerList.find(
+										(examiner) => examiner.userId === saved.userId,
+									) || {
 										userId: saved.userId,
 										name: saved.name,
 										isExaminer: true,
 										scheduleData: [],
 										comment: '',
 										isTwice: false,
-									}
-								);
-							});
+									},
+							);
 
-							restoredSchedule[period.periodIndex][slot.dayIndex] = {
-								assignedTrainees: dedupeStaffMembers(restoredTrainees),
-								assignedExaminers: dedupeStaffMembers(restoredExaminers),
+							firestoreSchedule[period.periodIndex][slot.dayIndex] = {
+								assignedTrainees:
+									dedupeStaffMembers(restoredTrainees),
+								assignedExaminers:
+									dedupeStaffMembers(restoredExaminers),
 								slotStatus: slot.slotStatus || 'idle',
 								isVacant: false,
 							};
 						});
 					});
 
-					setSchedule(restoredSchedule);
+					if (savedScheduleJson) {
+						try {
+							const localSchedule = restoreLocalSchedule(
+								savedScheduleJson,
+								traineeList,
+								examinerList,
+							);
+
+							if (!areSchedulesEqual(
+								firestoreSchedule,
+								localSchedule,
+							)) {
+								setPendingFirestoreSchedule(firestoreSchedule);
+								setPendingLocalSchedule(localSchedule);
+								setShowScheduleDiffModal(true);
+								return;
+							}
+						} catch (error) {
+							console.error(
+								'Failed to compare local schedule:',
+								error,
+							);
+						}
+					}
+
+					setSchedule(firestoreSchedule);
 					setIsEditMode(false);
 					setIsScheduleLoaded(true);
 					console.log('Restored schedule from Firebase');
 					return;
 				}
 
-				const storageKey = getStorageKey(foundShift.uid);
-				const savedScheduleJson = localStorage.getItem(storageKey);
-
 				if (savedScheduleJson) {
 					try {
-						const savedSchedule = JSON.parse(savedScheduleJson) as Array<
-							Array<
-								{ traineeUserIds?: string[]; examinerUserIds?: string[] } | undefined
-							>
-						>;
-						const restoredSchedule: TimeSlot[][] = Array(8)
-							.fill(null)
-							.map((_, periodIndex) =>
-								Array(7)
-									.fill(null)
-									.map((_, dayIndex) => {
-										const saved = savedSchedule[periodIndex]?.[dayIndex];
+						const localSchedule = restoreLocalSchedule(
+							savedScheduleJson,
+							traineeList,
+							examinerList,
+						);
 
-										if (!saved) {
-											return {
-												assignedTrainees: [],
-												assignedExaminers: [],
-												slotStatus: 'idle',
-												isVacant: false,
-											};
-										}
-
-										const restoredTrainees = (saved.traineeUserIds || [])
-											.map((userId) =>
-												traineeList.find((trainee) => trainee.userId === userId),
-											)
-											.filter(Boolean) as StaffMember[];
-
-										const restoredExaminers = (saved.examinerUserIds || [])
-											.map((userId) =>
-												examinerList.find((examiner) => examiner.userId === userId),
-											)
-											.filter(Boolean) as StaffMember[];
-
-										const uniqueRestoredTrainees = dedupeStaffMembers(restoredTrainees);
-										const uniqueRestoredExaminers = dedupeStaffMembers(restoredExaminers);
-
-										return {
-											assignedTrainees: uniqueRestoredTrainees,
-											assignedExaminers: uniqueRestoredExaminers,
-											slotStatus:
-												uniqueRestoredTrainees.length > 0 &&
-												uniqueRestoredExaminers.length >= 2
-													? 'complete'
-													: uniqueRestoredTrainees.length > 0 ||
-															uniqueRestoredExaminers.length > 0
-														? 'incomplete'
-														: 'idle',
-											isVacant: false,
-										};
-									}),
-							);
-
-						setSchedule(restoredSchedule);
+						setSchedule(localSchedule);
 						setIsEditMode(false);
 						console.log('Restored schedule from localStorage');
 					} catch (error) {
-						console.error('Failed to restore schedule from localStorage:', error);
-						setIsEditMode(true);
+						console.error(
+							'Failed to restore schedule from localStorage:',
+							error,
+						);
 						setSchedule(buildEmptySchedule());
+						setIsEditMode(true);
 					}
 				} else {
 					setSchedule(buildEmptySchedule());
@@ -1280,6 +1392,48 @@ export default function ScheduleShift() {
 							</Button>
 							<Button variant="outline" onClick={closeOutputPopup}>
 								閉じる
+							</Button>
+						</div>
+					</div>
+				</dialog>
+			)}
+			{showScheduleDiffModal && (
+				<dialog
+					className={styles.modalOverlay}
+					open
+				>
+					<div
+						className={styles.modalContent}
+						role="dialog"
+						aria-modal="true"
+					>
+						<div className={styles.modalHeader}>
+							<h2 className={styles.modalTitle}>
+								保存済みシフトとの差異があります
+							</h2>
+						</div>
+
+						<div className={styles.modalBody}>
+							<p>
+								サーバーに保存されているシフトと、
+								この端末に保存されているシフトが異なります。
+							</p>
+							<p>どちらのシフトを使用しますか？</p>
+						</div>
+
+						<div className={styles.modalFooter}>
+							<Button
+								variant="outline"
+								onClick={useLocalSchedule}
+							>
+								この端末のシフトを使用
+							</Button>
+
+							<Button
+								variant="default"
+								onClick={applyFirestoreSchedule}
+							>
+								サーバーのシフトを反映
 							</Button>
 						</div>
 					</div>
